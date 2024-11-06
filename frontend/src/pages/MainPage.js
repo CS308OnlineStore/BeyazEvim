@@ -31,7 +31,7 @@ const MainPage = () => {
   const navigate = useNavigate();
 
   const handleLoginClick = () => {
-    navigate('/login');
+    navigate('/signinsignup');
   };
 
   return (
