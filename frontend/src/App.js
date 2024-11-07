@@ -5,6 +5,7 @@ import MainPage from './pages/MainPage'; // Correct path to MainPage
 import SignInSignUp from './pages/SignInSignUp';
 import SignUp from './pages/SignUp';
 import SignIn from './pages/SignIn';
+import ShoppingCart from './pages/ShoppingCart';
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
         <Route path="/signinsignup" element={<SignInSignUp />} />
         <Route path="/signin" element={<SignIn />} />
         <Route path="/signup" element={<SignUp />} />
+        <Route path="/shoppingcart" element={<ShoppingCart />} />
       </Routes>
     </Router>
   );
