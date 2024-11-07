@@ -2,24 +2,21 @@
 import React, { useState } from 'react';
 
 const ShoppingCart = () => {
-  // Example cart items
   const [cartItems, setCartItems] = useState([
     { id: 1, name: 'Product 1', price: 100 },
     { id: 2, name: 'Product 2', price: 150 },
   ]);
 
   const handleRemoveItem = (id) => {
-    // Remove an item from the cart
     setCartItems(cartItems.filter(item => item.id !== id));
   };
 
   const calculateTotal = () => {
-    // Calculate the total price
     return cartItems.reduce((total, item) => total + item.price, 0);
   };
 
   return (
-    <div style={{ padding: '20px' }}>
+    <div>
       <h2>My Cart</h2>
       {cartItems.length === 0 ? (
         <p>Your cart is empty.</p>
@@ -30,7 +27,10 @@ const ShoppingCart = () => {
               <li key={item.id} style={{ marginBottom: '10px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <span>{item.name} - {item.price}₺</span>
-                  <button onClick={() => handleRemoveItem(item.id)} style={{ background: 'red', color: 'white', border: 'none', cursor: 'pointer' }}>
+                  <button 
+                    onClick={() => handleRemoveItem(item.id)} 
+                    style={{ background: 'red', color: 'white', border: 'none', cursor: 'pointer' }}
+                  >
                     Remove
                   </button>
                 </div>
