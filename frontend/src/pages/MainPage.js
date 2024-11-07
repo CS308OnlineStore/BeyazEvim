@@ -32,6 +32,12 @@ const MainPage = () => {
 
   const handleLoginClick = () => {
     navigate('/signinsignup');
+    
+  };
+
+  const handelCartClick = () => {
+    navigate('/shoppingCart')
+
   };
 
   return (
@@ -48,7 +54,9 @@ const MainPage = () => {
           <button onClick={handleLoginClick} style={navButtonStyle}>
             Giriş Yap
           </button>
-          <div style={{ marginLeft: '15px', cursor: 'pointer' }}>
+          <div 
+            onClick={handelCartClick}
+            style={{ marginLeft: '15px', cursor: 'pointer' }}>
             <span role="img" aria-label="cart">
               🛒
             </span>
