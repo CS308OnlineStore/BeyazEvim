@@ -1,6 +1,7 @@
 // src/pages/MainPage.js
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import ShoppingCart from './ShoppingCart';
 
 // Dummy product data
 const products = [
@@ -54,13 +55,14 @@ const categories = [
 const MainPage = () => {
   const navigate = useNavigate();
   const [hoveredCategory, setHoveredCategory] = useState(null);
+  const [isCartVisible, setIsCartVisible] = useState(false);
 
   const handleLoginClick = () => {
     navigate('/signinsignup');
   };
 
   const handleCartClick = () => {
-    navigate('/shoppingCart');
+    setIsCartVisible(!isCartVisible);
   };
 
   const handleMouseEnter = (category) => {
@@ -93,6 +95,23 @@ const MainPage = () => {
           </div>
         </div>
       </header>
+
+      {/* Cart Dropdown or Sidebar */}
+      {isCartVisible && (
+        <div style={{
+          position: 'absolute',
+          top: '60px',
+          right: '20px',
+          width: '300px',
+          backgroundColor: 'white',
+          boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
+          padding: '10px',
+          zIndex: 100,
+          borderRadius: '5px'
+        }}>
+          <ShoppingCart />
+        </div>
+      )}
 
       {/* Categories Section */}
       <nav style={categoryNavStyle}>
