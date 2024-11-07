@@ -10,6 +10,8 @@ const products = [
     description: '6kg capacity top load washing machine',
     price: '₺2000',
     image: 'https://via.placeholder.com/150',
+    brand: 'Arcelik',
+    color: 'White',
   },
   {
     id: 2,
@@ -17,6 +19,8 @@ const products = [
     description: 'Double door with no frost technology',
     price: '₺4500',
     image: 'https://via.placeholder.com/150',
+    brand: 'Korkmaz',
+    color: 'Black',
   },
   {
     id: 3,
@@ -24,6 +28,8 @@ const products = [
     description: '800W with grill function',
     price: '₺1500',
     image: 'https://via.placeholder.com/150',
+    brand: 'Philips',
+    color: 'Silver',
   },
 ];
 
@@ -69,6 +75,10 @@ const MainPage = () => {
 
   const handleMouseLeave = () => {
     setHoveredCategory(null);
+  };
+
+  const handleProductClick = (productId) => {
+    navigate(`/product/${productId}`);
   };
 
   return (
@@ -122,7 +132,7 @@ const MainPage = () => {
         <h1>BeyazEvim - Your White Goods Store</h1>
         <div style={productGridStyle}>
           {products.map((product) => (
-            <div key={product.id} style={productCardStyle}>
+            <div key={product.id} style={productCardStyle} onClick={() => handleProductClick(product.id)}>
               <img
                 src={product.image}
                 alt={product.name}
@@ -179,7 +189,8 @@ const categoryNavStyle = {
   display: 'flex',
   justifyContent: 'space-around',
   padding: '10px 0',
-  backgroundColor: '#f5f5f5',
+  backgroundColor: '#000',
+  color: '#fff',
   borderBottom: '1px solid #ddd',
   position: 'relative',
 };
@@ -199,11 +210,14 @@ const dropdownStyle = {
   padding: '10px',
   borderRadius: '5px',
   zIndex: 1,
+  minWidth: '150px',
 };
 
 const dropdownItemStyle = {
   padding: '5px 10px',
   cursor: 'pointer',
+  color: '#333',
+  whiteSpace: 'nowrap',
 };
 
 const productGridStyle = {
@@ -218,6 +232,7 @@ const productCardStyle = {
   padding: '10px',
   width: '200px',
   textAlign: 'center',
+  cursor: 'pointer',
 };
 
 export default MainPage;
