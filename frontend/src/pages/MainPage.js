@@ -1,5 +1,5 @@
 // src/pages/MainPage.js
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 // Dummy product data
@@ -27,17 +27,48 @@ const products = [
   },
 ];
 
+// Categories and product types data
+const categories = [
+  {
+    name: 'Küçük Ev Aletleri',
+    products: ['Toaster', 'Blender', 'Vacuum Cleaner'],
+  },
+  {
+    name: 'Beyaz Eşya',
+    products: ['Washing Machine', 'Refrigerator', 'Dishwasher'],
+  },
+  {
+    name: 'Elektronik',
+    products: ['TV', 'Speaker', 'Laptop'],
+  },
+  {
+    name: 'Isıtma - Soğutma',
+    products: ['Air Conditioner', 'Heater', 'Fan'],
+  },
+  {
+    name: 'Kişisel Bakım - Sağlık',
+    products: ['Hair Dryer', 'Shaver', 'Massage Chair'],
+  },
+];
+
 const MainPage = () => {
   const navigate = useNavigate();
+  const [hoveredCategory, setHoveredCategory] = useState(null);
 
   const handleLoginClick = () => {
     navigate('/signinsignup');
-    
   };
 
-  const handelCartClick = () => {
-    navigate('/shoppingCart')
+  const handleCartClick = () => {
+    navigate('/shoppingCart');
+  };
 
+  const handleMouseEnter = (category) => {
+    setHoveredCategory(category);
+  };
+
+  const handleMouseLeave = () => {
+    setHoveredCategory(null);
   };
 
   return (
@@ -54,9 +85,7 @@ const MainPage = () => {
           <button onClick={handleLoginClick} style={navButtonStyle}>
             Giriş Yap
           </button>
-          <div 
-            onClick={handelCartClick}
-            style={{ marginLeft: '15px', cursor: 'pointer' }}>
+          <div onClick={handleCartClick} style={{ marginLeft: '15px', cursor: 'pointer' }}>
             <span role="img" aria-label="cart">
               🛒
             </span>
@@ -67,11 +96,25 @@ const MainPage = () => {
 
       {/* Categories Section */}
       <nav style={categoryNavStyle}>
-        <span>Küçük Ev Aletleri</span>
-        <span>Beyaz Eşya</span>
-        <span>Elektronik</span>
-        <span>Isıtma - Soğutma</span>
-        <span>Kişisel Bakım - Sağlık</span>
+        {categories.map((category, index) => (
+          <div
+            key={index}
+            onMouseEnter={() => handleMouseEnter(category)}
+            onMouseLeave={handleMouseLeave}
+            style={categoryStyle}
+          >
+            {category.name}
+            {hoveredCategory === category && (
+              <div style={dropdownStyle}>
+                {category.products.map((product, i) => (
+                  <div key={i} style={dropdownItemStyle}>
+                    {product}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        ))}
       </nav>
 
       {/* Product Grid */}
@@ -138,6 +181,29 @@ const categoryNavStyle = {
   padding: '10px 0',
   backgroundColor: '#f5f5f5',
   borderBottom: '1px solid #ddd',
+  position: 'relative',
+};
+
+const categoryStyle = {
+  position: 'relative',
+  padding: '10px 15px',
+  cursor: 'pointer',
+};
+
+const dropdownStyle = {
+  position: 'absolute',
+  top: '100%',
+  left: 0,
+  backgroundColor: 'white',
+  boxShadow: '0 8px 16px rgba(0,0,0,0.2)',
+  padding: '10px',
+  borderRadius: '5px',
+  zIndex: 1,
+};
+
+const dropdownItemStyle = {
+  padding: '5px 10px',
+  cursor: 'pointer',
 };
 
 const productGridStyle = {
@@ -151,6 +217,7 @@ const productCardStyle = {
   borderRadius: '10px',
   padding: '10px',
   width: '200px',
+  textAlign: 'center',
 };
 
 export default MainPage;
