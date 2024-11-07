@@ -1,4 +1,4 @@
-// SignUp.js
+// src/SignUp.js
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -31,36 +31,36 @@ function SignUp() {
 
       if (response.ok) {
         // Registration successful
-        alert('Registration successful!');
+        alert('Kayıt başarılı!');
         navigate('/signin'); // Redirect to sign-in page after successful signup
       } else {
         // Handle specific status codes as per the API documentation
         switch (response.status) {
           case 400:
-            alert('Bad request. Please check your input.');
+            alert('Geçersiz istek. Lütfen bilgilerinizi kontrol edin.');
             break;
           case 409:
-            alert('Email already exists. Please use a different email.');
+            alert('Bu e-posta zaten kayıtlı. Lütfen farklı bir e-posta kullanın.');
             break;
           case 500:
-            alert('Server error. Please try again later.');
+            alert('Sunucu hatası. Lütfen daha sonra tekrar deneyin.');
             break;
           default:
-            alert('An unknown error occurred.');
+            alert('Bilinmeyen bir hata oluştu.');
         }
       }
     } catch (error) {
-      console.error('Error during registration:', error);
-      alert('An error occurred. Please try again.');
+      console.error('Kayıt sırasında hata oluştu:', error);
+      alert('Bir hata oluştu. Lütfen tekrar deneyin.');
     }
   };
 
   return (
     <div style={{ maxWidth: '400px', margin: '0 auto', padding: '20px', marginTop: '150px' }}>
-      <h2 style={{ textAlign: 'center' }}>Sign Up</h2>
+      <h2 style={{ textAlign: 'center' }}>Kayıt Ol</h2>
       <form onSubmit={handleSignUp}>
         <div style={{ marginBottom: '10px' }}>
-          <label htmlFor="firstName">First Name</label>
+          <label htmlFor="firstName">Ad</label>
           <input
             type="text"
             id="firstName"
@@ -71,7 +71,7 @@ function SignUp() {
           />
         </div>
         <div style={{ marginBottom: '10px' }}>
-          <label htmlFor="lastName">Last Name</label>
+          <label htmlFor="lastName">Soyad</label>
           <input
             type="text"
             id="lastName"
@@ -82,7 +82,7 @@ function SignUp() {
           />
         </div>
         <div style={{ marginBottom: '10px' }}>
-          <label htmlFor="email">Email</label>
+          <label htmlFor="email">E-posta</label>
           <input
             type="email"
             id="email"
@@ -93,7 +93,7 @@ function SignUp() {
           />
         </div>
         <div style={{ marginBottom: '10px' }}>
-          <label htmlFor="password">Password</label>
+          <label htmlFor="password">Şifre</label>
           <input
             type="password"
             id="password"
@@ -104,7 +104,7 @@ function SignUp() {
           />
         </div>
         <button type="submit" style={{ padding: '10px', width: '100%' }}>
-          Sign Up
+          Kayıt Ol
         </button>
       </form>
     </div>

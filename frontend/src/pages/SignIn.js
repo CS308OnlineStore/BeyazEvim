@@ -32,7 +32,7 @@ function SignIn() {
         // Store token for later use (example: localStorage)
         localStorage.setItem('authToken', token);
         
-        alert('Login successful!');
+        alert('Giriş başarılı!');
         
         // Redirect to the main page or dashboard, e.g., '/main' or '/dashboard'
         navigate('/main');
@@ -40,33 +40,33 @@ function SignIn() {
         // Handle specific status codes with error messages based on API documentation
         switch (response.status) {
           case 400:
-            alert('Bad request. Please check your input.');
+            alert('Geçersiz istek. Lütfen bilgilerinizi kontrol edin.');
             break;
           case 401:
-            alert('Unauthorized. Incorrect email or password.');
+            alert('Yetkisiz giriş. E-posta veya şifre yanlış.');
             break;
           case 404:
-            alert('User not found. Please check your email.');
+            alert('Kullanıcı bulunamadı. Lütfen e-postanızı kontrol edin.');
             break;
           case 500:
-            alert('Server error. Please try again later.');
+            alert('Sunucu hatası. Lütfen daha sonra tekrar deneyin.');
             break;
           default:
-            alert('An unknown error occurred.');
+            alert('Bilinmeyen bir hata oluştu.');
         }
       }
     } catch (error) {
-      console.error('Error during login:', error);
-      alert('An error occurred. Please try again.');
+      console.error('Giriş sırasında hata oluştu:', error);
+      alert('Bir hata oluştu. Lütfen tekrar deneyin.');
     }
   };
 
   return (
     <div style={{ maxWidth: '400px', margin: '0 auto', padding: '20px', marginTop: '150px' }}>
-      <h2 style={{ textAlign: 'center' }}>Sign In</h2>
+      <h2 style={{ textAlign: 'center' }}>Giriş Yap</h2>
       <form onSubmit={handleLogin}>
         <div style={{ marginBottom: '10px' }}>
-          <label htmlFor="email">Email</label>
+          <label htmlFor="email">E-posta</label>
           <input
             type="email"
             id="email"
@@ -77,7 +77,7 @@ function SignIn() {
           />
         </div>
         <div style={{ marginBottom: '10px' }}>
-          <label htmlFor="password">Password</label>
+          <label htmlFor="password">Şifre</label>
           <input
             type="password"
             id="password"
@@ -88,7 +88,7 @@ function SignIn() {
           />
         </div>
         <button type="submit" style={{ padding: '10px', width: '100%' }}>
-          Sign In
+          Giriş Yap
         </button>
       </form>
     </div>
