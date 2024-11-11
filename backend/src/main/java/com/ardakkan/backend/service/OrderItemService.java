@@ -19,15 +19,15 @@ import jakarta.transaction.Transactional;
 @Service
 @Transactional
 public class OrderItemService {
-    
+
     private final OrderItemRepository orderItemRepository;
     private final OrderRepository orderRepository;
     private final ProductInstanceRepository productInstanceRepository;
     private final ProductModelRepository productModelRepository;
 
     @Autowired
-    public OrderItemService(OrderItemRepository orderItemRepository, 
-                            OrderRepository orderRepository, 
+    public OrderItemService(OrderItemRepository orderItemRepository,
+                            OrderRepository orderRepository,
                             ProductInstanceRepository productInstanceRepository,
                             ProductModelRepository productModelRepository) {
         this.orderItemRepository = orderItemRepository;
@@ -61,7 +61,7 @@ public class OrderItemService {
                 .findByOrderAndProductModelId(order, productModelId);
 
         OrderItem orderItem;
-        
+
         if (existingOrderItemOpt.isPresent()) {
             // Mevcut OrderItem bulundu, miktarı artır
             orderItem = existingOrderItemOpt.get();
@@ -83,6 +83,28 @@ public class OrderItemService {
         return orderItemRepository.save(orderItem);
     }
 
+    public OrderItem removeProductFromCart(Long orderId, Long productModelId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new IllegalStateException("Order not found: " + orderId));
 
+        OrderItem orderItem = orderItemRepository
+                .findByOrderAndProductModelId(order, productModelId)
+                .orElseThrow(() -> new IllegalStateException("Product not found in cart: " + productModelId));
+
+        if (orderItem.getQuantity() > 1) {
+            orderItem.setQuantity(orderItem.getQuantity() - 1);
+            ProductInstance productInstance = orderItem.getProductInstances().remove(0);
+            productInstance.setStatus(ProductInstanceStatus.IN_STOCK);
+            productInstanceRepository.save(productInstance);
+            orderItemRepository.save(orderItem);
+        } else {
+            orderItem.getProductInstances().forEach(pi -> {
+                pi.setStatus(ProductInstanceStatus.IN_STOCK);
+                productInstanceRepository.save(pi);
+            });
+            orderItemRepository.delete(orderItem);
+        }
+
+        return orderItem;
+    }
 }
-
