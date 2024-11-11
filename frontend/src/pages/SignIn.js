@@ -35,7 +35,7 @@ function SignIn() {
         alert('Giriş başarılı!');
         
         // Redirect to the main page or dashboard, e.g., '/main' or '/dashboard'
-        navigate('/main');
+        navigate('/');
       } else {
         // Handle specific status codes with error messages based on API documentation
         switch (response.status) {

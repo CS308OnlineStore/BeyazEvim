@@ -43,5 +43,13 @@ public class OrderItemController {
         return ResponseEntity.ok(productModelDTO);
     }
 
+    @PostMapping("/remove-from-cart")
+    public ResponseEntity<OrderItem> removeProductFromCart(
+            @RequestParam Long orderId,
+            @RequestParam Long productModelId) {
+        OrderItem removedOrderItem = orderItemService.removeProductFromCart(orderId, productModelId);
+        return ResponseEntity.ok(removedOrderItem);
+    }
+
 }
 
