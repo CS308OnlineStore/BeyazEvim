@@ -93,4 +93,9 @@ public class OrderItem {
     public void setProductInstances(List<ProductInstance> productInstances) {
         this.productInstances = productInstances;
     }
+    
+    // Dinamik olarak toplam fiyatı hesaplayan getter
+    public Double getTotalPrice() {
+        return unitPrice * quantity;
+    }
 }

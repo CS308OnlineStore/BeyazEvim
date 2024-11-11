@@ -2,6 +2,7 @@ package com.ardakkan.backend.service;
 
 import com.ardakkan.backend.dto.OrderDTO;
 import com.ardakkan.backend.dto.OrderItemDTO;
+import com.ardakkan.backend.dto.ProductModelDTO;
 import com.ardakkan.backend.entity.Invoice;
 import com.ardakkan.backend.entity.Order;
 import com.ardakkan.backend.entity.OrderItem;
@@ -131,7 +132,8 @@ public class OrderService {
         orderRepository.deleteById(id);
     }
     
-    
+    //Kulanıcının sepetini getirme 
+    /*
     public List<OrderItemDTO> getUserCart(Long userId) {
         // Kullanıcının CART durumundaki siparişini bul
         Order cartOrder = orderRepository.findByUserIdAndStatus(userId, OrderStatus.CART)
@@ -142,6 +144,18 @@ public class OrderService {
                 .map(this::convertToOrderItemDTO)
                 .collect(Collectors.toList());
     }
+    */
+    
+    public OrderDTO getUserCart(Long userId) {
+        // Kullanıcının CART durumundaki siparişini bul
+        Order cartOrder = orderRepository.findByUserIdAndStatus(userId, OrderStatus.CART)
+                .orElseThrow(() -> new IllegalStateException("Sepet bulunamadı:" + userId));
+
+        // Order nesnesini OrderDTO'ya dönüştürerek döndür
+        return convertToDTO(cartOrder);
+    }
+
+    
 
     private OrderDTO convertToDTO(Order order) {
         OrderDTO orderDTO = new OrderDTO();
@@ -162,10 +176,26 @@ public class OrderService {
     private OrderItemDTO convertToOrderItemDTO(OrderItem orderItem) {
         OrderItemDTO orderItemDTO = new OrderItemDTO();
         orderItemDTO.setOrderItemId(orderItem.getId());
-        orderItemDTO.setProductModelId(orderItem.getProductInstances().get(0).getProductModel().getId());
         orderItemDTO.setQuantity(orderItem.getQuantity());
+        orderItemDTO.setUnitPrice(orderItem.getUnitPrice());
+
+        // ProductModelDTO'yu oluştur ve ekle
+        ProductModel productModel = orderItem.getProductInstances().get(0).getProductModel(); // İlk ProductInstance'ın ProductModel'ini alıyoruz
+        ProductModelDTO productModelDTO = convertToProductModelDTO(productModel);
+        orderItemDTO.setProductModel(productModelDTO);
+
         return orderItemDTO;
     }
+    private ProductModelDTO convertToProductModelDTO(ProductModel productModel) {
+        ProductModelDTO productModelDTO = new ProductModelDTO();
+        productModelDTO.setId(productModel.getId());
+        productModelDTO.setName(productModel.getName());
+        productModelDTO.setDescription(productModel.getDescription());
+        productModelDTO.setPrice(productModel.getPrice());
+        return productModelDTO;
+    }
+
+
 
 
 }

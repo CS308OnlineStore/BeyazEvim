@@ -22,11 +22,11 @@ public class OrderController {
         this.orderService = orderService;
     }
 
- // Yeni sipariş oluşturma
+    // Yeni sipariş oluşturma
     @PostMapping("/create")
     public ResponseEntity<Order> createOrder(@RequestBody Order order) {
         Order createdOrder = orderService.createOrder(order);
-        return ResponseEntity.ok(createdOrder);
+        return new ResponseEntity<>(createdOrder, HttpStatus.CREATED);
     }
 
     // Sipariş ID'si ile sipariş bulma (DTO olarak döner)
@@ -43,21 +43,28 @@ public class OrderController {
         return ResponseEntity.ok(orderDTOs);
     }
 
-    
+    //Userın tüm orderlerini getirir
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<OrderDTO>> getOrdersByUserId(@PathVariable Long userId) {
         List<OrderDTO> orderDTOs = orderService.getOrdersByUserId(userId);
         return ResponseEntity.ok(orderDTOs);
     }
 
-    
+    /*
     // Kullanıcının sepetindeki ürünleri ve miktarlarını getirme
     @GetMapping("/{userId}/cart")
     public ResponseEntity<List<OrderItemDTO>> getUserCart(@PathVariable Long userId) {
         List<OrderItemDTO> cartItems = orderService.getUserCart(userId);
         return ResponseEntity.ok(cartItems);
     }
-
+    */
+   
+    @GetMapping("/{userId}/cart")
+    public ResponseEntity<OrderDTO> getUserCart(@PathVariable Long userId) {
+        OrderDTO cart = orderService.getUserCart(userId);
+        return ResponseEntity.ok(cart);
+    }
+    
     // Sipariş güncelleme
     @PutMapping("/{id}")
     public ResponseEntity<Order> updateOrder(@PathVariable Long id, @RequestBody Order updatedOrder) {

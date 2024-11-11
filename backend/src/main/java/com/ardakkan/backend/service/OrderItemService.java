@@ -57,24 +57,29 @@ public class OrderItemService {
         }
 
         ProductInstance productInstance = productInstanceOpt.get();
+        Double productPrice = productInstance.getProductModel().getPrice();
 
         // Order ve ProductModel üzerinden mevcut bir OrderItem olup olmadığını kontrol edin
         Optional<OrderItem> existingOrderItemOpt = orderItemRepository
                 .findByOrderAndProductModelId(order, productModelId);
 
         OrderItem orderItem;
-        
+
         if (existingOrderItemOpt.isPresent()) {
             // Mevcut OrderItem bulundu, miktarı artır
             orderItem = existingOrderItemOpt.get();
             orderItem.setQuantity(orderItem.getQuantity() + 1);
             orderItem.getProductInstances().add(productInstance);
+            order.setTotalPrice(order.getTotalPrice() + productPrice);
         } else {
             // Yeni OrderItem oluştur
             orderItem = new OrderItem();
             orderItem.setOrder(order);
+            orderItem.setProductModelId(productModelId);
+            orderItem.setUnitPrice(productPrice); // Birim fiyatı ayarla
+            orderItem.setQuantity(1); // İlk miktar olarak 1 ayarla
             orderItem.getProductInstances().add(productInstance);
-            orderItem.setQuantity(1);
+            order.setTotalPrice(order.getTotalPrice() + productPrice);
         }
 
         // Ürün sepete eklendiği için durumunu IN_CART olarak güncelle
@@ -84,7 +89,7 @@ public class OrderItemService {
         // OrderItem'ı kaydet ve döndür
         return orderItemRepository.save(orderItem);
     }
-    
+
     
     
     
@@ -96,17 +101,26 @@ public class OrderItemService {
                 .findByOrderAndProductModelId(order, productModelId)
                 .orElseThrow(() -> new IllegalStateException("Product not found in cart: " + productModelId));
 
+        // Ürünün birim fiyatını al
+        Double productPrice = orderItem.getUnitPrice();
+        
         if (orderItem.getQuantity() > 1) {
             orderItem.setQuantity(orderItem.getQuantity() - 1);
             ProductInstance productInstance = orderItem.getProductInstances().remove(0);
             productInstance.setStatus(ProductInstanceStatus.IN_STOCK);
+            order.setTotalPrice(order.getTotalPrice() - productPrice);
             productInstanceRepository.save(productInstance);
             orderItemRepository.save(orderItem);
         } else {
+            // Miktar 1 ise, OrderItem'ı tamamen kaldır
             orderItem.getProductInstances().forEach(pi -> {
                 pi.setStatus(ProductInstanceStatus.IN_STOCK);
                 productInstanceRepository.save(pi);
             });
+
+            // Order'ın toplam fiyatından OrderItem'ın toplam fiyatını çıkar
+            order.setTotalPrice(order.getTotalPrice() - (productPrice * orderItem.getQuantity()));
+            orderRepository.save(order);
             orderItemRepository.delete(orderItem);
         }
 
