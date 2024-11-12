@@ -1,67 +1,32 @@
-// src/pages/MainPage.js
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import ShoppingCart from './ShoppingCart';
 
-// Dummy product data
-const products = [
-  {
-    id: 1,
-    name: 'Washing Machine',
-    description: '6kg capacity top load washing machine',
-    price: '₺2000',
-    image: 'https://via.placeholder.com/150',
-    brand: 'Arcelik',
-    color: 'White',
-  },
-  {
-    id: 2,
-    name: 'Refrigerator',
-    description: 'Double door with no frost technology',
-    price: '₺4500',
-    image: 'https://via.placeholder.com/150',
-    brand: 'Korkmaz',
-    color: 'Black',
-  },
-  {
-    id: 3,
-    name: 'Microwave Oven',
-    description: '800W with grill function',
-    price: '₺1500',
-    image: 'https://via.placeholder.com/150',
-    brand: 'Philips',
-    color: 'Silver',
-  },
-];
-
-// Categories and product types data
 const categories = [
-  {
-    name: 'Küçük Ev Aletleri',
-    products: ['Toaster', 'Blender', 'Vacuum Cleaner'],
-  },
-  {
-    name: 'Beyaz Eşya',
-    products: ['Washing Machine', 'Refrigerator', 'Dishwasher'],
-  },
-  {
-    name: 'Elektronik',
-    products: ['TV', 'Speaker', 'Laptop'],
-  },
-  {
-    name: 'Isıtma - Soğutma',
-    products: ['Air Conditioner', 'Heater', 'Fan'],
-  },
-  {
-    name: 'Kişisel Bakım - Sağlık',
-    products: ['Hair Dryer', 'Shaver', 'Massage Chair'],
-  },
+  { name: 'Küçük Ev Aletleri', products: ['Toaster', 'Blender', 'Vacuum Cleaner'] },
+  { name: 'Beyaz Eşya', products: ['Washing Machine', 'Refrigerator', 'Dishwasher'] },
+  { name: 'Elektronik', products: ['TV', 'Speaker', 'Laptop'] },
+  { name: 'Isıtma - Soğutma', products: ['Air Conditioner', 'Heater', 'Fan'] },
+  { name: 'Kişisel Bakım - Sağlık', products: ['Hair Dryer', 'Shaver', 'Massage Chair'] },
 ];
 
 const MainPage = () => {
   const navigate = useNavigate();
   const [hoveredCategory, setHoveredCategory] = useState(null);
   const [isCartVisible, setIsCartVisible] = useState(false);
+  const [products, setProducts] = useState([]);
+
+  // Fetch products from backend
+  useEffect(() => {
+    axios.get('/api/homepage')
+      .then(response => {
+        setProducts(response.data);
+      })
+      .catch(error => {
+        console.error("There was an error fetching the products!", error);
+      });
+  }, []);
 
   const handleLoginClick = () => {
     navigate('/signinsignup');
@@ -88,37 +53,18 @@ const MainPage = () => {
       {/* Header Section */}
       <header style={headerStyle}>
         <div style={logoStyle}>BeyazEvim</div>
-        <input
-          type="text"
-          placeholder="Ne Aramıştınız?"
-          style={searchBarStyle}
-        />
+        <input type="text" placeholder="Ne Aramıştınız?" style={searchBarStyle} />
         <div style={navIconsStyle}>
-          <button onClick={handleLoginClick} style={navButtonStyle}>
-            Giriş Yap
-          </button>
+          <button onClick={handleLoginClick} style={navButtonStyle}>Giriş Yap</button>
           <div onClick={handleCartClick} style={{ marginLeft: '15px', cursor: 'pointer' }}>
-            <span role="img" aria-label="cart">
-              🛒
-            </span>
-            Sepetim (0)
+            <span role="img" aria-label="cart">🛒</span> Sepetim (0)
           </div>
         </div>
       </header>
 
       {/* Cart Dropdown or Sidebar */}
       {isCartVisible && (
-        <div style={{
-          position: 'absolute',
-          top: '60px',
-          right: '20px',
-          width: '300px',
-          backgroundColor: 'white',
-          boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
-          padding: '10px',
-          zIndex: 100,
-          borderRadius: '5px'
-        }}>
+        <div style={cartDropdownStyle}>
           <ShoppingCart />
         </div>
       )}
@@ -152,14 +98,10 @@ const MainPage = () => {
         <div style={productGridStyle}>
           {products.map((product) => (
             <div key={product.id} style={productCardStyle} onClick={() => handleProductClick(product.id)}>
-              <img
-                src={product.image}
-                alt={product.name}
-                style={{ width: '100%', borderRadius: '10px' }}
-              />
+              <img src={product.image || 'https://via.placeholder.com/150'} alt={product.name} style={{ width: '100%', borderRadius: '10px' }} />
               <h3>{product.name}</h3>
               <p>{product.description}</p>
-              <p style={{ fontWeight: 'bold' }}>{product.price}</p>
+              <p style={{ fontWeight: 'bold' }}>₺{product.price}</p>
             </div>
           ))}
         </div>
@@ -252,6 +194,18 @@ const productCardStyle = {
   width: '200px',
   textAlign: 'center',
   cursor: 'pointer',
+};
+
+const cartDropdownStyle = {
+  position: 'absolute',
+  top: '60px',
+  right: '20px',
+  width: '300px',
+  backgroundColor: 'white',
+  boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
+  padding: '10px',
+  zIndex: 100,
+  borderRadius: '5px',
 };
 
 export default MainPage;
