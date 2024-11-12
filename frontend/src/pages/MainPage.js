@@ -1,23 +1,36 @@
+// src/pages/MainPage.js
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import ShoppingCart from './ShoppingCart';
 
 const categories = [
-  { name: 'Küçük Ev Aletleri', products: ['Toaster', 'Blender', 'Vacuum Cleaner'] },
-  { name: 'Beyaz Eşya', products: ['Washing Machine', 'Refrigerator', 'Dishwasher'] },
-  { name: 'Elektronik', products: ['TV', 'Speaker', 'Laptop'] },
-  { name: 'Isıtma - Soğutma', products: ['Air Conditioner', 'Heater', 'Fan'] },
-  { name: 'Kişisel Bakım - Sağlık', products: ['Hair Dryer', 'Shaver', 'Massage Chair'] },
+  {
+    name: 'Küçük Ev Aletleri',
+    products: ['Toaster', 'Blender', 'Vacuum Cleaner'],
+  },
+  {
+    name: 'Beyaz Eşya',
+    products: ['Washing Machine', 'Refrigerator', 'Dishwasher'],
+  },
+  {
+    name: 'Elektronik',
+    products: ['TV', 'Speaker', 'Laptop'],
+  },
+  {
+    name: 'Isıtma - Soğutma',
+    products: ['Air Conditioner', 'Heater', 'Fan'],
+  },
+  {
+    name: 'Kişisel Bakım - Sağlık',
+    products: ['Hair Dryer', 'Shaver', 'Massage Chair'],
+  },
 ];
 
 const MainPage = () => {
   const navigate = useNavigate();
-  const [hoveredCategory, setHoveredCategory] = useState(null);
-  const [isCartVisible, setIsCartVisible] = useState(false);
   const [products, setProducts] = useState([]);
+  const [hoveredCategory, setHoveredCategory] = useState(null);
 
-  // Fetch products from backend
   useEffect(() => {
     axios.get('/api/homepage')
       .then(response => {
@@ -33,7 +46,7 @@ const MainPage = () => {
   };
 
   const handleCartClick = () => {
-    setIsCartVisible(!isCartVisible);
+    navigate('/shoppingCart');
   };
 
   const handleMouseEnter = (category) => {
@@ -53,21 +66,21 @@ const MainPage = () => {
       {/* Header Section */}
       <header style={headerStyle}>
         <div style={logoStyle}>BeyazEvim</div>
-        <input type="text" placeholder="Ne Aramıştınız?" style={searchBarStyle} />
+        <input
+          type="text"
+          placeholder="Ne Aramıştınız?"
+          style={searchBarStyle}
+        />
         <div style={navIconsStyle}>
-          <button onClick={handleLoginClick} style={navButtonStyle}>Giriş Yap</button>
+          <button onClick={handleLoginClick} style={navButtonStyle}>
+            Giriş Yap
+          </button>
           <div onClick={handleCartClick} style={{ marginLeft: '15px', cursor: 'pointer' }}>
-            <span role="img" aria-label="cart">🛒</span> Sepetim (0)
+            <span role="img" aria-label="cart">🛒</span>
+            Sepetim (0)
           </div>
         </div>
       </header>
-
-      {/* Cart Dropdown or Sidebar */}
-      {isCartVisible && (
-        <div style={cartDropdownStyle}>
-          <ShoppingCart />
-        </div>
-      )}
 
       {/* Categories Section */}
       <nav style={categoryNavStyle}>
@@ -98,7 +111,11 @@ const MainPage = () => {
         <div style={productGridStyle}>
           {products.map((product) => (
             <div key={product.id} style={productCardStyle} onClick={() => handleProductClick(product.id)}>
-              <img src={product.image || 'https://via.placeholder.com/150'} alt={product.name} style={{ width: '100%', borderRadius: '10px' }} />
+              <img
+                src={product.image || 'https://via.placeholder.com/150'}
+                alt={product.name}
+                style={{ width: '100%', borderRadius: '10px' }}
+              />
               <h3>{product.name}</h3>
               <p>{product.description}</p>
               <p style={{ fontWeight: 'bold' }}>₺{product.price}</p>
@@ -194,18 +211,6 @@ const productCardStyle = {
   width: '200px',
   textAlign: 'center',
   cursor: 'pointer',
-};
-
-const cartDropdownStyle = {
-  position: 'absolute',
-  top: '60px',
-  right: '20px',
-  width: '300px',
-  backgroundColor: 'white',
-  boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
-  padding: '10px',
-  zIndex: 100,
-  borderRadius: '5px',
 };
 
 export default MainPage;

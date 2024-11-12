@@ -1,17 +1,7 @@
 // src/pages/ProductPage.js
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-
-// Dummy data for product details and filter options
-const productDetails = {
-  id: 1,
-  name: 'Washing Machine',
-  description: 'A detailed description of the washing machine.',
-  price: '₺2000',
-  brand: 'Brand A',
-  color: 'White',
-  image: 'https://via.placeholder.com/150',
-};
+import axios from 'axios';
 
 const filterOptions = {
   brand: ['Arcelik', 'Korkmaz', 'Philips'],
@@ -21,15 +11,30 @@ const filterOptions = {
 
 const ProductPage = () => {
   const { id } = useParams(); // Get product id from URL
+  const [productDetails, setProductDetails] = useState(null);
   const [selectedFilters, setSelectedFilters] = useState({
     brand: '',
     color: '',
     price: '',
   });
 
+  useEffect(() => {
+    axios.get(`/api/product-models/${id}`)
+      .then(response => {
+        setProductDetails(response.data);
+      })
+      .catch(error => {
+        console.error("There was an error fetching the product details!", error);
+      });
+  }, [id]);
+
   const handleFilterChange = (filterType, value) => {
     setSelectedFilters((prev) => ({ ...prev, [filterType]: value }));
   };
+
+  if (!productDetails) {
+    return <p>Loading product details...</p>;
+  }
 
   return (
     <div style={{ display: 'flex' }}>
@@ -57,10 +62,10 @@ const ProductPage = () => {
 
       {/* Product Details Section */}
       <div style={productDetailsStyle}>
-        <img src={productDetails.image} alt={productDetails.name} style={{ width: '150px', height: '150px', borderRadius: '10px' }} />
+        <img src={productDetails.image || 'https://via.placeholder.com/150'} alt={productDetails.name} style={{ width: '150px', height: '150px', borderRadius: '10px' }} />
         <h1>{productDetails.name}</h1>
         <p>{productDetails.description}</p>
-        <p style={{ fontWeight: 'bold' }}>{productDetails.price}</p>
+        <p style={{ fontWeight: 'bold' }}>₺{productDetails.price}</p>
       </div>
     </div>
   );
