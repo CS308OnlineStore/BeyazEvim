@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import ShoppingCart from './ShoppingCart';
 
 const categories = [
   { name: 'Small Kitchen Appliances', products: ['Tea and Coffee Makers', 'Blenders and Mixers', 'Sandwich Makers', 'Electric Grills'] },
@@ -21,6 +22,7 @@ const MainPage = () => {
   const navigate = useNavigate();
   const [products, setProducts] = useState([]);
   const [hoveredCategory, setHoveredCategory] = useState(null);
+  const [isCartVisible, setIsCartVisible] = useState(false);
 
   useEffect(() => {
     axios.get('/api/homepage')
@@ -37,7 +39,7 @@ const MainPage = () => {
   };
 
   const handleCartClick = () => {
-    navigate('/shoppingCart');
+    setIsCartVisible(!isCartVisible);
   };
 
   const handleMouseEnter = (category) => {
@@ -92,12 +94,29 @@ const MainPage = () => {
             <button onClick={handleLoginClick} style={navButtonStyle}>
               Login
             </button>
-            <div onClick={handleCartClick} style={{ marginLeft: '15px', cursor: 'pointer' }}>
+            <div onClick={handleCartClick} style={{ marginLeft: '15px', cursor: 'pointer'}}>
               <span role="img" aria-label="cart">🛒</span>
               Shopping Cart (0)
             </div>
           </div>
         </header>
+
+        {/* Cart Dropdown or Sidebar */}
+        {isCartVisible && (
+          <div style={{
+            position: 'absolute',
+            top: '60px',
+            right: '20px',
+            width: '300px',
+            backgroundColor: 'white',
+            boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
+            padding: '10px',
+            zIndex: 100,
+            borderRadius: '5px'
+          }}>
+          <ShoppingCart />
+        </div>
+        )}
 
         {/* Product Grid */}
         <div style={{ padding: '20px' }}>
