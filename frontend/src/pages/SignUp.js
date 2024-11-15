@@ -21,7 +21,7 @@ function SignUp() {
     };
 
     try {
-      const response = await fetch('/signup', { // Adjusted to match API documentation
+      const response = await fetch('/register', { // Adjusted to match API documentation
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
