@@ -17,7 +17,7 @@ function SignIn() {
     };
 
     try {
-      const response = await fetch('http://localhost:8080/login', {  // Adjust URL as per your backend
+      const response = await fetch('/login', {  // Adjust URL as per your backend
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

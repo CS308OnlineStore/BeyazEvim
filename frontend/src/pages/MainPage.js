@@ -4,57 +4,17 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 const categories = [
-  {
-    name: 'Small Kitchen Appliances',
-    products: ['Tea and Coffee Makers', 'Blenders and Mixers', 'Sandwich Makers', 'Electric Grills'],
-  },
-  {
-    name: 'Refrigerators',
-    products: ['No-Frost Refrigerators', 'Combined Refrigerator', 'Mini Refrigerators', 'Retro Refrigerators'],
-  },
-  {
-    name: 'Dryers',
-    products: ['Condenser Dryers', 'Heat Pump Dryers'],
-  },
-  {
-    name: 'Dishwashers',
-    products: ['Built-in Dishwashers', 'Freestanding Dishwashers'],
-  },
-  {
-    name: 'Ovens and Stoves',
-    products: ['Cooktops', 'Freestanding Ovens', 'Built-in Ovens', 'Microwave Ovens'],
-  },
-  {
-    name: 'Air Conditioners',
-    products: ['Split Air Conditioners', 'Portable Air Conditioners', 'Window Air Conditioners'],
-
-  },
-  {
-    name: 'Built-in Appliances',
-    products: ['Built-in Cooktops', 'Built-in Range Hoods', 'Built-in Microwaves'],
-
-  },
-  {
-    name: 'Vacuum Cleaners',
-    products: ['Bagless Vacuum Cleaners', 'Bagged Vacuum Cleaners', 'Cordless Vacuum Cleaners'],
-
-  },
-  {
-    name: 'Water Dispensers',
-    products: ['Desktop Water Dispensers','Floor-Standing Water Dispensers'],
-
-  },
-  {
-    name: 'Freezers',
-    products: ['Chest Freezers', 'Upright Freezers'],
-
-  },
-  {
-    name: 'Irons',
-    products: ['Steam Irons', 'Dry Irons'],
-
-  },
-
+  { name: 'Small Kitchen Appliances', products: ['Tea and Coffee Makers', 'Blenders and Mixers', 'Sandwich Makers', 'Electric Grills'] },
+  { name: 'Refrigerators', products: ['No-Frost Refrigerators', 'Combined Refrigerator', 'Mini Refrigerators', 'Retro Refrigerators'] },
+  { name: 'Dryers', products: ['Condenser Dryers', 'Heat Pump Dryers'] },
+  { name: 'Dishwashers', products: ['Built-in Dishwashers', 'Freestanding Dishwashers'] },
+  { name: 'Ovens and Stoves', products: ['Cooktops', 'Freestanding Ovens', 'Built-in Ovens', 'Microwave Ovens'] },
+  { name: 'Air Conditioners', products: ['Split Air Conditioners', 'Portable Air Conditioners', 'Window Air Conditioners'] },
+  { name: 'Built-in Appliances', products: ['Built-in Cooktops', 'Built-in Range Hoods', 'Built-in Microwaves'] },
+  { name: 'Vacuum Cleaners', products: ['Bagless Vacuum Cleaners', 'Bagged Vacuum Cleaners', 'Cordless Vacuum Cleaners'] },
+  { name: 'Water Dispensers', products: ['Desktop Water Dispensers', 'Floor-Standing Water Dispensers'] },
+  { name: 'Freezers', products: ['Chest Freezers', 'Upright Freezers'] },
+  { name: 'Irons', products: ['Steam Irons', 'Dry Irons'] }
 ];
 
 const MainPage = () => {
@@ -93,28 +53,10 @@ const MainPage = () => {
   };
 
   return (
-    <div style={{ fontFamily: 'Arial, sans-serif' }}>
-      {/* Header Section */}
-      <header style={headerStyle}>
-        <div style={logoStyle}>BeyazEvim</div>
-        <input
-          type="text"
-          placeholder="What are you looking for?"
-          style={searchBarStyle}
-        />
-        <div style={navIconsStyle}>
-          <button onClick={handleLoginClick} style={navButtonStyle}>
-            Login
-          </button>
-          <div onClick={handleCartClick} style={{ marginLeft: '15px', cursor: 'pointer' }}>
-            <span role="img" aria-label="cart">🛒</span>
-            Shopping Cart (0)
-          </div>
-        </div>
-      </header>
-
-      {/* Categories Section */}
-      <nav style={categoryNavStyle}>
+    <div style={{ fontFamily: 'Arial, sans-serif', display: 'flex' }}>
+      {/* Sidebar Categories Section */}
+      <nav style={sidebarStyle}>
+        <h3>Categories</h3>
         {categories.map((category, index) => (
           <div
             key={index}
@@ -136,22 +78,44 @@ const MainPage = () => {
         ))}
       </nav>
 
-      {/* Product Grid */}
-      <div style={{ padding: '20px' }}>
-        <h1>BeyazEvim - Your White Goods Store</h1>
-        <div style={productGridStyle}>
-          {products.map((product) => (
-            <div key={product.id} style={productCardStyle} onClick={() => handleProductClick(product.id)}>
-              <img
-                src={product.image || 'https://via.placeholder.com/150'}
-                alt={product.name}
-                style={{ width: '100%', borderRadius: '10px' }}
-              />
-              <h3>{product.name}</h3>
-              <p>{product.description}</p>
-              <p style={{ fontWeight: 'bold' }}>₺{product.price}</p>
+      {/* Main Content Area */}
+      <div style={{ flex: 1 }}>
+        {/* Header Section */}
+        <header style={headerStyle}>
+          <div style={logoStyle}>BeyazEvim</div>
+          <input
+            type="text"
+            placeholder="What are you looking for?"
+            style={searchBarStyle}
+          />
+          <div style={navIconsStyle}>
+            <button onClick={handleLoginClick} style={navButtonStyle}>
+              Login
+            </button>
+            <div onClick={handleCartClick} style={{ marginLeft: '15px', cursor: 'pointer' }}>
+              <span role="img" aria-label="cart">🛒</span>
+              Shopping Cart (0)
             </div>
-          ))}
+          </div>
+        </header>
+
+        {/* Product Grid */}
+        <div style={{ padding: '20px' }}>
+          <h1>BeyazEvim - Your White Goods Store</h1>
+          <div style={productGridStyle}>
+            {products.map((product) => (
+              <div key={product.id} style={productCardStyle} onClick={() => handleProductClick(product.id)}>
+                <img
+                  src={product.image || 'https://via.placeholder.com/150'}
+                  alt={product.name}
+                  style={{ width: '100%', borderRadius: '10px' }}
+                />
+                <h3>{product.name}</h3>
+                <p>{product.description}</p>
+                <p style={{ fontWeight: 'bold' }}>₺{product.price}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>
@@ -194,32 +158,30 @@ const navButtonStyle = {
   cursor: 'pointer',
 };
 
-const categoryNavStyle = {
-  display: 'flex',
-  justifyContent: 'space-around',
-  padding: '10px 0',
-  backgroundColor: '#000',
-  color: '#fff',
-  borderBottom: '1px solid #ddd',
-  position: 'relative',
+const sidebarStyle = {
+  width: '250px',
+  padding: '20px',
+  borderRight: '1px solid #ddd',
+  backgroundColor: '#f5f5f5',
 };
 
 const categoryStyle = {
   position: 'relative',
-  padding: '10px 15px',
+  padding: '10px 0',
   cursor: 'pointer',
+  color: '#333',
 };
 
 const dropdownStyle = {
   position: 'absolute',
-  top: '100%',
-  left: 0,
+  left: '100%',
+  top: 0,
   backgroundColor: 'white',
   boxShadow: '0 8px 16px rgba(0,0,0,0.2)',
   padding: '10px',
   borderRadius: '5px',
   zIndex: 1,
-  minWidth: '150px',
+  minWidth: '200px',
 };
 
 const dropdownItemStyle = {
