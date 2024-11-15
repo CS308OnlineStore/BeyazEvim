@@ -5,25 +5,56 @@ import axios from 'axios';
 
 const categories = [
   {
-    name: 'Küçük Ev Aletleri',
-    products: ['Toaster', 'Blender', 'Vacuum Cleaner'],
+    name: 'Small Kitchen Appliances',
+    products: ['Tea and Coffee Makers', 'Blenders and Mixers', 'Sandwich Makers', 'Electric Grills'],
   },
   {
-    name: 'Beyaz Eşya',
-    products: ['Washing Machine', 'Refrigerator', 'Dishwasher'],
+    name: 'Refrigerators',
+    products: ['No-Frost Refrigerators', 'Combined Refrigerator', 'Mini Refrigerators', 'Retro Refrigerators'],
   },
   {
-    name: 'Elektronik',
-    products: ['TV', 'Speaker', 'Laptop'],
+    name: 'Dryers',
+    products: ['Condenser Dryers', 'Heat Pump Dryers'],
   },
   {
-    name: 'Isıtma - Soğutma',
-    products: ['Air Conditioner', 'Heater', 'Fan'],
+    name: 'Dishwashers',
+    products: ['Built-in Dishwashers', 'Freestanding Dishwashers'],
   },
   {
-    name: 'Kişisel Bakım - Sağlık',
-    products: ['Hair Dryer', 'Shaver', 'Massage Chair'],
+    name: 'Ovens and Stoves',
+    products: ['Cooktops', 'Freestanding Ovens', 'Built-in Ovens', 'Microwave Ovens'],
   },
+  {
+    name: 'Air Conditioners',
+    products: ['Split Air Conditioners', 'Portable Air Conditioners', 'Window Air Conditioners'],
+
+  },
+  {
+    name: 'Built-in Appliances',
+    products: ['Built-in Cooktops', 'Built-in Range Hoods', 'Built-in Microwaves'],
+
+  },
+  {
+    name: 'Vacuum Cleaners',
+    products: ['Bagless Vacuum Cleaners', 'Bagged Vacuum Cleaners', 'Cordless Vacuum Cleaners'],
+
+  },
+  {
+    name: 'Water Dispensers',
+    products: ['Desktop Water Dispensers','Floor-Standing Water Dispensers'],
+
+  },
+  {
+    name: 'Freezers',
+    products: ['Chest Freezers', 'Upright Freezers'],
+
+  },
+  {
+    name: 'Irons',
+    products: ['Steam Irons', 'Dry Irons'],
+
+  },
+
 ];
 
 const MainPage = () => {
@@ -68,16 +99,16 @@ const MainPage = () => {
         <div style={logoStyle}>BeyazEvim</div>
         <input
           type="text"
-          placeholder="Ne Aramıştınız?"
+          placeholder="What are you looking for?"
           style={searchBarStyle}
         />
         <div style={navIconsStyle}>
           <button onClick={handleLoginClick} style={navButtonStyle}>
-            Giriş Yap
+            Login
           </button>
           <div onClick={handleCartClick} style={{ marginLeft: '15px', cursor: 'pointer' }}>
             <span role="img" aria-label="cart">🛒</span>
-            Sepetim (0)
+            Shopping Cart (0)
           </div>
         </div>
       </header>
