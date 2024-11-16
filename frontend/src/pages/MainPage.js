@@ -1,6 +1,7 @@
 // src/pages/MainPage.js
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Cookies from 'js-cookie';
 import axios from 'axios';
 import ShoppingCart from './ShoppingCart';
 
@@ -23,8 +24,18 @@ const MainPage = () => {
   const [products, setProducts] = useState([]);
   const [hoveredCategory, setHoveredCategory] = useState(null);
   const [isCartVisible, setIsCartVisible] = useState(false);
+  const [userName, setUserName] = useState('');
+  const [isHovered, setIsHovered] = useState(false);
 
   useEffect(() => {
+
+    const token = Cookies.get('authToken');
+    const userName = Cookies.get('userName');
+
+    if (token) {
+      setUserName(userName);  // Set the user name if logged in
+    }
+
     axios.get('/api/homepage')
       .then(response => {
         setProducts(response.data);
@@ -36,6 +47,14 @@ const MainPage = () => {
 
   const handleLoginClick = () => {
     navigate('/signinsignup');
+  };
+
+  const handleLogoutClick = () => {
+    // Clear the cookies when the user logs out
+    Cookies.remove('authToken');
+    Cookies.remove('userName');
+    setUserName('');
+    navigate('/');
   };
 
   const handleCartClick = () => {
@@ -91,9 +110,20 @@ const MainPage = () => {
             style={searchBarStyle}
           />
           <div style={navIconsStyle}>
-            <button onClick={handleLoginClick} style={navButtonStyle}>
-              Login
-            </button>
+            {userName ? (
+              <div
+                onClick={handleLogoutClick}
+                onMouseEnter={() => setIsHovered(true)}  
+                onMouseLeave={() => setIsHovered(false)} 
+                style={isHovered ? hoveredButtonStyle : navButtonStyle}
+              >
+                {isHovered ? 'Logout' : userName}  {/* Show 'Logout' on hover */}
+              </div>
+            ) : (
+              <button onClick={handleLoginClick} style={navButtonStyle}>
+                Login
+              </button>
+            )}
             <div onClick={handleCartClick} style={{ marginLeft: '15px', cursor: 'pointer'}}>
               <span role="img" aria-label="cart">🛒</span>
               Shopping Cart (0)
@@ -169,12 +199,24 @@ const navIconsStyle = {
 };
 
 const navButtonStyle = {
-  backgroundColor: '#007bff',
-  color: 'white',
+  backgroundColor: '#007bff', 
+  color: 'white',  
   border: 'none',
-  padding: '10px 20px',
+  padding: '10px 20px',  
   borderRadius: '5px',
   cursor: 'pointer',
+  transition: 'background-color 0.3s ease, color 0.3s ease',  
+  minWidth: '100px',  
+  display: 'inline-flex',
+  justifyContent: 'center',  
+  alignItems: 'center',  
+  height: '40px',  
+};
+
+const hoveredButtonStyle = {
+  ...navButtonStyle,
+  backgroundColor: 'red',  
+  color: 'white', 
 };
 
 const sidebarStyle = {
@@ -224,5 +266,6 @@ const productCardStyle = {
   textAlign: 'center',
   cursor: 'pointer',
 };
+
 
 export default MainPage;

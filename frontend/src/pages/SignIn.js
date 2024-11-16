@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Cookies from 'js-cookie';
 
 function SignIn() {
   const [email, setEmail] = useState('');
@@ -27,10 +28,10 @@ function SignIn() {
 
       if (response.ok) {
         const result = await response.json();
-        const token = result.token;
+        const { token, firstName, lastName, userID } = result;
 
-        // Store token for later use (example: localStorage)
-        localStorage.setItem('authToken', token);
+        Cookies.set('authToken', token, { expires: 7 });  // Expires in 7 days
+        Cookies.set('userName', `${firstName} ${lastName}`, { expires: 7 });
         
         alert('Giriş başarılı!');
         
