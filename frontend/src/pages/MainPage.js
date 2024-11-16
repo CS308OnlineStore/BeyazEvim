@@ -28,12 +28,11 @@ const MainPage = () => {
   const [isHovered, setIsHovered] = useState(false);
 
   useEffect(() => {
-
     const token = Cookies.get('authToken');
     const userName = Cookies.get('userName');
 
     if (token) {
-      setUserName(userName);  // Set the user name if logged in
+      setUserName(userName);
     }
 
     axios.get('/api/homepage')
@@ -50,7 +49,6 @@ const MainPage = () => {
   };
 
   const handleLogoutClick = () => {
-    // Clear the cookies when the user logs out
     Cookies.remove('authToken');
     Cookies.remove('userName');
     setUserName('');
@@ -73,6 +71,10 @@ const MainPage = () => {
     navigate(`/product/${productId}`);
   };
 
+  const handleSubCategoryClick = (subcategory) => {
+    navigate(`/category/${subcategory}`);
+  };
+
   return (
     <div style={{ fontFamily: 'Arial, sans-serif', display: 'flex' }}>
       {/* Sidebar Categories Section */}
@@ -89,7 +91,11 @@ const MainPage = () => {
             {hoveredCategory === category && (
               <div style={dropdownStyle}>
                 {category.products.map((product, i) => (
-                  <div key={i} style={dropdownItemStyle}>
+                  <div
+                    key={i}
+                    style={dropdownItemStyle}
+                    onClick={() => handleSubCategoryClick(product)}
+                  >
                     {product}
                   </div>
                 ))}
@@ -113,18 +119,18 @@ const MainPage = () => {
             {userName ? (
               <div
                 onClick={handleLogoutClick}
-                onMouseEnter={() => setIsHovered(true)}  
-                onMouseLeave={() => setIsHovered(false)} 
+                onMouseEnter={() => setIsHovered(true)}
+                onMouseLeave={() => setIsHovered(false)}
                 style={isHovered ? hoveredButtonStyle : navButtonStyle}
               >
-                {isHovered ? 'Logout' : userName}  {/* Show 'Logout' on hover */}
+                {isHovered ? 'Logout' : userName}
               </div>
             ) : (
               <button onClick={handleLoginClick} style={navButtonStyle}>
                 Login
               </button>
             )}
-            <div onClick={handleCartClick} style={{ marginLeft: '15px', cursor: 'pointer'}}>
+            <div onClick={handleCartClick} style={{ marginLeft: '15px', cursor: 'pointer' }}>
               <span role="img" aria-label="cart">🛒</span>
               Shopping Cart (0)
             </div>
@@ -144,8 +150,8 @@ const MainPage = () => {
             zIndex: 100,
             borderRadius: '5px'
           }}>
-          <ShoppingCart />
-        </div>
+            <ShoppingCart />
+          </div>
         )}
 
         {/* Product Grid */}
@@ -199,24 +205,24 @@ const navIconsStyle = {
 };
 
 const navButtonStyle = {
-  backgroundColor: '#007bff', 
-  color: 'white',  
+  backgroundColor: '#007bff',
+  color: 'white',
   border: 'none',
-  padding: '10px 20px',  
+  padding: '10px 20px',
   borderRadius: '5px',
   cursor: 'pointer',
-  transition: 'background-color 0.3s ease, color 0.3s ease',  
-  minWidth: '100px',  
+  transition: 'background-color 0.3s ease, color 0.3s ease',
+  minWidth: '100px',
   display: 'inline-flex',
-  justifyContent: 'center',  
-  alignItems: 'center',  
-  height: '40px',  
+  justifyContent: 'center',
+  alignItems: 'center',
+  height: '40px',
 };
 
 const hoveredButtonStyle = {
   ...navButtonStyle,
-  backgroundColor: 'red',  
-  color: 'white', 
+  backgroundColor: 'red',
+  color: 'white',
 };
 
 const sidebarStyle = {
@@ -266,6 +272,5 @@ const productCardStyle = {
   textAlign: 'center',
   cursor: 'pointer',
 };
-
 
 export default MainPage;
