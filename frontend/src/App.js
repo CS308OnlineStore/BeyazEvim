@@ -6,7 +6,7 @@ import ProductPage from './pages/ProductPage';
 import SignInSignUp from './pages/SignInSignUp';
 import SignIn from './pages/SignIn';
 import SignUp from './pages/SignUp';
-import SubCategoryPage from './pages/SubCategoryPage'; // Import SubCategoryPage
+import SubCategoryPage from './pages/SubCategoryPage'; 
 
 const App = () => {
   return (
