@@ -28,11 +28,12 @@ function SignIn() {
 
       if (response.ok) {
         const result = await response.json();
-        const { token, firstName, lastName, userID } = result;
+        const { token, firstName, lastName, userId } = result;
 
-        Cookies.set('authToken', token, { expires: 7 });  // Expires in 7 days
+        Cookies.set('authToken', token, { expires: 7 }); 
         Cookies.set('userName', `${firstName} ${lastName}`, { expires: 7 });
-        
+        Cookies.set('userId', userId, { expires: 7 })
+
         alert('Giriş başarılı!');
         
         // Redirect to the main page or dashboard, e.g., '/main' or '/dashboard'

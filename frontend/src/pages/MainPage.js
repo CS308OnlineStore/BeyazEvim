@@ -23,16 +23,23 @@ const MainPage = () => {
   const navigate = useNavigate();
   const [products, setProducts] = useState([]);
   const [hoveredCategory, setHoveredCategory] = useState(null);
+  const [isCartHovered, setIsCartHovered] = useState(false);  
   const [isCartVisible, setIsCartVisible] = useState(false);
   const [userName, setUserName] = useState('');
+  const [totalPrice, setTotalPrice] = useState(0.00);
+  const [cartNum, setCartNum] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
 
   useEffect(() => {
     const token = Cookies.get('authToken');
     const userName = Cookies.get('userName');
+    const totalPrice =  parseFloat(Cookies.get('totalPrice')).toFixed(2);
+    const cartNum = Cookies.get('cartNum');
 
     if (token) {
       setUserName(userName);
+      setTotalPrice(totalPrice);
+      setCartNum(cartNum);
     }
 
     axios.get('/api/homepage')
@@ -49,8 +56,9 @@ const MainPage = () => {
   };
 
   const handleLogoutClick = () => {
-    Cookies.remove('authToken');
-    Cookies.remove('userName');
+    Object.keys(Cookies.get()).forEach(function (cookieName) {
+      Cookies.remove(cookieName);
+    });
     setUserName('');
     navigate('/');
   };
@@ -130,26 +138,29 @@ const MainPage = () => {
                 Login
               </button>
             )}
-            <div onClick={handleCartClick} style={{ marginLeft: '15px', cursor: 'pointer' }}>
-              <span role="img" aria-label="cart">🛒</span>
-              Shopping Cart (0)
+            <div style={cartContainerStyle}>
+              {/* Cart Icon - Hoverable and Clickable */}
+              <div
+                style={isCartHovered ? hoveredCartIconStyle : cartIconStyle}
+                onMouseEnter={() => setIsCartHovered(true)}
+                onMouseLeave={() => setIsCartHovered(false)}
+                onClick={handleCartClick}
+              >
+                <span role="img" aria-label="cart">🛒</span>
+              </div>
+              {/* Cart Text - Static */}
+              <div style={cartTextStyle}>
+                <span style={cartPriceStyle}>Sepetim ({cartNum})</span>
+                <br />
+                <span style={cartItemCountStyle}>{totalPrice} TL</span>
+              </div>
             </div>
           </div>
         </header>
 
-        {/* Cart Dropdown or Sidebar */}
+        {/* Cart Dropdown */}
         {isCartVisible && (
-          <div style={{
-            position: 'absolute',
-            top: '60px',
-            right: '20px',
-            width: '300px',
-            backgroundColor: 'white',
-            boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
-            padding: '10px',
-            zIndex: 100,
-            borderRadius: '5px'
-          }}>
+          <div style={cartDropdownStyle}>
             <ShoppingCart />
           </div>
         )}
@@ -271,6 +282,62 @@ const productCardStyle = {
   width: '200px',
   textAlign: 'center',
   cursor: 'pointer',
+};
+
+const cartContainerStyle = {
+  display: 'flex',
+  alignItems: 'center',
+  padding: '10px',
+  color: 'white',
+};
+
+const cartIconStyle = {
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  width: '40px',
+  height: '40px',
+  backgroundColor: '#333',
+  borderRadius: '50%',
+  fontSize: '20px',
+  color: 'white',
+  marginRight: '10px',
+  cursor: 'pointer', 
+  transition: 'background-color 0.3s ease',
+};
+
+const hoveredCartIconStyle = {
+  ...cartIconStyle,
+  backgroundColor: 'red', // Change background color on hover
+};
+
+const cartTextStyle = {
+  display: 'flex',
+  flexDirection: 'column',
+  justifyContent: 'center',
+  fontSize: '14px',
+  cursor: 'default',
+};
+
+const cartItemCountStyle = {
+  color: 'white',
+  fontWeight: 'bold',
+};
+
+const cartPriceStyle = {
+  fontSize: '12px',
+  color: 'white',
+};
+
+const cartDropdownStyle = {
+  position: 'absolute',
+  top: '50px',
+  right: '20px',
+  width: '300px',
+  backgroundColor: '#fff',
+  boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.2)',
+  padding: '10px',
+  borderRadius: '5px',
 };
 
 export default MainPage;
