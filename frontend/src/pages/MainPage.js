@@ -99,7 +99,7 @@ const MainPage = () => {
     navigate(`/category/${subcategoryId}`);
   };
   const handleProductClick = (productId) => {
-    navigate('/product/${productId}');
+    navigate(`/product/${productId}`);
   };
 
   return (
