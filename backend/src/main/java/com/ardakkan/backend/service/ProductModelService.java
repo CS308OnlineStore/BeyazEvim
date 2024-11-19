@@ -63,6 +63,14 @@ public class ProductModelService {
     public List<ProductModel> getAllProductModels() {
         return productModelRepository.findAll();
     }
+    public  List<ProductModelDTO> getAllProductModelsDTO(){
+    	 List<ProductModel> allProducts = productModelRepository.findAll();
+    	 
+    	 return allProducts.stream()
+                 .map(this::convertToDTO)
+                 .collect(Collectors.toList());
+    	
+    }
 
  // Belirli bir marka ile arama - DTO döndürür
     public List<ProductModelDTO> getProductModelsDTOByBrand(String brand) {
@@ -116,6 +124,12 @@ public class ProductModelService {
         }
     }
     
+    
+ // Toplu ProductModel ekleme
+    public List<ProductModel> saveAllProductModels(List<ProductModel> productModels) {
+        return productModelRepository.saveAll(productModels);
+    }
+    
     public List<ProductModelDTO> getRandomProductModels() {
         List<ProductModel> allProducts = productModelRepository.findAll(); // Tüm ürünleri çek
         Collections.shuffle(allProducts); // Ürünleri karıştır
@@ -127,15 +141,22 @@ public class ProductModelService {
                 .collect(Collectors.toList());
     }
 
-    // ProductModel -> ProductModelDTO dönüşümü
-    private ProductModelDTO convertToDTO(ProductModel productModel) {
+    public ProductModelDTO convertToDTO(ProductModel productModel) {
         ProductModelDTO dto = new ProductModelDTO();
         dto.setId(productModel.getId());
         dto.setName(productModel.getName());
         dto.setDescription(productModel.getDescription());
         dto.setPrice(productModel.getPrice());
+        dto.setBrand(productModel.getDistributorInformation());
+        dto.setImage_path(productModel.getPhotoPath());
+
+        // Stok bilgisini al
+        int stockCount = getAvailableProductInstanceCount(productModel.getId());
+        dto.setStockCount(stockCount);
+
         return dto;
     }
+
 
 }
 

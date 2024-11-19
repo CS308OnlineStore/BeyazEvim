@@ -21,6 +21,16 @@ public class ProductModelController {
     public ProductModelController(ProductModelService productModelService) {
         this.productModelService = productModelService;
     }
+    
+    
+    
+    
+    // Toplu ProductModel ekleme
+    @PostMapping("/bulk")
+    public ResponseEntity<List<ProductModel>> saveAllProductModels(@RequestBody List<ProductModel> productModels) {
+        List<ProductModel> createdProductModels = productModelService.saveAllProductModels(productModels);
+        return new ResponseEntity<>(createdProductModels, HttpStatus.CREATED);
+    }
 
     // Yeni bir ProductModel oluştur - Entity döner
     @PostMapping
@@ -29,13 +39,13 @@ public class ProductModelController {
         return new ResponseEntity<>(createdProductModel, HttpStatus.CREATED);
     }
 
-    // ID ile ProductModel getir - DTO döner
     @GetMapping("/{id}")
     public ResponseEntity<ProductModelDTO> getProductModelById(@PathVariable Long id) {
         Optional<ProductModelDTO> productModelDTO = productModelService.getProductModelDTOById(id);
         return productModelDTO.map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
+    
 
     // Tüm ProductModel'leri getir - Entity döner
     @GetMapping

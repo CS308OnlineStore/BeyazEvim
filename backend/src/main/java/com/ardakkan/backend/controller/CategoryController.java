@@ -1,5 +1,6 @@
 package com.ardakkan.backend.controller;
 
+import com.ardakkan.backend.dto.CategoryProductsDTO;
 import com.ardakkan.backend.entity.Category;
 import com.ardakkan.backend.entity.ProductModel;
 import com.ardakkan.backend.service.CategoryService;
@@ -65,12 +66,14 @@ public class CategoryController {
         return ResponseEntity.noContent().build();
     }
 
-    // Belirli bir kategorideki tüm ürün modellerini getir
+    
     @GetMapping("/{categoryId}/productModels")
-    public ResponseEntity<List<ProductModel>> getProductModelsByCategory(@PathVariable Long categoryId) {
-        List<ProductModel> productModels = categoryService.getProductModelsByCategory(categoryId);
-        return ResponseEntity.ok(productModels);
+    public ResponseEntity<CategoryProductsDTO> getProductModelsAndBrandsByCategory(@PathVariable Long categoryId) {
+        CategoryProductsDTO categoryProductsDTO = categoryService.getProductModelsAndBrandsByCategory(categoryId);
+        return ResponseEntity.ok(categoryProductsDTO);
     }
+    
+   
     
     // Ana kategorileri getiren endpoint
     @GetMapping("/root")
