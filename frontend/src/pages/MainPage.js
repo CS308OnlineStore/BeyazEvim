@@ -1,41 +1,27 @@
-// src/pages/MainPage.js
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Cookies from 'js-cookie';
 import axios from 'axios';
 import ShoppingCart from './ShoppingCart';
-import logo from '../assets/BeyazEvim_logo.jpeg'; // Ensure this path is correct and matches your project structure
-
-const categories = [
-  { name: 'Small Kitchen Appliances', products: ['Tea and Coffee Makers', 'Blenders and Mixers', 'Sandwich Makers', 'Electric Grills'] },
-  { name: 'Refrigerators', products: ['No-Frost Refrigerators', 'Combined Refrigerator', 'Mini Refrigerators', 'Retro Refrigerators'] },
-  { name: 'Dryers', products: ['Condenser Dryers', 'Heat Pump Dryers'] },
-  { name: 'Dishwashers', products: ['Built-in Dishwashers', 'Freestanding Dishwashers'] },
-  { name: 'Ovens and Stoves', products: ['Cooktops', 'Freestanding Ovens', 'Built-in Ovens', 'Microwave Ovens'] },
-  { name: 'Air Conditioners', products: ['Split Air Conditioners', 'Portable Air Conditioners', 'Window Air Conditioners'] },
-  { name: 'Built-in Appliances', products: ['Built-in Cooktops', 'Built-in Range Hoods', 'Built-in Microwaves'] },
-  { name: 'Vacuum Cleaners', products: ['Bagless Vacuum Cleaners', 'Bagged Vacuum Cleaners', 'Cordless Vacuum Cleaners'] },
-  { name: 'Water Dispensers', products: ['Desktop Water Dispensers', 'Floor-Standing Water Dispensers'] },
-  { name: 'Freezers', products: ['Chest Freezers', 'Upright Freezers'] },
-  { name: 'Irons', products: ['Steam Irons', 'Dry Irons'] }
-];
+import logo from '../assets/BeyazEvim_logo.jpeg'; // Ensure the path is correct
 
 const MainPage = () => {
   const navigate = useNavigate();
   const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [hoveredCategory, setHoveredCategory] = useState(null);
-  const [isCartHovered, setIsCartHovered] = useState(false);  
+  const [subCategories, setSubCategories] = useState({});
+  const [isCartHovered, setIsCartHovered] = useState(false);
   const [isCartVisible, setIsCartVisible] = useState(false);
   const [userName, setUserName] = useState('');
-  const [totalPrice, setTotalPrice] = useState(0.00);
+  const [totalPrice, setTotalPrice] = useState(0.0);
   const [cartNum, setCartNum] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
 
   useEffect(() => {
     const token = Cookies.get('authToken');
     const userName = Cookies.get('userName');
-    const totalPrice =  parseFloat(Cookies.get('totalPrice')).toFixed(2);
+    const totalPrice = parseFloat(Cookies.get('totalPrice')).toFixed(2);
     const cartNum = Cookies.get('cartNum');
 
     if (token) {
@@ -43,7 +29,7 @@ const MainPage = () => {
       setTotalPrice(totalPrice);
       setCartNum(cartNum);
     }
-    
+
     axios.get('/api/homepage')
       .then(response => {
         setProducts(response.data);
@@ -51,14 +37,40 @@ const MainPage = () => {
       .catch(error => {
         console.error("There was an error fetching the products!", error);
       });
+
+    // Fetch categories
+    axios
+      .get('/api/categories/root')
+      .then((response) => {
+        setCategories(response.data);
+      })
+      .catch((error) => {
+        console.error('Error fetching categories:', error);
+      });
   }, []);
+
+  const fetchSubCategories = (categoryId) => {
+    if (!subCategories[categoryId]) {
+      axios
+        .get(`/api/categories/${categoryId}/subcategories`)
+        .then((response) => {
+          setSubCategories((prev) => ({
+            ...prev,
+            [categoryId]: response.data,
+          }));
+        })
+        .catch((error) => {
+          console.error('Error fetching subcategories:', error);
+        });
+    }
+  };
 
   const handleLoginClick = () => {
     navigate('/signinsignup');
   };
 
   const handleLogoutClick = () => {
-    Object.keys(Cookies.get()).forEach(function (cookieName) {
+    Object.keys(Cookies.get()).forEach((cookieName) => {
       Cookies.remove(cookieName);
     });
     setUserName('');
@@ -66,32 +78,26 @@ const MainPage = () => {
   };
 
   const handleCartClick = () => {
-
     setIsCartVisible(!isCartVisible);
-    const totalPrice =  parseFloat(Cookies.get('totalPrice')).toFixed(2);
+    const totalPrice = parseFloat(Cookies.get('totalPrice')).toFixed(2);
     const cartNum = Cookies.get('cartNum');
 
     setTotalPrice(totalPrice);
     setCartNum(cartNum);
-    
   };
 
   const handleMouseEnter = (category) => {
     setHoveredCategory(category);
+    fetchSubCategories(category.id); // Fetch subcategories on hover
   };
 
   const handleMouseLeave = () => {
     setHoveredCategory(null);
   };
 
-  const handleProductClick = (productId) => {
-    navigate(`/product/${productId}`);
+  const handleSubCategoryClick = (subcategoryId) => {
+    navigate(`/category/${subcategoryId}`);
   };
-
-  const handleSubCategoryClick = (subcategory) => {
-    navigate(`/category/${subcategory}`);
-  };
-
 
   return (
     <div style={{ fontFamily: 'Arial, sans-serif', display: 'flex' }}>
@@ -103,19 +109,23 @@ const MainPage = () => {
         </div>
         <nav style={sidebarStyle}>
           <h3>Categories</h3>
-          {categories.map((category, index) => (
+          {categories.map((category) => (
             <div
-              key={index}
+              key={category.id}
               onMouseEnter={() => handleMouseEnter(category)}
               onMouseLeave={handleMouseLeave}
               style={categoryStyle}
             >
               {category.name}
-              {hoveredCategory === category && (
+              {hoveredCategory === category && subCategories[category.id] && (
                 <div style={dropdownStyle}>
-                  {category.products.map((product, i) => (
-                    <div key={i} style={dropdownItemStyle}onClick={() => handleSubCategoryClick(product)}>
-                      {product}
+                  {subCategories[category.id].map((subcategory) => (
+                    <div
+                      key={subcategory.id}
+                      style={dropdownItemStyle}
+                      onClick={() => handleSubCategoryClick(subcategory.id)}
+                    >
+                      {subcategory.name}
                     </div>
                   ))}
                 </div>
@@ -138,8 +148,8 @@ const MainPage = () => {
             {userName ? (
               <div
                 onClick={handleLogoutClick}
-                onMouseEnter={() => setIsHovered(true)}  
-                onMouseLeave={() => setIsHovered(false)} 
+                onMouseEnter={() => setIsHovered(true)}
+                onMouseLeave={() => setIsHovered(false)}
                 style={isHovered ? hoveredButtonStyle : navButtonStyle}
               >
                 {isHovered ? 'Logout' : userName}
@@ -150,16 +160,16 @@ const MainPage = () => {
               </button>
             )}
             <div style={cartContainerStyle}>
-              {/* Cart Icon - Hoverable and Clickable */}
               <div
                 style={isCartHovered ? hoveredCartIconStyle : cartIconStyle}
                 onMouseEnter={() => setIsCartHovered(true)}
                 onMouseLeave={() => setIsCartHovered(false)}
                 onClick={handleCartClick}
               >
-                <span role="img" aria-label="cart">🛒</span>
+                <span role="img" aria-label="cart">
+                  🛒
+                </span>
               </div>
-              {/* Cart Text - Static */}
               <div style={cartTextStyle}>
                 <span style={cartPriceStyle}>Sepetim ({cartNum})</span>
                 <br />
@@ -180,8 +190,9 @@ const MainPage = () => {
         <div style={{ padding: '20px' }}>
           <h1>BeyazEvim - Your White Goods Store</h1>
           <div style={productGridStyle}>
+            {/* Example content for products */}
             {products.map((product) => (
-              <div key={product.id} style={productCardStyle} onClick={() => handleProductClick(product.id)}>
+              <div key={product.id} style={productCardStyle}>
                 <img
                   src={product.image || 'https://via.placeholder.com/150'}
                   alt={product.name}
@@ -198,6 +209,7 @@ const MainPage = () => {
     </div>
   );
 };
+
 
 // CSS Styles as JavaScript objects
 const logoContainerStyle = {
