@@ -39,8 +39,7 @@ const MainPage = () => {
       });
 
     // Fetch categories
-    axios
-      .get('/api/categories/root')
+    axios.get('/api/categories/root')
       .then((response) => {
         setCategories(response.data);
       })
@@ -49,22 +48,7 @@ const MainPage = () => {
       });
   }, []);
 
-  const fetchSubCategories = (categoryId) => {
-    if (!subCategories[categoryId]) {
-      axios
-        .get(`/api/categories/${categoryId}/subcategories`)
-        .then((response) => {
-          setSubCategories((prev) => ({
-            ...prev,
-            [categoryId]: response.data,
-          }));
-        })
-        .catch((error) => {
-          console.error('Error fetching subcategories:', error);
-        });
-    }
-  };
-
+  
   const handleLoginClick = () => {
     navigate('/signinsignup');
   };
@@ -88,7 +72,7 @@ const MainPage = () => {
 
   const handleMouseEnter = (category) => {
     setHoveredCategory(category);
-    fetchSubCategories(category.id); // Fetch subcategories on hover
+    fetchSubCategories(category.subCategories); // Fetch subcategories on hover
   };
 
   const handleMouseLeave = () => {
@@ -119,16 +103,16 @@ const MainPage = () => {
               onMouseLeave={handleMouseLeave}
               style={categoryStyle}
             >
-              {category.name}
-              {hoveredCategory === category && subCategories[category.id] && (
+              {category.categoryName}
+              {hoveredCategory === category && category.subCategories.length > 0 && (
                 <div style={dropdownStyle}>
-                  {subCategories[category.id].map((subcategory) => (
+                  {category.subCategories.map((subcategory) => (
                     <div
                       key={subcategory.id}
                       style={dropdownItemStyle}
                       onClick={() => handleSubCategoryClick(subcategory.id)}
                     >
-                      {subcategory.name}
+                      {subcategory.categoryName}
                     </div>
                   ))}
                 </div>
