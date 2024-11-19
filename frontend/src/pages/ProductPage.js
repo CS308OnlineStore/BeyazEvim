@@ -2,10 +2,12 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
+import Cookies from 'js-cookie';
 
 const ProductPage = () => {
-  const { id } = useParams(); // Get product id from URL
+  const { id } = useParams(); 
   const [productDetails, setProductDetails] = useState(null);
+  const [count, setCount] = useState(1);
 
   useEffect(() => {
     axios.get(`/api/product-models/${id}`)
@@ -16,6 +18,40 @@ const ProductPage = () => {
         console.error("There was an error fetching the product details!", error);
       });
   }, [id]);
+
+  const handleIncrease = () => {
+    if (count < 15) {
+      setCount(prevCount => prevCount + 1);
+    }
+  };
+
+  const handleDecrease = () => {
+    if (count > 1) {
+      setCount(prevCount => prevCount - 1);
+    }
+  };
+
+  const handleAddToCart = () => {
+
+  const cartId = Cookies.get('cartId');
+
+    if (cartId && cartId !== 0){
+      for (let i = 0; i < count; i++) {
+        axios.post(`/api/order-items/add?orderId=${cartId}&productModelId=${id}`)
+        .then(response => {
+          if (response.status !== 200) { 
+            alert('Cannot added to cart!')
+          }
+        })
+        .catch(error => {
+          console.error("There was an error fetching the product details!", error);
+        });
+      }
+    }
+    else {
+      console.log('Cart ID not found!');
+    }
+  }
 
   if (!productDetails) {
     return <p>Loading product details...</p>;
@@ -28,6 +64,16 @@ const ProductPage = () => {
         <h1>{productDetails.name}</h1>
         <p>{productDetails.description}</p>
         <p style={{ fontWeight: 'bold' }}>₺{productDetails.price}</p>
+
+        {/* Counter Component */}
+        <div style={counterStyle}>
+          <button onClick={handleDecrease} style={buttonStyle}>-</button>
+          <span style={countStyle}>{count}</span>
+          <button onClick={handleIncrease} style={buttonStyle}>+</button>
+        </div>
+
+        {/* Add to Cart Button */}
+        <button style={addToCartButtonStyle} onClick={handleAddToCart}>Add to Cart</button>
       </div>
     </div>
   );
@@ -43,6 +89,42 @@ const productDetailsContainerStyle = {
 const productDetailsStyle = {
   padding: '20px',
   textAlign: 'center',
+};
+
+const counterStyle = {
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: '10px',
+  marginTop: '20px',
+};
+
+const buttonStyle = {
+  width: '40px',
+  height: '40px',
+  fontSize: '20px',
+  fontWeight: 'bold',
+  borderRadius: '5px',
+  border: '1px solid #ccc',
+  cursor: 'pointer',
+  backgroundColor: '#f8f8f8',
+};
+
+const countStyle = {
+  fontSize: '20px',
+  fontWeight: 'bold',
+};
+
+const addToCartButtonStyle = {
+  marginTop: '20px',
+  padding: '10px 20px',
+  fontSize: '16px',
+  fontWeight: 'bold',
+  color: '#fff',
+  backgroundColor: '#007BFF',
+  border: 'none',
+  borderRadius: '5px',
+  cursor: 'pointer',
 };
 
 export default ProductPage;

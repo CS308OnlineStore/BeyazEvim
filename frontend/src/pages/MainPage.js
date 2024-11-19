@@ -64,7 +64,14 @@ const MainPage = () => {
   };
 
   const handleCartClick = () => {
+
     setIsCartVisible(!isCartVisible);
+    const totalPrice =  parseFloat(Cookies.get('totalPrice')).toFixed(2);
+    const cartNum = Cookies.get('cartNum');
+
+    setTotalPrice(totalPrice);
+    setCartNum(cartNum);
+    
   };
 
   const handleMouseEnter = (category) => {

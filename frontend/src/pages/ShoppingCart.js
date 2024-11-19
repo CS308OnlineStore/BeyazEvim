@@ -1,25 +1,28 @@
 // src/pages/ShoppingCart.js
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Cookies from 'js-cookie';
 
 const ShoppingCart = () => {
+  const navigate = useNavigate();
   const [cartItems, setCartItems] = useState([]);
   const [totalPrice, setTotalPrice] = useState(0);
 
   const userId = Cookies.get('userId');
- 
+   
   useEffect(() => {
     if (userId){
-    axios.get(`/api/orders/${userId}/cart`)
-      .then(response => {
-        const { orderItems, totalPrice } = response.data;
-        setCartItems(orderItems);
-        setTotalPrice(totalPrice);
-      })
-      .catch(error => {
-        console.error('Error fetching cart data:', error);
-      });
+      axios.get(`/api/orders/${userId}/cart`)
+        .then(response => {
+          const { orderItems, totalPrice, id } = response.data;
+          setCartItems(orderItems);
+          setTotalPrice(totalPrice);
+          Cookies.set('cartId', id, { expires: 7 });
+        })
+        .catch(error => {
+          console.error('Error fetching cart data:', error);
+        });
     }
   }, [userId]);
 
@@ -27,9 +30,23 @@ const ShoppingCart = () => {
   Cookies.set('cartNum', cartItems.length, { expires: 7 });
 
   // sonra düzenle
-  const handleRemoveItem = (id) => {
-    setCartItems(cartItems.filter(item => item.id !== id));
-    setTotalPrice(cartItems.reduce((total, item) => total + item.price, 0));
+  const handleRemoveItem = (itemId) => {
+    const cartId = Cookies.get('cartId');
+    if (cartId){
+      axios.post(`/api/order-items/add?orderId=${cartId}&productModelId=${itemId}`)
+        .then(response => {
+          if (response.status !== 200) {
+            alert("Failed to remove item!")
+          }
+          else { navigate('/'); }
+        })
+        .catch(error => {
+          console.error('Error fetching cart data:', error);
+        });
+    }
+
+    //setCartItems(cartItems.filter(item => item.id !== id));
+    //setTotalPrice(cartItems.reduce((total, item) => total + item.price, 0));
   };
 
   return (
