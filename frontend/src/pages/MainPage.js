@@ -184,13 +184,21 @@ const MainPage = () => {
           </div>
         </header>
 
-        {/* Cart Dropdown */}
+        {/* Cart Overlay and Dropdown */}
         {isCartVisible && (
-          <div style={cartDropdownStyle}>
-            <ShoppingCart onClose={() => setIsCartVisible(false)} />
-          </div>
+          <>
+            {/* Blur Overlay */}
+            <div
+              style={cartOverlayStyle}
+              onClick={handleCartClick} // Close the cart if overlay is clicked
+            ></div>
+            {/* Cart Dropdown */}
+            <div style={cartDropdownStyle}>
+              <ShoppingCart onClose={handleCartClick} />
+            </div>
+          </>
         )}
-
+        
         {/* Product Grid */}
         <div style={{ padding: '20px' }}>
           <h1>BeyazEvim - Your White Goods Store</h1>
@@ -313,16 +321,27 @@ const dropdownItemStyle = {
 
 const cartDropdownStyle = {
   position: 'absolute',
-  top: '0', // Start from the top of the page
-  right: '0', // Aligns the dropdown to the right edge of the page
-  width: '30%', // Expands the dropdown to 30% of the page width
-  height: '100vh', // Covers the full height of the viewport
+  top: '0', 
+  right: '0', 
+  width: '30%', 
+  height: '100vh', 
   backgroundColor: 'white',
-  boxShadow: '-2px 0 8px rgba(0, 0, 0, 0.2)', // Shadow for a side panel effect
-  padding: '20px', // Add padding inside the dropdown
+  boxShadow: '-2px 0 8px rgba(0, 0, 0, 0.2)', 
+  padding: '20px', 
   zIndex: 100,
-  borderRadius: '0', // Removes rounded corners
-  transition: 'width 0.3s ease-in-out', // Smooth animation when size changes
+  borderRadius: '0', 
+  transition: 'width 0.3s ease-in-out', 
+};
+
+const cartOverlayStyle = {
+  position: 'fixed',
+  top: 0,
+  left: 0,
+  width: '100%',
+  height: '100%',
+  backgroundColor: 'rgba(0, 0, 0, 0.4)', 
+  zIndex: 99, 
+  transition: 'opacity 0.3s ease-in-out',
 };
 
 const productGridStyle = {
