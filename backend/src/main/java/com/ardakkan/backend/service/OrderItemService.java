@@ -15,6 +15,8 @@ import com.ardakkan.backend.repo.ProductInstanceRepository;
 import com.ardakkan.backend.repo.ProductModelRepository;
 import com.ardakkan.backend.entity.ProductInstance;
 import jakarta.transaction.Transactional;
+
+import com.ardakkan.backend.dto.OrderItemDTO;
 import com.ardakkan.backend.dto.ProductModelDTO;
 import com.ardakkan.backend.entity.ProductModel;
 
@@ -26,19 +28,21 @@ public class OrderItemService {
     private final OrderRepository orderRepository;
     private final ProductInstanceRepository productInstanceRepository;
     private final ProductModelRepository productModelRepository;
+    private final ProductModelService productModelService;
 
     @Autowired
     public OrderItemService(OrderItemRepository orderItemRepository, 
                             OrderRepository orderRepository, 
                             ProductInstanceRepository productInstanceRepository,
-                            ProductModelRepository productModelRepository) {
+                            ProductModelRepository productModelRepository, ProductModelService productModelService) {
         this.orderItemRepository = orderItemRepository;
         this.orderRepository = orderRepository;
         this.productInstanceRepository = productInstanceRepository;
         this.productModelRepository = productModelRepository;
+		this.productModelService = productModelService;
     }
-
-    public OrderItem addProductToCart(Long orderId, Long productModelId) {
+    @Transactional
+    public OrderItemDTO addProductToCart(Long orderId, Long productModelId) {
         // Order'ı getir
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new IllegalStateException("Order bulunamadı: " + orderId));
@@ -56,7 +60,9 @@ public class OrderItemService {
             throw new IllegalStateException("Stokta veya sepette uygun ürün bulunamadı: " + productModelId);
         }
 
+        // Uygun ProductInstance bulundu
         ProductInstance productInstance = productInstanceOpt.get();
+        Long productInstanceId = productInstance.getId(); // ID'yi alıyoruz
         Double productPrice = productInstance.getProductModel().getPrice();
 
         // Order ve ProductModel üzerinden mevcut bir OrderItem olup olmadığını kontrol edin
@@ -69,8 +75,8 @@ public class OrderItemService {
             // Mevcut OrderItem bulundu, miktarı artır
             orderItem = existingOrderItemOpt.get();
             orderItem.setQuantity(orderItem.getQuantity() + 1);
-            orderItem.getProductInstances().add(productInstance);
-            order.setTotalPrice(order.getTotalPrice() + productPrice);
+            orderItem.getProductInstanceIds().add(productInstanceId); // ID'yi listeye ekle
+            order.setTotalPrice(order.getTotalPrice() + productPrice); // Toplam fiyatı güncelle
         } else {
             // Yeni OrderItem oluştur
             orderItem = new OrderItem();
@@ -78,8 +84,8 @@ public class OrderItemService {
             orderItem.setProductModelId(productModelId);
             orderItem.setUnitPrice(productPrice); // Birim fiyatı ayarla
             orderItem.setQuantity(1); // İlk miktar olarak 1 ayarla
-            orderItem.getProductInstances().add(productInstance);
-            order.setTotalPrice(order.getTotalPrice() + productPrice);
+            orderItem.getProductInstanceIds().add(productInstanceId); // ID'yi listeye ekle
+            order.setTotalPrice(order.getTotalPrice() + productPrice); // Toplam fiyatı güncelle
         }
 
         // Ürün sepete eklendiği için durumunu IN_CART olarak güncelle
@@ -87,69 +93,118 @@ public class OrderItemService {
         productInstanceRepository.save(productInstance);
 
         // OrderItem'ı kaydet ve döndür
-        return orderItemRepository.save(orderItem);
+        orderItemRepository.save(orderItem);
+        return  convertToOrderItemDTO(orderItem);
     }
 
-    
-    
-    
-    public OrderItem removeProductFromCart(Long orderId, Long productModelId) {
-        Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new IllegalStateException("Order not found: " + orderId));
 
+    
+    
+    
+    @Transactional
+    public OrderItemDTO removeProductFromCart(Long orderId, Long productModelId) {
+        // Order'ı getir
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new IllegalStateException("Order bulunamadı: " + orderId));
+
+        // OrderItem'ı bul
         OrderItem orderItem = orderItemRepository
                 .findByOrderAndProductModelId(order, productModelId)
-                .orElseThrow(() -> new IllegalStateException("Product not found in cart: " + productModelId));
+                .orElseThrow(() -> new IllegalStateException("Ürün sepette bulunamadı: " + productModelId));
 
         // Ürünün birim fiyatını al
         Double productPrice = orderItem.getUnitPrice();
-        
+
         if (orderItem.getQuantity() > 1) {
+            // Miktar > 1 ise, miktarı azalt ve ID'yi listeden çıkar
             orderItem.setQuantity(orderItem.getQuantity() - 1);
-            ProductInstance productInstance = orderItem.getProductInstances().remove(0);
+
+            // Listeden bir ProductInstance ID'si çıkar
+            Long productInstanceId = orderItem.getProductInstanceIds().remove(0);
+
+            // ProductInstance durumunu güncelle
+            ProductInstance productInstance = productInstanceRepository.findById(productInstanceId)
+                    .orElseThrow(() -> new IllegalStateException("ProductInstance bulunamadı: " + productInstanceId));
             productInstance.setStatus(ProductInstanceStatus.IN_STOCK);
-            order.setTotalPrice(order.getTotalPrice() - productPrice);
             productInstanceRepository.save(productInstance);
+
+            // Order'ın toplam fiyatını güncelle
+            order.setTotalPrice(order.getTotalPrice() - productPrice);
+            orderRepository.save(order);
             orderItemRepository.save(orderItem);
         } else {
             // Miktar 1 ise, OrderItem'ı tamamen kaldır
-            orderItem.getProductInstances().forEach(pi -> {
-                pi.setStatus(ProductInstanceStatus.IN_STOCK);
-                productInstanceRepository.save(pi);
+            orderItem.getProductInstanceIds().forEach(productInstanceId -> {
+                ProductInstance productInstance = productInstanceRepository.findById(productInstanceId)
+                        .orElseThrow(() -> new IllegalStateException("ProductInstance bulunamadı: " + productInstanceId));
+                productInstance.setStatus(ProductInstanceStatus.IN_STOCK);
+                productInstanceRepository.save(productInstance);
             });
 
             // Order'ın toplam fiyatından OrderItem'ın toplam fiyatını çıkar
             order.setTotalPrice(order.getTotalPrice() - (productPrice * orderItem.getQuantity()));
             orderRepository.save(order);
+
+            // OrderItem'ı tamamen sil
             orderItemRepository.delete(orderItem);
         }
 
-        return orderItem;
+        return  convertToOrderItemDTO(orderItem);
     }
-    
+
     
     public ProductModelDTO getProductModelByOrderItemId(Long orderItemId) {
+        // OrderItem'ı bul
         OrderItem orderItem = orderItemRepository.findById(orderItemId)
                 .orElseThrow(() -> new IllegalStateException("OrderItem bulunamadı: " + orderItemId));
         
-        // OrderItem içindeki ProductInstance'ların ilkini alıyoruz
-        ProductInstance productInstance = orderItem.getProductInstances().stream()
+        // OrderItem içindeki ilk ProductInstance ID'sini al
+        Long productInstanceId = orderItem.getProductInstanceIds().stream()
                 .findFirst()
-                .orElseThrow(() -> new IllegalStateException("OrderItem için ProductInstance bulunamadı: " + orderItemId));
+                .orElseThrow(() -> new IllegalStateException("OrderItem için ProductInstance ID bulunamadı: " + orderItemId));
         
+        // ProductInstance'ı ID üzerinden bul
+        ProductInstance productInstance = productInstanceRepository.findById(productInstanceId)
+                .orElseThrow(() -> new IllegalStateException("ProductInstance bulunamadı: " + productInstanceId));
+        
+        // ProductInstance içindeki ProductModel'i bul
         ProductModel productModel = productModelRepository.findById(productInstance.getProductModel().getId())
                 .orElseThrow(() -> new IllegalStateException("ProductModel bulunamadı: " + productInstance.getProductModel().getId()));
         
+        // ProductModel'den DTO'ya dönüşüm yap
         return convertToDTO(productModel);
     }
 
+
+    
+    public OrderItemDTO convertToOrderItemDTO(OrderItem orderItem) {
+        OrderItemDTO orderItemDTO = new OrderItemDTO();
+        orderItemDTO.setOrderItemId(orderItem.getId());
+        orderItemDTO.setQuantity(orderItem.getQuantity());
+        orderItemDTO.setUnitPrice(orderItem.getUnitPrice());
+
+        // İlk ProductInstance ID'sini al
+        Long productInstanceId = orderItem.getProductInstanceIds().stream()
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("OrderItem içinde ProductInstance ID bulunamadı: " + orderItem.getId()));
+
+        // ProductInstance'ı ID ile bul
+        ProductInstance productInstance = productInstanceRepository.findById(productInstanceId)
+                .orElseThrow(() -> new IllegalStateException("ProductInstance bulunamadı: " + productInstanceId));
+
+        // ProductModel'i ProductInstance üzerinden al
+        ProductModel productModel = productInstance.getProductModel();
+        ProductModelDTO productModelDTO = convertToDTO(productModel);
+
+        // DTO'ya ProductModel bilgilerini ekle
+        orderItemDTO.setProductModel(productModelDTO);
+
+        return orderItemDTO;
+    }
+    
+ // ProductModel -> ProductModelDTO dönüşümü
     private ProductModelDTO convertToDTO(ProductModel productModel) {
-        ProductModelDTO dto = new ProductModelDTO();
-        dto.setId(productModel.getId());
-        dto.setName(productModel.getName());
-        dto.setDescription(productModel.getDescription());
-        dto.setPrice(productModel.getPrice());
-        return dto;
+    	return productModelService.convertToDTO(productModel);
     }
     
     

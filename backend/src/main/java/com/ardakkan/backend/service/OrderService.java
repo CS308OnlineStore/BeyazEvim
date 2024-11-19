@@ -7,10 +7,12 @@ import com.ardakkan.backend.entity.Invoice;
 import com.ardakkan.backend.entity.Order;
 import com.ardakkan.backend.entity.OrderItem;
 import com.ardakkan.backend.entity.OrderStatus;
+import com.ardakkan.backend.entity.ProductInstance;
 import com.ardakkan.backend.entity.ProductModel;
 import com.ardakkan.backend.entity.User;
 import com.ardakkan.backend.repo.InvoiceRepository;
 import com.ardakkan.backend.repo.OrderRepository;
+import com.ardakkan.backend.repo.ProductInstanceRepository;
 import com.ardakkan.backend.repo.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -28,12 +30,16 @@ public class OrderService {
 		private final OrderRepository orderRepository;
 	    private final UserRepository userRepository;
 	    private final InvoiceRepository invoiceRepository;
+	    private final ProductInstanceRepository productInstanceRepository;
+	    private final ProductModelService productModelService;
 
 	    @Autowired
-	    public OrderService(OrderRepository orderRepository, UserRepository userRepository, InvoiceRepository invoiceRepository) {
+	    public OrderService(OrderRepository orderRepository, UserRepository userRepository, InvoiceRepository invoiceRepository, ProductInstanceRepository productInstanceRepository, ProductModelService productModelService ) {
 	        this.orderRepository = orderRepository;
 	        this.userRepository = userRepository;
 	        this.invoiceRepository = invoiceRepository;
+			this.productInstanceRepository = productInstanceRepository;
+			this.productModelService = productModelService;
 	    }
 
     // Sipariş oluşturma
@@ -179,20 +185,29 @@ public class OrderService {
         orderItemDTO.setQuantity(orderItem.getQuantity());
         orderItemDTO.setUnitPrice(orderItem.getUnitPrice());
 
-        // ProductModelDTO'yu oluştur ve ekle
-        ProductModel productModel = orderItem.getProductInstances().get(0).getProductModel(); // İlk ProductInstance'ın ProductModel'ini alıyoruz
+        // İlk ProductInstance ID'sini al
+        Long productInstanceId = orderItem.getProductInstanceIds().stream()
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("OrderItem içinde ProductInstance ID bulunamadı: " + orderItem.getId()));
+
+        // ProductInstance'ı ID ile bul
+        ProductInstance productInstance = productInstanceRepository.findById(productInstanceId)
+                .orElseThrow(() -> new IllegalStateException("ProductInstance bulunamadı: " + productInstanceId));
+
+        // ProductModel'i ProductInstance üzerinden al
+        ProductModel productModel = productInstance.getProductModel();
         ProductModelDTO productModelDTO = convertToProductModelDTO(productModel);
+
+        // DTO'ya ProductModel bilgilerini ekle
         orderItemDTO.setProductModel(productModelDTO);
 
         return orderItemDTO;
     }
+
+    
+ // ProductModel -> ProductModelDTO dönüşümü
     private ProductModelDTO convertToProductModelDTO(ProductModel productModel) {
-        ProductModelDTO productModelDTO = new ProductModelDTO();
-        productModelDTO.setId(productModel.getId());
-        productModelDTO.setName(productModel.getName());
-        productModelDTO.setDescription(productModel.getDescription());
-        productModelDTO.setPrice(productModel.getPrice());
-        return productModelDTO;
+        return productModelService.convertToDTO(productModel);
     }
 
 

@@ -28,7 +28,7 @@ public class ProductModel {
     @Column(nullable = false)
     private Double price;
 
-    @Column(length = 45)
+    @Column(length = 45, name = "distributor_information")
     private String distributorInformation;
     
 
