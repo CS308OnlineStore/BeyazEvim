@@ -10,7 +10,7 @@ const MainPage = () => {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [hoveredCategory, setHoveredCategory] = useState(null);
-  const [subCategories, setSubCategories] = useState({});
+  //const [subCategories, setSubCategories] = useState({});
   const [isCartHovered, setIsCartHovered] = useState(false);
   const [isCartVisible, setIsCartVisible] = useState(false);
   const [userName, setUserName] = useState('');
@@ -21,13 +21,10 @@ const MainPage = () => {
   useEffect(() => {
     const token = Cookies.get('authToken');
     const userName = Cookies.get('userName');
-    const totalPrice = parseFloat(Cookies.get('totalPrice')).toFixed(2);
-    const cartNum = Cookies.get('cartNum');
+    const userId = Cookies.get('userId');
 
     if (token) {
       setUserName(userName);
-      setTotalPrice(totalPrice);
-      setCartNum(cartNum);
     }
 
     axios.get('/api/homepage')
@@ -38,7 +35,6 @@ const MainPage = () => {
         console.error("There was an error fetching the products!", error);
       });
 
-    // Fetch categories
     axios.get('/api/categories/root')
       .then((response) => {
         setCategories(response.data);
@@ -46,9 +42,37 @@ const MainPage = () => {
       .catch((error) => {
         console.error('Error fetching categories:', error);
       });
+      
+      if (token) {
+        axios.get(`/api/orders/${userId}/cart`)
+          .then((response) => {
+            const { id, totalPrice, orderItems } = response.data;
+            Cookies.set('cartId', id, { expires: 7 });
+            setTotalPrice(totalPrice);
+            setCartNum(orderItems.length);
+          })
+          .catch((error) => {
+            console.error('Error fetching categories:', error);
+          });
+      }
   }, []);
 
-  
+  useEffect(() => { 
+    const userId = Cookies.get('userId');
+    if (userId){
+      axios.get(`/api/orders/${userId}/cart`)
+          .then((response) => {
+            const { id, totalPrice, orderItems } = response.data;
+            Cookies.set('cartId', id, { expires: 7 });
+            setTotalPrice(totalPrice);
+            setCartNum(orderItems.length);
+          })
+          .catch((error) => {
+            console.error('Error fetching categories:', error);
+          });
+    }
+  }, [isCartVisible]);
+
   const handleLoginClick = () => {
     navigate('/signinsignup');
   };
@@ -63,11 +87,6 @@ const MainPage = () => {
 
   const handleCartClick = () => {
     setIsCartVisible(!isCartVisible);
-    const totalPrice = parseFloat(Cookies.get('totalPrice')).toFixed(2);
-    const cartNum = Cookies.get('cartNum');
-
-    setTotalPrice(totalPrice);
-    setCartNum(cartNum);
   };
 
   const handleMouseEnter = (category) => {
@@ -168,7 +187,7 @@ const MainPage = () => {
         {/* Cart Dropdown */}
         {isCartVisible && (
           <div style={cartDropdownStyle}>
-            <ShoppingCart />
+            <ShoppingCart onClose={() => setIsCartVisible(false)} />
           </div>
         )}
 
@@ -294,15 +313,17 @@ const dropdownItemStyle = {
 
 const cartDropdownStyle = {
   position: 'absolute',
-  top: '60px',
-  right: '20px',
-  width: '300px',
+  top: '0', // Start from the top of the page
+  right: '0', // Aligns the dropdown to the right edge of the page
+  width: '30%', // Expands the dropdown to 30% of the page width
+  height: '100vh', // Covers the full height of the viewport
   backgroundColor: 'white',
-  boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
-  padding: '10px',
+  boxShadow: '-2px 0 8px rgba(0, 0, 0, 0.2)', // Shadow for a side panel effect
+  padding: '20px', // Add padding inside the dropdown
   zIndex: 100,
-  borderRadius: '5px',
-}; 
+  borderRadius: '0', // Removes rounded corners
+  transition: 'width 0.3s ease-in-out', // Smooth animation when size changes
+};
 
 const productGridStyle = {
   display: 'flex',
