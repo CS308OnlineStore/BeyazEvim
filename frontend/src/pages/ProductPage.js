@@ -39,9 +39,12 @@ const ProductPage = () => {
       for (let i = 0; i < count; i++) {
         axios.post(`/api/order-items/add?orderId=${cartId}&productModelId=${id}`)
         .then(response => {
-          if (response.status !== 200) { 
-            alert('Cannot added to cart!')
+          if (response.status === 200) { 
+            const { order } = response.data;
+            Cookies.set('totalPrice', order.totalPrice, { expires: 7 });
+            Cookies.set('cartNum', order.user.orders.length, { expires: 7 })
           }
+          else{alert('Cannot added to cart!');}
         })
         .catch(error => {
           console.error("There was an error fetching the product details!", error);

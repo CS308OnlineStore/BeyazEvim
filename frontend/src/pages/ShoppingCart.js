@@ -1,13 +1,12 @@
 // src/pages/ShoppingCart.js
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Cookies from 'js-cookie';
 
 const ShoppingCart = () => {
-  const navigate = useNavigate();
   const [cartItems, setCartItems] = useState([]);
   const [totalPrice, setTotalPrice] = useState(0);
+  const [cartUpdated, setCartUpdated] = useState(false);
 
   const userId = Cookies.get('userId');
    
@@ -24,29 +23,26 @@ const ShoppingCart = () => {
           console.error('Error fetching cart data:', error);
         });
     }
-  }, [userId]);
+  }, [userId, cartUpdated]);
 
   Cookies.set('totalPrice', totalPrice, { expires: 7 });
   Cookies.set('cartNum', cartItems.length, { expires: 7 });
 
-  // sonra düzenle
+  
   const handleRemoveItem = (itemId) => {
     const cartId = Cookies.get('cartId');
     if (cartId){
-      axios.post(`/api/order-items/add?orderId=${cartId}&productModelId=${itemId}`)
+      axios.post(`/api/order-items/remove?orderId=${cartId}&productModelId=${itemId}`)
         .then(response => {
-          if (response.status !== 200) {
-            alert("Failed to remove item!")
+          if (response.status === 200) {
+            setCartUpdated(prev => !prev);
           }
-          else { navigate('/'); }
+          else { alert("Failed to remove item from cart!"); }
         })
         .catch(error => {
           console.error('Error fetching cart data:', error);
         });
     }
-
-    //setCartItems(cartItems.filter(item => item.id !== id));
-    //setTotalPrice(cartItems.reduce((total, item) => total + item.price, 0));
   };
 
   return (
@@ -58,11 +54,11 @@ const ShoppingCart = () => {
         <div>
           <ul style={{ listStyle: 'none', padding: 0 }}>
             {cartItems.map(item => (
-              <li key={item.id} style={{ marginBottom: '10px' }}>
+              <li key={item.productModel.id} style={{ marginBottom: '10px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span>{item.name} - {item.price}₺</span>
+                  <span>{item.productModel.name} - {item.unitPrice}₺</span>
                   <button 
-                    onClick={() => handleRemoveItem(item.id)} 
+                    onClick={() => handleRemoveItem(item.productModel.id)} 
                     style={{ background: 'red', color: 'white', border: 'none', cursor: 'pointer' }}
                   >
                     Remove
