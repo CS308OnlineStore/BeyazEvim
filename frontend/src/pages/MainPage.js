@@ -72,7 +72,6 @@ const MainPage = () => {
 
   const handleMouseEnter = (category) => {
     setHoveredCategory(category);
-    fetchSubCategories(category.subCategories); // Fetch subcategories on hover
   };
 
   const handleMouseLeave = () => {
