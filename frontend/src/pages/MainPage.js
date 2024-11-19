@@ -98,6 +98,9 @@ const MainPage = () => {
   const handleSubCategoryClick = (subcategoryId) => {
     navigate(`/category/${subcategoryId}`);
   };
+  const handleProductClick = (productId) => {
+    navigate('/product/${productId}');
+  };
 
   return (
     <div style={{ fontFamily: 'Arial, sans-serif', display: 'flex' }}>
@@ -192,7 +195,7 @@ const MainPage = () => {
           <div style={productGridStyle}>
             {/* Example content for products */}
             {products.map((product) => (
-              <div key={product.id} style={productCardStyle}>
+              <div key={product.id} style={productCardStyle} onClick={()=> handleProductClick(product.id)}>
                 <img
                   src={product.image || 'https://via.placeholder.com/150'}
                   alt={product.name}
