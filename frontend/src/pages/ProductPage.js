@@ -8,7 +8,7 @@ const ProductPage = () => {
   const { id } = useParams(); 
   const navigate = useNavigate();
   const [productDetails, setProductDetails] = useState(null);
-  const [count, setCount] = useState(0);
+  const [count, setCount] = useState(1);
 
   useEffect(() => {
     axios.get(`/api/product-models/${id}`)
@@ -39,13 +39,14 @@ const ProductPage = () => {
       for (let i = 0; i < count; i++) {
         try {
           const response = await axios.post(`/api/order-items/add?orderId=${cartId}&productModelId=${id}`);
-          if (response.status === 200) { 
-            //alert('Successfully added to cart!');
-          } else {
-            //alert('Cannot add to cart!');
-          }
+          if (response.status === 200 && i === count-1 ) { 
+            alert('Successfully added to cart!');
+          } 
         } catch (error) {
           console.error("There was an error fetching the product details!", error);
+          if ( i === 0 ) { alert(`Failed to add ${count} items to cart!`); }
+          else { alert(`Only ${i} items added to cart!`); }
+          break; 
         }
       }
       navigate('/');
@@ -53,6 +54,11 @@ const ProductPage = () => {
     else {
       console.log('Cart ID not found!');
     }
+  }
+
+  //To be implemented later
+  const handleAddToWishlist = () => {
+
   }
 
   if (!productDetails) {
@@ -66,17 +72,25 @@ const ProductPage = () => {
         <h1>{productDetails.name}</h1>
         <p>{productDetails.description}</p>
         <p style={{ fontWeight: 'bold' }}>₺{productDetails.price}</p>
-        <p>In Stock : {productDetails.stockCount}</p>
+        { productDetails.stockCount > 0 && ( <p>In Stock : {productDetails.stockCount}</p>) }
 
         {/* Counter Component */}
-        <div style={counterStyle}>
-          <button onClick={handleDecrease} style={buttonStyle}>-</button>
-          <span style={countStyle}>{count}</span>
-          <button onClick={handleIncrease} style={buttonStyle}>+</button>
-        </div>
+          {productDetails.stockCount > 0 ? (
+            <div style={counterStyle}>
+              <button onClick={handleDecrease} style={buttonStyle}>-</button>
+              <span style={countStyle}>{count}</span>
+              <button onClick={handleIncrease} style={buttonStyle}>+</button>
+            </div>
+          ) : (
+            <p style={{ color: 'red', marginBottom: '10px' }}>Out of Stock</p>
+          )}
 
-        {/* Add to Cart Button */}
-        <button style={addToCartButtonStyle} onClick={handleAddToCart}>Add to Cart</button>
+          {/* Add to Cart Button */}
+          {productDetails.stockCount > 0 ? (
+            <button style={cartButtonStyle} onClick={handleAddToCart}>Add to Cart</button>
+          ) : (
+            <button style={cartButtonStyle} onClick={handleAddToWishlist}>Add to Wishlist</button>
+          )}
       </div>
     </div>
   );
@@ -118,7 +132,7 @@ const countStyle = {
   fontWeight: 'bold',
 };
 
-const addToCartButtonStyle = {
+const cartButtonStyle = {
   marginTop: '20px',
   padding: '10px 20px',
   fontSize: '16px',
