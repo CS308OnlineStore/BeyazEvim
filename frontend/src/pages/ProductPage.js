@@ -1,13 +1,14 @@
 // src/pages/ProductPage.js
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 import Cookies from 'js-cookie';
 
 const ProductPage = () => {
   const { id } = useParams(); 
+  const navigate = useNavigate();
   const [productDetails, setProductDetails] = useState(null);
-  const [count, setCount] = useState(1);
+  const [count, setCount] = useState(0);
 
   useEffect(() => {
     axios.get(`/api/product-models/${id}`)
@@ -20,7 +21,7 @@ const ProductPage = () => {
   }, [id]);
 
   const handleIncrease = () => {
-    if (count < 15) {
+    if (count < productDetails.stockCount) {
       setCount(prevCount => prevCount + 1);
     }
   };
@@ -31,23 +32,23 @@ const ProductPage = () => {
     }
   };
 
-  const handleAddToCart = () => {
-
-  const cartId = Cookies.get('cartId');
-
-    if (cartId && cartId !== 0){
+  const handleAddToCart = async () => {
+    const cartId = Cookies.get('cartId');
+    
+    if (cartId){
       for (let i = 0; i < count; i++) {
-        axios.post(`/api/order-items/add?orderId=${cartId}&productModelId=${id}`)
-        .then(response => {
+        try {
+          const response = await axios.post(`/api/order-items/add?orderId=${cartId}&productModelId=${id}`);
           if (response.status === 200) { 
-            alert('Successfully added to cart!')
+            //alert('Successfully added to cart!');
+          } else {
+            //alert('Cannot add to cart!');
           }
-          else{alert('Cannot added to cart!');}
-        })
-        .catch(error => {
+        } catch (error) {
           console.error("There was an error fetching the product details!", error);
-        });
+        }
       }
+      navigate('/');
     }
     else {
       console.log('Cart ID not found!');
@@ -65,6 +66,7 @@ const ProductPage = () => {
         <h1>{productDetails.name}</h1>
         <p>{productDetails.description}</p>
         <p style={{ fontWeight: 'bold' }}>₺{productDetails.price}</p>
+        <p>In Stock : {productDetails.stockCount}</p>
 
         {/* Counter Component */}
         <div style={counterStyle}>

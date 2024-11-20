@@ -203,7 +203,6 @@ const MainPage = () => {
         <div style={{ padding: '20px' }}>
           <h1>BeyazEvim - Your White Goods Store</h1>
           <div style={productGridStyle}>
-            {/* Example content for products */}
             {products.map((product) => (
               <div key={product.id} style={productCardStyle} onClick={()=> handleProductClick(product.id)}>
                 <img
@@ -213,7 +212,9 @@ const MainPage = () => {
                 />
                 <h3>{product.name}</h3>
                 <p>{product.description}</p>
-                <p style={{ fontWeight: 'bold' }}>₺{product.price}</p>
+                <p style={{ fontWeight: 'bold' }}>
+                  {product.stockCount > 0 ? `₺${product.price}` : 'OUT OF STOCK'}
+                </p>
               </div>
             ))}
           </div>
