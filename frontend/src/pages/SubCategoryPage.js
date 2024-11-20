@@ -1,87 +1,117 @@
 // src/pages/SubCategoryPage.js
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-
-// Sample data for demonstration
-const sampleProducts = [
-  {
-    id: 1,
-    name: 'Sample Product 1',
-    description: 'Description for Sample Product 1',
-    price: '₺1000',
-    brand: 'Brand A',
-    color: 'White',
-    image: 'https://via.placeholder.com/150',
-  },
-  {
-    id: 2,
-    name: 'Sample Product 2',
-    description: 'Description for Sample Product 2',
-    price: '₺2000',
-    brand: 'Brand B',
-    color: 'Black',
-    image: 'https://via.placeholder.com/150',
-  },
-];
-
-const filterOptions = {
-  price: ['0 - 1000 TL', '1000 - 5000 TL', '5000 - 10000 TL'],
-  rating: ['1 Star', '2 Stars', '3 Stars', '4 Stars', '5 Stars'],
-  brand: ['Brand A', 'Brand B', 'Brand C'],
-  color: ['White', 'Silver', 'Black', 'Blue'],
-};
+import axios from 'axios';
 
 const SubCategoryPage = () => {
-  const { subcategory } = useParams(); // Get subcategory name from URL
+  const { subcategory } = useParams(); // Get subcategory ID from URL
+  const [products, setProducts] = useState([]);
+  const [brands, setBrands] = useState([]);
   const [selectedFilters, setSelectedFilters] = useState({
     price: '',
-    rating: '',
     brand: '',
-    color: '',
   });
+  const [loading, setLoading] = useState(true);
 
-  // Handle filter change
+  useEffect(() => {
+    // Fetch products and brands by category
+    axios
+      .get(`/api/categories/${subcategory}/productModels`)
+      .then((response) => {
+        setProducts(response.data.productModels || []);
+        setBrands(response.data.brands || []);
+        setLoading(false);
+      })
+      .catch((error) => {
+        console.error("Error fetching subcategory products:", error);
+        setLoading(false);
+      });
+  }, [subcategory]);
+
+  // Handle filter changes
   const handleFilterChange = (filterType, value) => {
     setSelectedFilters((prev) => ({ ...prev, [filterType]: value }));
   };
+
+  // Filter products based on selected filters
+  const filteredProducts = products.filter((product) => {
+    if (selectedFilters.price) {
+      const [minPrice, maxPrice] = selectedFilters.price
+        .replace('TL', '')
+        .split('-')
+        .map((price) => parseInt(price.trim(), 10));
+      if (product.price < minPrice || product.price > maxPrice) {
+        return false;
+      }
+    }
+    if (selectedFilters.brand && product.distributorInformation !== selectedFilters.brand) {
+      return false;
+    }
+    return true;
+  });
 
   return (
     <div style={{ display: 'flex' }}>
       {/* Filter Sidebar */}
       <div style={filterSidebarStyle}>
         <h2>Filters</h2>
-        {Object.keys(filterOptions).map((filterType) => (
-          <div key={filterType} style={{ marginBottom: '20px' }}>
-            <h3>{filterType.charAt(0).toUpperCase() + filterType.slice(1)}</h3>
-            {filterOptions[filterType].map((option) => (
-              <div key={option}>
-                <input
-                  type="radio"
-                  name={filterType}
-                  value={option}
-                  checked={selectedFilters[filterType] === option}
-                  onChange={() => handleFilterChange(filterType, option)}
-                />
-                <label style={{ marginLeft: '8px' }}>{option}</label>
-              </div>
-            ))}
-          </div>
-        ))}
+
+        {/* Price Filter */}
+        <div style={{ marginBottom: '20px' }}>
+          <h3>Price</h3>
+          {['0 - 1000 TL', '1000 - 5000 TL', '5000 - 10000 TL'].map((option) => (
+            <div key={option}>
+              <input
+                type="radio"
+                name="price"
+                value={option}
+                checked={selectedFilters.price === option}
+                onChange={() => handleFilterChange('price', option)}
+              />
+              <label style={{ marginLeft: '8px' }}>{option}</label>
+            </div>
+          ))}
+        </div>
+
+        {/* Brand Filter */}
+        <div style={{ marginBottom: '20px' }}>
+          <h3>Brand</h3>
+          {brands.map((brand) => (
+            <div key={brand}>
+              <input
+                type="radio"
+                name="brand"
+                value={brand}
+                checked={selectedFilters.brand === brand}
+                onChange={() => handleFilterChange('brand', brand)}
+              />
+              <label style={{ marginLeft: '8px' }}>{brand}</label>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Product List */}
       <div style={productListStyle}>
-        <h1>{subcategory}</h1>
-        <div style={productGridStyle}>
-          {sampleProducts.map((product) => (
-            <div key={product.id} style={productCardStyle}>
-              <img src={product.image} alt={product.name} style={{ width: '100%', borderRadius: '10px' }} />
-              <h3>{product.name}</h3>
-              <p>{product.description}</p>
-              <p style={{ fontWeight: 'bold' }}>{product.price}</p>
-            </div>
-          ))}
-        </div>
+        <h1>Products in {subcategory}</h1>
+        {loading ? (
+          <p>Loading products...</p>
+        ) : (
+          <div style={productGridStyle}>
+            {filteredProducts.map((product) => (
+              <div key={product.id} style={productCardStyle}>
+                <img
+                  src={product.photoPath || 'https://via.placeholder.com/150'}
+                  alt={product.name}
+                  style={{ width: '100%', borderRadius: '10px' }}
+                />
+                <h3>{product.name}</h3>
+                <p>{product.description}</p>
+                <p style={{ fontWeight: 'bold' }}>₺{product.price}</p>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
