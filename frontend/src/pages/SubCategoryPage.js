@@ -93,7 +93,7 @@ const SubCategoryPage = () => {
 
       {/* Product List */}
       <div style={productListStyle}>
-        <h1>Products in {subcategory}</h1>
+        <h1>Products in {subcategory.category.name}</h1>
         {loading ? (
           <p>Loading products...</p>
         ) : (
