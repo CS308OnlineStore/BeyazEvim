@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Cookies from 'js-cookie';
 import axios from 'axios';
 import ShoppingCart from './ShoppingCart';
-import logo from '../assets/BeyazEvim_logo.jpeg'; // Ensure the path is correct
+import logo from '../assets/BeyazEvim_logo.jpeg';
 
 const MainPage = () => {
   const navigate = useNavigate();
@@ -19,12 +19,31 @@ const MainPage = () => {
   const [isHovered, setIsHovered] = useState(false);
 
   useEffect(() => {
+    //localStorage.clear();
+
     const token = Cookies.get('authToken');
     const userName = Cookies.get('userName');
     const userId = Cookies.get('userId');
 
     if (token) {
       setUserName(userName);
+
+      axios.get(`/api/orders/${userId}/cart`)
+        .then((response) => {
+          const { id, totalPrice, orderItems } = response.data;
+          Cookies.set('cartId', id, { expires: 7 });
+          setTotalPrice(totalPrice);
+          setCartNum(orderItems.length);
+        })
+        .catch((error) => {
+          console.error('Error fetching categories:', error);
+        });
+    }
+    else {
+      const nonUserEmptyCart = { items: [], totalPrice: 0.0 };  
+      const nonUserCart = JSON.parse(localStorage.getItem('cart')) || nonUserEmptyCart;
+      setCartNum(nonUserCart.items.length);
+      setTotalPrice(nonUserCart.totalPrice);
     }
 
     axios.get('/api/homepage')
@@ -43,18 +62,6 @@ const MainPage = () => {
         console.error('Error fetching categories:', error);
       });
       
-      if (token) {
-        axios.get(`/api/orders/${userId}/cart`)
-          .then((response) => {
-            const { id, totalPrice, orderItems } = response.data;
-            Cookies.set('cartId', id, { expires: 7 });
-            setTotalPrice(totalPrice);
-            setCartNum(orderItems.length);
-          })
-          .catch((error) => {
-            console.error('Error fetching categories:', error);
-          });
-      }
   }, []);
 
   useEffect(() => { 
@@ -68,8 +75,14 @@ const MainPage = () => {
             setCartNum(orderItems.length);
           })
           .catch((error) => {
-            console.error('Error fetching categories:', error);
+            console.error('Error fetching shopping cart:', error);
           });
+    }
+    else {
+      const nonUserEmptyCart = { items: [], totalPrice: 0.0 };  
+      const nonUserCart = JSON.parse(localStorage.getItem('cart')) || nonUserEmptyCart;
+      setCartNum(nonUserCart.items.length);
+      setTotalPrice(nonUserCart.totalPrice);
     }
   }, [isCartVisible]);
 
@@ -82,7 +95,7 @@ const MainPage = () => {
       Cookies.remove(cookieName);
     });
     setUserName('');
-    navigate('/');
+    window.location.reload();
   };
 
   const handleCartClick = () => {
@@ -212,7 +225,8 @@ const MainPage = () => {
                 />
                 <h3>{product.name}</h3>
                 <p>{product.description}</p>
-                <p style={{ fontWeight: 'bold' }}>
+                <hr></hr>
+                <p style={{ fontWeight: 'bold', color: product.stockCount > 0 ? 'inherit' : 'red' }}>
                   {product.stockCount > 0 ? `₺${product.price}` : 'OUT OF STOCK'}
                 </p>
               </div>

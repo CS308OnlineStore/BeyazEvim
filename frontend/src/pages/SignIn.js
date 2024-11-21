@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import Cookies from 'js-cookie';
 
 function SignIn() {
@@ -17,6 +18,7 @@ function SignIn() {
       password,
     };
 
+    let userID = 0;
     try {
       const response = await fetch('/login', {  // Adjust URL as per your backend
         method: 'POST',
@@ -34,11 +36,11 @@ function SignIn() {
         Cookies.set('userName', `${firstName} ${lastName}`, { expires: 7 });
         Cookies.set('userId', userId, { expires: 7 })
 
-        alert('Giriş başarılı!');
+        userID = userId;
         
-        // Redirect to the main page or dashboard, e.g., '/main' or '/dashboard'
-        navigate('/');
-      } else {
+        alert('Giriş başarılı!');
+      } 
+      else {
         // Handle specific status codes with error messages based on API documentation
         switch (response.status) {
           case 400:
@@ -61,6 +63,42 @@ function SignIn() {
       console.error('Giriş sırasında hata oluştu:', error);
       alert('Bir hata oluştu. Lütfen tekrar deneyin.');
     }
+
+    const nonUserCart = JSON.parse(localStorage.getItem('cart'))
+    if ( nonUserCart && nonUserCart.items.length !== 0 ) {
+      console.log(userID);
+
+      await axios.get(`/api/orders/${userID}/cart`)
+      .then((response) => {
+        const { id } = response.data;
+        localStorage.setItem('cartID', id)
+      })
+      .catch((error) => {
+        console.error('Error requesting cart ID!:', error);
+      });
+
+      const cartID = localStorage.getItem('cartID')
+      for ( let i = 0; i <  nonUserCart.items.length; i++ ) {
+        for ( let j=0; j < nonUserCart.items[i].quantity; j++ ) {
+          try {     
+            const response = await axios.post(`/api/order-items/add?orderId=${cartID}&productModelId=${nonUserCart.items[i].productModel.id}`);
+            if (response.status === 200 && j ===  nonUserCart.items[i].quantity-1 ) { 
+              //alert('Successfully added to cart!');
+            } 
+          } catch (error) {
+            console.error("There was an error fetching the product details!", error);
+            //if ( j === 0 ) { alert(`Failed to add ${ nonUserCart.items[i].quantity-j} items to cart!`); }
+            //else { alert(`Only ${j} items added to cart!`); }
+            break; 
+          }
+        };
+      };
+
+      localStorage.removeItem('cartID');
+      localStorage.removeItem('UserID')
+      localStorage.removeItem('cart');
+    }
+    navigate('/')
   };
 
   return (

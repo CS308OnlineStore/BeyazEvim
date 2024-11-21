@@ -49,11 +49,34 @@ const ProductPage = () => {
           break; 
         }
       }
-      navigate('/');
     }
     else {
-      console.log('Cart ID not found!');
+      const nonUserEmptyCart = { items: [], totalPrice: 0.0 };  
+      const nonUserCart = JSON.parse(localStorage.getItem('cart')) || nonUserEmptyCart;
+      const itemsDetail = { "productModel" : productDetails, "quantity" : parseInt(`${count}`) }
+      if ( nonUserCart.items.length === 0 ){
+        nonUserCart.items.push(itemsDetail);
+        nonUserCart.totalPrice += ( productDetails.price * count );
+      }
+      else {
+        let match = false;
+        for ( let i=0; i<nonUserCart.items.length; i++ ) {
+          if ( productDetails.id === nonUserCart.items[i].productModel.id ) { 
+            nonUserCart.items[i].quantity += count;
+            nonUserCart.totalPrice += ( productDetails.price * count );
+            match = true;  
+            break;        
+          }
+        };
+        if ( !match ) {
+          nonUserCart.items.push(itemsDetail);
+          nonUserCart.totalPrice += ( productDetails.price * count ); 
+        }        
+      }   
+      localStorage.setItem('cart', JSON.stringify(nonUserCart));
+      alert('Successfully added to cart!');
     }
+    navigate('/');
   }
 
   //To be implemented later

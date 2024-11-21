@@ -22,6 +22,12 @@ const ShoppingCart = ({onClose}) => {
           console.error('Error fetching cart data:', error);
         });
     }
+    else {
+      const nonUserEmptyCart = { items: [], totalPrice: 0 };  
+      const nonUserCart = JSON.parse(localStorage.getItem('cart')) || nonUserEmptyCart;
+      setCartItems(nonUserCart.items);
+      setTotalPrice(nonUserCart.totalPrice);
+    }
   }, [userId, cartUpdated]);
 
   const handleRemoveItem = (itemId) => {
@@ -37,6 +43,27 @@ const ShoppingCart = ({onClose}) => {
         .catch(error => {
           console.error('Error fetching cart data:', error);
         });
+    }
+    else {
+      const nonUserEmptyCart = { items: [], totalPrice: 0 };  
+      const nonUserCart = JSON.parse(localStorage.getItem('cart')) || nonUserEmptyCart;
+      for ( let i=0; i<cartItems.length; i++ ) {
+        if ( itemId === cartItems[i].productModel.id ){      
+          if ( cartItems[i].quantity === 1 ) {
+            nonUserCart.totalPrice -= ( cartItems[i].productModel.price );
+            nonUserCart.items.splice(i, 1);
+            setCartUpdated(prev => !prev);
+            break; 
+          }
+          else {
+            nonUserCart.totalPrice -= ( cartItems[i].productModel.price );
+            nonUserCart.items[i].quantity -= 1;
+            setCartUpdated(prev => !prev);
+            break;
+          }    
+        }
+      };
+      localStorage.setItem('cart', JSON.stringify(nonUserCart));
     }
   };
 
@@ -69,7 +96,7 @@ const ShoppingCart = ({onClose}) => {
           <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
             {cartItems.map((item, index) => (
               <li
-                key={item.productModel.id}
+                key={ item.productModel.id }
                 style={{
                   padding: '15px 0',
                   borderBottom: index !== cartItems.length - 1 ? '1px solid #ccc' : 'none',
@@ -77,8 +104,8 @@ const ShoppingCart = ({onClose}) => {
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div>
-                    <strong>{item.productModel.name}</strong>
-                    <p style={{ margin: '5px 0', fontSize: '14px', color: '#666' }}>{item.quantity} x {item.unitPrice}₺</p>
+                    <strong>{ item.productModel.name }</strong>
+                    <p style={{ margin: '5px 0', fontSize: '14px', color: '#666' }}>{item.quantity} x {item.productModel.price}₺</p>
                   </div>
                   <button
                     onClick={() => handleRemoveItem(item.productModel.id)}
