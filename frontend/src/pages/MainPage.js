@@ -3,14 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import Cookies from 'js-cookie';
 import axios from 'axios';
 import ShoppingCart from './ShoppingCart';
-import logo from '../assets/BeyazEvim_logo.jpeg'; // Ensure the path is correct
+import logo from '../assets/BeyazEvim_logo.jpeg';
 
 const MainPage = () => {
   const navigate = useNavigate();
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [hoveredCategory, setHoveredCategory] = useState(null);
-  const [subCategories, setSubCategories] = useState({});
+  //const [subCategories, setSubCategories] = useState({});
   const [isCartHovered, setIsCartHovered] = useState(false);
   const [isCartVisible, setIsCartVisible] = useState(false);
   const [userName, setUserName] = useState('');
@@ -19,15 +19,31 @@ const MainPage = () => {
   const [isHovered, setIsHovered] = useState(false);
 
   useEffect(() => {
+    //localStorage.clear();
+
     const token = Cookies.get('authToken');
     const userName = Cookies.get('userName');
-    const totalPrice = parseFloat(Cookies.get('totalPrice')).toFixed(2);
-    const cartNum = Cookies.get('cartNum');
+    const userId = Cookies.get('userId');
 
     if (token) {
       setUserName(userName);
-      setTotalPrice(totalPrice);
-      setCartNum(cartNum);
+
+      axios.get(`/api/orders/${userId}/cart`)
+        .then((response) => {
+          const { id, totalPrice, orderItems } = response.data;
+          Cookies.set('cartId', id, { expires: 7 });
+          setTotalPrice(totalPrice);
+          setCartNum(orderItems.length);
+        })
+        .catch((error) => {
+          console.error('Error fetching categories:', error);
+        });
+    }
+    else {
+      const nonUserEmptyCart = { items: [], totalPrice: 0.0 };  
+      const nonUserCart = JSON.parse(localStorage.getItem('cart')) || nonUserEmptyCart;
+      setCartNum(nonUserCart.items.length);
+      setTotalPrice(nonUserCart.totalPrice);
     }
 
     axios.get('/api/homepage')
@@ -38,7 +54,6 @@ const MainPage = () => {
         console.error("There was an error fetching the products!", error);
       });
 
-    // Fetch categories
     axios.get('/api/categories/root')
       .then((response) => {
         setCategories(response.data);
@@ -46,9 +61,31 @@ const MainPage = () => {
       .catch((error) => {
         console.error('Error fetching categories:', error);
       });
+      
   }, []);
 
-  
+  useEffect(() => { 
+    const userId = Cookies.get('userId');
+    if (userId){
+      axios.get(`/api/orders/${userId}/cart`)
+          .then((response) => {
+            const { id, totalPrice, orderItems } = response.data;
+            Cookies.set('cartId', id, { expires: 7 });
+            setTotalPrice(totalPrice);
+            setCartNum(orderItems.length);
+          })
+          .catch((error) => {
+            console.error('Error fetching shopping cart:', error);
+          });
+    }
+    else {
+      const nonUserEmptyCart = { items: [], totalPrice: 0.0 };  
+      const nonUserCart = JSON.parse(localStorage.getItem('cart')) || nonUserEmptyCart;
+      setCartNum(nonUserCart.items.length);
+      setTotalPrice(nonUserCart.totalPrice);
+    }
+  }, [isCartVisible]);
+
   const handleLoginClick = () => {
     navigate('/signinsignup');
   };
@@ -58,16 +95,11 @@ const MainPage = () => {
       Cookies.remove(cookieName);
     });
     setUserName('');
-    navigate('/');
+    window.location.reload();
   };
 
   const handleCartClick = () => {
     setIsCartVisible(!isCartVisible);
-    const totalPrice = parseFloat(Cookies.get('totalPrice')).toFixed(2);
-    const cartNum = Cookies.get('cartNum');
-
-    setTotalPrice(totalPrice);
-    setCartNum(cartNum);
   };
 
   const handleMouseEnter = (category) => {
@@ -165,18 +197,25 @@ const MainPage = () => {
           </div>
         </header>
 
-        {/* Cart Dropdown */}
+        {/* Cart Overlay and Dropdown */}
         {isCartVisible && (
-          <div style={cartDropdownStyle}>
-            <ShoppingCart />
-          </div>
+          <>
+            {/* Blur Overlay */}
+            <div
+              style={cartOverlayStyle}
+              onClick={handleCartClick} // Close the cart if overlay is clicked
+            ></div>
+            {/* Cart Dropdown */}
+            <div style={cartDropdownStyle}>
+              <ShoppingCart onClose={handleCartClick} />
+            </div>
+          </>
         )}
-
+        
         {/* Product Grid */}
         <div style={{ padding: '20px' }}>
           <h1>BeyazEvim - Your White Goods Store</h1>
           <div style={productGridStyle}>
-            {/* Example content for products */}
             {products.map((product) => (
               <div key={product.id} style={productCardStyle} onClick={()=> handleProductClick(product.id)}>
                 <img
@@ -186,7 +225,10 @@ const MainPage = () => {
                 />
                 <h3>{product.name}</h3>
                 <p>{product.description}</p>
-                <p style={{ fontWeight: 'bold' }}>₺{product.price}</p>
+                <hr></hr>
+                <p style={{ fontWeight: 'bold', color: product.stockCount > 0 ? 'inherit' : 'red' }}>
+                  {product.stockCount > 0 ? `₺${product.price}` : 'OUT OF STOCK'}
+                </p>
               </div>
             ))}
           </div>
@@ -294,15 +336,28 @@ const dropdownItemStyle = {
 
 const cartDropdownStyle = {
   position: 'absolute',
-  top: '60px',
-  right: '20px',
-  width: '300px',
+  top: '0', 
+  right: '0', 
+  width: '30%', 
+  height: '100vh', 
   backgroundColor: 'white',
-  boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
-  padding: '10px',
+  boxShadow: '-2px 0 8px rgba(0, 0, 0, 0.2)', 
+  padding: '20px', 
   zIndex: 100,
-  borderRadius: '5px',
-}; 
+  borderRadius: '0', 
+  transition: 'width 0.3s ease-in-out', 
+};
+
+const cartOverlayStyle = {
+  position: 'fixed',
+  top: 0,
+  left: 0,
+  width: '100%',
+  height: '100%',
+  backgroundColor: 'rgba(0, 0, 0, 0.4)', 
+  zIndex: 99, 
+  transition: 'opacity 0.3s ease-in-out',
+};
 
 const productGridStyle = {
   display: 'flex',
