@@ -6,7 +6,8 @@ import ProductPage from './pages/ProductPage';
 import SignInSignUp from './pages/SignInSignUp';
 import SignIn from './pages/SignIn';
 import SignUp from './pages/SignUp';
-import SubCategoryPage from './pages/SubCategoryPage'; 
+import SubCategoryPage from './pages/SubCategoryPage';
+import UserPage from './pages/UserPage';  
 
 const App = () => {
   return (
@@ -18,6 +19,7 @@ const App = () => {
         <Route path="/signup" element={<SignUp />} />
         <Route path="/signin" element={<SignIn />} />
         <Route path="/category/:subcategory" element={<SubCategoryPage />} /> {/* Add SubCategoryPage route */}
+        <Route path="/userpage" element={<UserPage />} /> {/* Add UserPage route */}
       </Routes>
     </Router>
   );

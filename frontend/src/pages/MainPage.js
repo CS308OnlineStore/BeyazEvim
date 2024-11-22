@@ -77,6 +77,9 @@ const MainPage = () => {
     navigate(`/category/${subcategory}`);
   };
 
+  const handleUserClick = () => {
+    navigate('/userpage');
+  };
 
   return (
     <div style={{ fontFamily: 'Arial, sans-serif', display: 'flex' }}>
@@ -99,7 +102,7 @@ const MainPage = () => {
               {hoveredCategory === category && (
                 <div style={dropdownStyle}>
                   {category.products.map((product, i) => (
-                    <div key={i} style={dropdownItemStyle}onClick={() => handleSubCategoryClick(product)}>
+                    <div key={i} style={dropdownItemStyle} onClick={() => handleSubCategoryClick(product)}>
                       {product}
                     </div>
                   ))}
@@ -122,12 +125,12 @@ const MainPage = () => {
           <div style={navIconsStyle}>
             {userName ? (
               <div
-                onClick={handleLogoutClick}
+                onClick={handleUserClick}
                 onMouseEnter={() => setIsHovered(true)}  
                 onMouseLeave={() => setIsHovered(false)} 
                 style={isHovered ? hoveredButtonStyle : navButtonStyle}
               >
-                {isHovered ? 'Logout' : userName}
+                {userName}
               </div>
             ) : (
               <button onClick={handleLoginClick} style={navButtonStyle}>
