@@ -90,12 +90,8 @@ const MainPage = () => {
     navigate('/signinsignup');
   };
 
-  const handleLogoutClick = () => {
-    Object.keys(Cookies.get()).forEach((cookieName) => {
-      Cookies.remove(cookieName);
-    });
-    setUserName('');
-    window.location.reload();
+  const handleUserPageClick = () => {
+    navigate('/UserPage'); 
   };
 
   const handleCartClick = () => {
@@ -157,6 +153,7 @@ const MainPage = () => {
       <div style={{ flex: 1 }}>
         {/* Header Section */}
         <header style={headerStyle}>
+          <div style={logoStyle}>BeyazEvim</div>
           <input
             type="text"
             placeholder="What are you looking for?"
@@ -164,14 +161,12 @@ const MainPage = () => {
           />
           <div style={navIconsStyle}>
             {userName ? (
-              <div
-                onClick={handleLogoutClick}
-                onMouseEnter={() => setIsHovered(true)}
-                onMouseLeave={() => setIsHovered(false)}
-                style={isHovered ? hoveredButtonStyle : navButtonStyle}
+              <button
+                onClick={handleUserPageClick} // Navigate to User Page
+                style={navButtonStyle}
               >
-                {isHovered ? 'Logout' : userName}
-              </div>
+                {userName}
+              </button>
             ) : (
               <button onClick={handleLoginClick} style={navButtonStyle}>
                 Login
@@ -240,26 +235,6 @@ const MainPage = () => {
 
 
 // CSS Styles as JavaScript objects
-const logoContainerStyle = {
-  display: 'flex',
-  alignItems: 'center',
-  padding: '20px',
-  borderBottom: '1px solid #ddd',
-  justifyContent: 'center',
-};
-
-const logoStyle = {
-  width: '50px',
-  height: '50px',
-  marginRight: '10px',
-};
-
-const logoTextStyle = {
-  fontSize: '24px',
-  fontWeight: 'bold',
-  color: '#ff0000',
-};
-
 const headerStyle = {
   display: 'flex',
   alignItems: 'center',
@@ -267,6 +242,11 @@ const headerStyle = {
   padding: '10px 20px',
   backgroundColor: '#333',
   color: 'white',
+};
+
+const logoStyle = {
+  fontSize: '24px',
+  fontWeight: 'bold',
 };
 
 const searchBarStyle = {
@@ -296,14 +276,10 @@ const navButtonStyle = {
   height: '40px',
 };
 
-const hoveredButtonStyle = {
-  ...navButtonStyle,
-  backgroundColor: 'red',
-  color: 'white',
-};
-
 const sidebarStyle = {
+  width: '250px',
   padding: '20px',
+  borderRight: '1px solid #ddd',
   backgroundColor: '#f5f5f5',
 };
 
