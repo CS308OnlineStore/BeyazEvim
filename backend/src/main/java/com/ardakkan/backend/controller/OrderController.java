@@ -85,4 +85,15 @@ public class OrderController {
         orderService.deleteOrder(id);
         return ResponseEntity.ok().build();
     }
+
+    //Siparişi satın alma
+    @PostMapping("/purchase/{orderId}")
+    public ResponseEntity<String> purchaseCart(@PathVariable Long orderId) {
+        try {
+            orderService.purchaseCartItems(orderId);
+            return ResponseEntity.ok("Cart items purchased successfully");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: " + e.getMessage());
+        }
+    }
 }
