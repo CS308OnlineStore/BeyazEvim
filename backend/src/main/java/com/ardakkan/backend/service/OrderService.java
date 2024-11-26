@@ -117,6 +117,31 @@ public class OrderService {
         orderRepository.save(newCart);
     }
 
+    // Sepetteki itemlerin alınması durumunda status'u "SOLD" a çevirme
+    public void purchaseCartItems(Long orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new IllegalStateException("Order not found: " + orderId));
+
+        // Check if the order status is "CART" to ensure it’s a valid cart
+        if (!order.getStatus().equals(OrderStatus.CART)) {
+            throw new IllegalStateException("Order is not in cart status: " + orderId);
+        }
+
+        // Process each order item
+        for (OrderItem orderItem : order.getOrderItems()) {
+            List<Long> productInstanceIds = orderItem.getProductInstanceIds();
+            for (Long productInstanceId : productInstanceIds) {
+                // Get product instance by ID
+                ProductInstance productInstance = productInstanceRepository.findById(productInstanceId)
+                        .orElseThrow(() -> new IllegalStateException("ProductInstance not found: " + productInstanceId));
+
+                // Update status to SOLD
+                productInstance.setStatus(ProductInstanceStatus.SOLD);
+                productInstanceRepository.save(productInstance);
+            }
+        }
+    }
+
     // Fatura oluşturma işlemi
     private void createInvoiceForOrder(Order order) {
         Invoice invoice = new Invoice();
