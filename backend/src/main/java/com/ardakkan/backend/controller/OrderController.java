@@ -5,7 +5,9 @@ import com.ardakkan.backend.dto.OrderItemDTO;
 import com.ardakkan.backend.entity.Order;
 import com.ardakkan.backend.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -58,13 +60,13 @@ public class OrderController {
         return ResponseEntity.ok(cartItems);
     }
     */
-   
+
     @GetMapping("/{userId}/cart")
     public ResponseEntity<OrderDTO> getUserCart(@PathVariable Long userId) {
         OrderDTO cart = orderService.getUserCart(userId);
         return ResponseEntity.ok(cart);
     }
-    
+
     // Sipariş güncelleme
     @PutMapping("/{id}")
     public ResponseEntity<Order> updateOrder(@PathVariable Long id, @RequestBody Order updatedOrder) {
@@ -88,12 +90,15 @@ public class OrderController {
 
     //Siparişi satın alma
     @PostMapping("/purchase/{orderId}")
-    public ResponseEntity<String> purchaseCart(@PathVariable Long orderId) {
+    public ResponseEntity<byte[]> purchaseCart(@PathVariable Long orderId) {
         try {
-            orderService.purchaseCartItems(orderId);
-            return ResponseEntity.ok("Cart items purchased successfully");
+            // Call the updated purchaseCartItems method, which returns the PDF data as a ResponseEntity
+            return orderService.purchaseCartItems(orderId);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: " + e.getMessage());
+            // Handle errors and return an appropriate error message
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_PLAIN_VALUE)
+                    .body(("Error: " + e.getMessage()).getBytes());
         }
     }
 }
