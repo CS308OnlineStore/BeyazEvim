@@ -7,7 +7,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.ByteArrayOutputStream;
 import java.util.List;
+
+import com.itextpdf.kernel.pdf.PdfWriter;
+import com.itextpdf.layout.Document;
+import com.itextpdf.layout.element.Paragraph;
+import com.itextpdf.layout.element.Table;
 
 @RestController
 @RequestMapping("/api/invoices")
@@ -51,7 +57,7 @@ public class InvoiceController {
     // Fatura güncelleme
     @PutMapping("/{id}")
     public ResponseEntity<Invoice> updateInvoice(
-            @PathVariable Long id, 
+            @PathVariable Long id,
             @RequestBody Invoice updatedInvoice) {
         Invoice updated = invoiceService.updateInvoice(id, updatedInvoice);
         return ResponseEntity.ok(updated);
@@ -63,4 +69,5 @@ public class InvoiceController {
         invoiceService.deleteInvoice(id);
         return ResponseEntity.noContent().build();
     }
+
 }

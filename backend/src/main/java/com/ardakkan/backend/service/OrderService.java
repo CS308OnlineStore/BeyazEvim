@@ -1,20 +1,18 @@
 package com.ardakkan.backend.service;
 
+import com.ardakkan.backend.entity.Invoice;
 import com.ardakkan.backend.dto.OrderDTO;
 import com.ardakkan.backend.dto.OrderItemDTO;
 import com.ardakkan.backend.dto.ProductModelDTO;
-import com.ardakkan.backend.entity.Invoice;
-import com.ardakkan.backend.entity.Order;
-import com.ardakkan.backend.entity.OrderItem;
-import com.ardakkan.backend.entity.OrderStatus;
-import com.ardakkan.backend.entity.ProductInstance;
-import com.ardakkan.backend.entity.ProductModel;
-import com.ardakkan.backend.entity.User;
+import com.ardakkan.backend.entity.*;
 import com.ardakkan.backend.repo.InvoiceRepository;
 import com.ardakkan.backend.repo.OrderRepository;
 import com.ardakkan.backend.repo.ProductInstanceRepository;
 import com.ardakkan.backend.repo.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,20 +25,23 @@ import java.util.stream.Collectors;
 @Transactional
 public class OrderService {
 
-		private final OrderRepository orderRepository;
-	    private final UserRepository userRepository;
-	    private final InvoiceRepository invoiceRepository;
-	    private final ProductInstanceRepository productInstanceRepository;
-	    private final ProductModelService productModelService;
+    private final OrderRepository orderRepository;
+    private final UserRepository userRepository;
+    private final InvoiceRepository invoiceRepository;
+    private final ProductInstanceRepository productInstanceRepository;
+    private final ProductModelService productModelService;
+    private final InvoiceService invoiceService;
+    //private final Invoice invoice;
 
-	    @Autowired
-	    public OrderService(OrderRepository orderRepository, UserRepository userRepository, InvoiceRepository invoiceRepository, ProductInstanceRepository productInstanceRepository, ProductModelService productModelService ) {
-	        this.orderRepository = orderRepository;
-	        this.userRepository = userRepository;
-	        this.invoiceRepository = invoiceRepository;
-			this.productInstanceRepository = productInstanceRepository;
-			this.productModelService = productModelService;
-	    }
+    @Autowired
+    public OrderService(OrderRepository orderRepository, UserRepository userRepository, InvoiceRepository invoiceRepository, ProductInstanceRepository productInstanceRepository, ProductModelService productModelService, InvoiceService invoiceService) {
+        this.orderRepository = orderRepository;
+        this.userRepository = userRepository;
+        this.invoiceRepository = invoiceRepository;
+        this.productInstanceRepository = productInstanceRepository;
+        this.productModelService = productModelService;
+        this.invoiceService = invoiceService;
+    }
 
     // Sipariş oluşturma
     public Order createOrder(Order order) {
@@ -69,20 +70,20 @@ public class OrderService {
                 .map(this::convertToDTO)  // Her siparişi DTO'ya dönüştürüyoruz
                 .collect(Collectors.toList());
     }
-    
-    
- // Kullanıcının tüm siparişlerini getirme - DTO döndürür
+
+
+    // Kullanıcının tüm siparişlerini getirme - DTO döndürür
     public List<OrderDTO> getOrdersByUserId(Long userId) {
         List<Order> orders = orderRepository.findByUserId(userId);
         return orders.stream()
-                     .map(this::convertToDTO)  // Her siparişi DTO'ya dönüştürüyoruz
-                     .collect(Collectors.toList());
+                .map(this::convertToDTO)  // Her siparişi DTO'ya dönüştürüyoruz
+                .collect(Collectors.toList());
     }
 
-    
-    
 
- // Sipariş güncelleme
+
+
+    // Sipariş güncelleme
     public Order updateOrder(Long id, Order updatedOrder) {
         Order existingOrder = orderRepository.findById(id)
                 .orElseThrow(() -> new IllegalStateException("Sipariş bulunamadı: " + id));
@@ -94,15 +95,16 @@ public class OrderService {
 
         // Sipariş "Satın Alındı" statüsüne geçtiyse fatura oluştur
         if (updatedOrder.getStatus().equals(OrderStatus.PURCHASED)) {
-            createInvoiceForOrder(existingOrder);  // Fatura oluşturma fonksiyonu çağır
+            //createInvoiceForOrder(existingOrder);// Fatura oluşturma fonksiyonu çağır
+            purchaseCartItems(id);
             createNewCart(existingOrder.getUser().getId());  // Satın alındığında yeni sepet oluştur
         }
 
         // Güncellenen siparişi kaydet
         return orderRepository.save(existingOrder);
     }
-    
-    
+
+
     // Yeni bir sepet (CART) oluşturma
     public void createNewCart(Long userId) {
         // Kullanıcının yeni bir sepet oluşturması
@@ -118,7 +120,7 @@ public class OrderService {
     }
 
     // Sepetteki itemlerin alınması durumunda status'u "SOLD" a çevirme
-    public void purchaseCartItems(Long orderId) {
+    public ResponseEntity<byte[]> purchaseCartItems(Long orderId) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new IllegalStateException("Order not found: " + orderId));
 
@@ -140,6 +142,16 @@ public class OrderService {
                 productInstanceRepository.save(productInstance);
             }
         }
+        createInvoiceForOrder(order);
+        // Generate the invoice PDF
+        Long invoiceId = order.getInvoice().getId();
+        byte[] pdfData = invoiceService.generateInvoicePdf(invoiceId);
+
+        // Return the PDF as a response
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_PDF)
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=invoice_" + invoiceId + ".pdf")
+                .body(pdfData);
     }
 
     // Fatura oluşturma işlemi
@@ -153,6 +165,9 @@ public class OrderService {
 
         // Faturayı kaydet
         invoiceRepository.save(invoice);
+        order.setInvoice(invoice);
+        orderRepository.save(order);
+
     }
 
     // Siparişi silme (entity kullanıyor)
@@ -162,7 +177,7 @@ public class OrderService {
         }
         orderRepository.deleteById(id);
     }
-    
+
     //Kulanıcının sepetini getirme 
     /*
     public List<OrderItemDTO> getUserCart(Long userId) {
@@ -176,7 +191,7 @@ public class OrderService {
                 .collect(Collectors.toList());
     }
     */
-    
+
     public OrderDTO getUserCart(Long userId) {
         // Kullanıcının CART durumundaki siparişini bul
         Order cartOrder = orderRepository.findByUserIdAndStatus(userId, OrderStatus.CART)
@@ -186,7 +201,7 @@ public class OrderService {
         return convertToDTO(cartOrder);
     }
 
-    
+
 
     private OrderDTO convertToDTO(Order order) {
         OrderDTO orderDTO = new OrderDTO();
@@ -229,8 +244,8 @@ public class OrderService {
         return orderItemDTO;
     }
 
-    
- // ProductModel -> ProductModelDTO dönüşümü
+
+    // ProductModel -> ProductModelDTO dönüşümü
     private ProductModelDTO convertToProductModelDTO(ProductModel productModel) {
         return productModelService.convertToDTO(productModel);
     }
