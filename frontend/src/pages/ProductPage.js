@@ -100,6 +100,9 @@ const ProductPage = () => {
     navigate('/');
   }
 
+  const handleLogoClick = () => {
+    navigate('/'); // Navigate to MainPage
+  };
   //To be implemented later
   const handleAddToWishlist = () => {
 
@@ -113,7 +116,7 @@ const ProductPage = () => {
     <div>
       {/* Header Section */}
       <header style={headerStyle}>
-        <div style={headerLeftStyle}>
+        <div style={{ ...headerLeftStyle, cursor: 'pointer' }} onClick={handleLogoClick}>
           <img src={logo} alt="BeyazEvim Logo" style={logoStyle} />
           <h3 style={logoTextStyle}>BeyazEvim</h3>
         </div>
