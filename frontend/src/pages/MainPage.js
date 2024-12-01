@@ -15,7 +15,11 @@ const MainPage = () => {
   const [userName, setUserName] = useState('');
   const [totalPrice, setTotalPrice] = useState(0.0);
   const [cartNum, setCartNum] = useState(0);
+<<<<<<< HEAD
   const [sortOption, setSortOption] = useState('default'); // New state for sorting
+=======
+  const [searchQuery, setSearchQuery] = useState(''); // Search query state
+>>>>>>> 129a4f4839b0d55d179a9514a7313f5b4d1cfcac
 
   useEffect(() => {
     const token = Cookies.get('authToken');
@@ -33,15 +37,34 @@ const MainPage = () => {
           setCartNum(orderItems.length);
         })
         .catch((error) => {
+<<<<<<< HEAD
           console.error('Error fetching cart details:', error);
         });
     } else {
       const nonUserCart = JSON.parse(localStorage.getItem('cart')) || { items: [], totalPrice: 0.0 };
+=======
+          console.error('Error fetching cart:', error);
+        });
+    } else {
+      const nonUserEmptyCart = { items: [], totalPrice: 0.0 };
+      const nonUserCart = JSON.parse(localStorage.getItem('cart')) || nonUserEmptyCart;
+>>>>>>> 129a4f4839b0d55d179a9514a7313f5b4d1cfcac
       setCartNum(nonUserCart.items.length);
       setTotalPrice(nonUserCart.totalPrice);
     }
 
+<<<<<<< HEAD
     // Fetch categories
+=======
+    axios.get('/api/homepage')
+      .then(response => {
+        setProducts(response.data);
+      })
+      .catch(error => {
+        console.error('Error fetching products!', error);
+      });
+
+>>>>>>> 129a4f4839b0d55d179a9514a7313f5b4d1cfcac
     axios.get('/api/categories/root')
       .then((response) => {
         setCategories(response.data);
@@ -49,6 +72,7 @@ const MainPage = () => {
       .catch((error) => {
         console.error('Error fetching categories:', error);
       });
+<<<<<<< HEAD
 
     fetchProductsWithPopularity();
   }, []);
@@ -70,6 +94,30 @@ const MainPage = () => {
         console.error('Error fetching products:', error);
       });
   };
+=======
+  }, []);
+
+  useEffect(() => {
+    const userId = Cookies.get('userId');
+    if (userId) {
+      axios.get(`/api/orders/${userId}/cart`)
+        .then((response) => {
+          const { id, totalPrice, orderItems } = response.data;
+          Cookies.set('cartId', id, { expires: 7 });
+          setTotalPrice(totalPrice);
+          setCartNum(orderItems.length);
+        })
+        .catch((error) => {
+          console.error('Error fetching shopping cart:', error);
+        });
+    } else {
+      const nonUserEmptyCart = { items: [], totalPrice: 0.0 };
+      const nonUserCart = JSON.parse(localStorage.getItem('cart')) || nonUserEmptyCart;
+      setCartNum(nonUserCart.items.length);
+      setTotalPrice(nonUserCart.totalPrice);
+    }
+  }, [isCartVisible]);
+>>>>>>> 129a4f4839b0d55d179a9514a7313f5b4d1cfcac
 
   const handleLoginClick = () => {
     navigate('/signinsignup');
@@ -97,6 +145,11 @@ const MainPage = () => {
 
   const handleProductClick = (productId) => {
     navigate(`/product/${productId}`);
+  };
+
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    navigate(`/search?query=${searchQuery}`); // Navigate to search page with query
   };
 
   return (
@@ -139,14 +192,28 @@ const MainPage = () => {
       <div style={{ flex: 1 }}>
         {/* Header Section */}
         <header style={headerStyle}>
-          <input
-            type="text"
-            placeholder="What are you looking for?"
-            style={searchBarStyle}
-          />
+          <form onSubmit={handleSearchSubmit} style={{ display: 'flex', width: '100%' }}>
+            <input
+              type="text"
+              placeholder="What are you looking for?"
+              style={searchBarStyle}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)} // Update search query state
+            />
+            <button type="submit" style={searchButtonStyle}>
+              Search
+            </button>
+          </form>
           <div style={navIconsStyle}>
             {userName ? (
+<<<<<<< HEAD
               <button onClick={handleUserPageClick} style={navButtonStyle}>
+=======
+              <button
+                onClick={handleUserPageClick}
+                style={navButtonStyle}
+              >
+>>>>>>> 129a4f4839b0d55d179a9514a7313f5b4d1cfcac
                 {userName}
               </button>
             ) : (
@@ -177,17 +244,16 @@ const MainPage = () => {
         {/* Cart Overlay and Dropdown */}
         {isCartVisible && (
           <>
-            {/* Blur Overlay */}
             <div
               style={cartOverlayStyle}
               onClick={handleCartClick} // Close the cart if overlay is clicked
             ></div>
-            {/* Cart Dropdown */}
             <div style={cartDropdownStyle}>
               <ShoppingCart onClose={handleCartClick} />
             </div>
           </>
         )}
+<<<<<<< HEAD
         
 
         {/* Sort Dropdown */}
@@ -205,6 +271,8 @@ const MainPage = () => {
             <option value="popularity">Popularity</option>
           </select>
         </div>
+=======
+>>>>>>> 129a4f4839b0d55d179a9514a7313f5b4d1cfcac
 
         {/* Product Grid */}
         <div style={{ padding: '20px' }}>
@@ -241,7 +309,11 @@ const MainPage = () => {
   );
 };
 
+<<<<<<< HEAD
 // CSS Styles as JavaScript objects
+=======
+// CSS Styles
+>>>>>>> 129a4f4839b0d55d179a9514a7313f5b4d1cfcac
 const logoContainerStyle = {
   display: 'flex',
   alignItems: 'center',
@@ -276,6 +348,17 @@ const searchBarStyle = {
   padding: '10px',
   borderRadius: '5px',
   border: '1px solid #ddd',
+};
+
+const searchButtonStyle = {
+  padding: '10px',
+  marginLeft: '10px',
+  backgroundColor: '#007bff',
+  color: 'white',
+  border: 'none',
+  borderRadius: '5px',
+  cursor: 'pointer',
+  transition: 'background-color 0.3s ease',
 };
 
 const navIconsStyle = {
@@ -329,19 +412,18 @@ const dropdownItemStyle = {
   whiteSpace: 'nowrap',
 };
 
-
 const cartDropdownStyle = {
   position: 'absolute',
-  top: '0', 
-  right: '0', 
-  width: '30%', 
-  height: '100vh', 
+  top: 0,
+  right: 0,
+  width: '30%',
+  height: '100vh',
   backgroundColor: 'white',
-  boxShadow: '-2px 0 8px rgba(0, 0, 0, 0.2)', 
-  padding: '20px', 
+  boxShadow: '-2px 0 8px rgba(0, 0, 0, 0.2)',
+  padding: '20px',
   zIndex: 100,
-  borderRadius: '0', 
-  transition: 'width 0.3s ease-in-out', 
+  borderRadius: '0',
+  transition: 'width 0.3s ease-in-out',
 };
 
 const cartOverlayStyle = {
@@ -350,8 +432,8 @@ const cartOverlayStyle = {
   left: 0,
   width: '100%',
   height: '100%',
-  backgroundColor: 'rgba(0, 0, 0, 0.4)', 
-  zIndex: 99, 
+  backgroundColor: 'rgba(0, 0, 0, 0.4)',
+  zIndex: 99,
   transition: 'opacity 0.3s ease-in-out',
 };
 
@@ -388,13 +470,13 @@ const cartIconStyle = {
   fontSize: '20px',
   color: 'white',
   marginRight: '10px',
-  cursor: 'pointer', 
+  cursor: 'pointer',
   transition: 'background-color 0.3s ease',
 };
 
 const hoveredCartIconStyle = {
   ...cartIconStyle,
-  backgroundColor: 'red', // Change background color on hover
+  backgroundColor: 'red',
 };
 
 const cartTextStyle = {
