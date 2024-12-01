@@ -16,13 +16,13 @@ function SignInSignUp() {
         onClick={() => handleNavigate('signin')}
         style={{ padding: '10px', width: '100%', marginBottom: '20px' }}
       >
-        Giriş Yap
+        Sign In
       </button>
       <button
         onClick={() => handleNavigate('signup')}
         style={{ padding: '10px', width: '100%' }}
       >
-        Kayıt Ol
+        Sign Up
       </button>
     </div>
   );

@@ -31,27 +31,27 @@ function SignUp() {
 
       if (response.ok) {
         // Registration successful
-        alert('Kayıt başarılı!');
+        alert('Registration successful!');
         navigate('/signin'); // Redirect to sign-in page after successful signup
       } else {
         // Handle specific status codes as per the API documentation
         switch (response.status) {
           case 400:
-            alert('Geçersiz istek. Lütfen bilgilerinizi kontrol edin.');
+            alert('Invalid request. Please check your information.');
             break;
           case 409:
-            alert('Bu e-posta zaten kayıtlı. Lütfen farklı bir e-posta kullanın.');
+            alert('This email is already registered. Please use a different email.');
             break;
           case 500:
-            alert('Sunucu hatası. Lütfen daha sonra tekrar deneyin.');
+            alert('Server error. Please try again later.');
             break;
           default:
-            alert('Bilinmeyen bir hata oluştu.');
+            alert('An unknown error occurred.');
         }
       }
     } catch (error) {
-      console.error('Kayıt sırasında hata oluştu:', error);
-      alert('Bir hata oluştu. Lütfen tekrar deneyin.');
+      console.error('An error occurred during registration:', error);
+      alert('An error occurred. Please try again.');
     }
   };
 
@@ -104,7 +104,7 @@ function SignUp() {
           />
         </div>
         <button type="submit" style={{ padding: '10px', width: '100%' }}>
-          Kayıt Ol
+          Sign Up
         </button>
       </form>
     </div>
