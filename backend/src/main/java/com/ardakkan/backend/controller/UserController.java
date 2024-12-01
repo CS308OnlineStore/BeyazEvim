@@ -44,5 +44,19 @@ public class UserController {
         userService.updateWishlist(userId, wishlistProductModelIds);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
+ // Kullanıcının adresini getir
+    @GetMapping("/{id}/address")
+    public ResponseEntity<String> getUserAddress(@PathVariable Long id) {
+        String address = userService.getUserAddress(id);
+        return new ResponseEntity<>(address, HttpStatus.OK);
+    }
+
+    // Kullanıcının adresini güncelle
+    @PutMapping("/{id}/address")
+    public ResponseEntity<Void> updateUserAddress(@PathVariable Long id, @RequestBody String newAddress) {
+        userService.updateUserAddress(id, newAddress);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
 }
 
