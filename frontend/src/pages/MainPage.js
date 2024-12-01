@@ -15,11 +15,8 @@ const MainPage = () => {
   const [userName, setUserName] = useState('');
   const [totalPrice, setTotalPrice] = useState(0.0);
   const [cartNum, setCartNum] = useState(0);
-<<<<<<< HEAD
   const [sortOption, setSortOption] = useState('default'); // New state for sorting
-=======
   const [searchQuery, setSearchQuery] = useState(''); // Search query state
->>>>>>> 129a4f4839b0d55d179a9514a7313f5b4d1cfcac
 
   useEffect(() => {
     const token = Cookies.get('authToken');
@@ -37,25 +34,15 @@ const MainPage = () => {
           setCartNum(orderItems.length);
         })
         .catch((error) => {
-<<<<<<< HEAD
-          console.error('Error fetching cart details:', error);
-        });
-    } else {
-      const nonUserCart = JSON.parse(localStorage.getItem('cart')) || { items: [], totalPrice: 0.0 };
-=======
           console.error('Error fetching cart:', error);
         });
     } else {
       const nonUserEmptyCart = { items: [], totalPrice: 0.0 };
       const nonUserCart = JSON.parse(localStorage.getItem('cart')) || nonUserEmptyCart;
->>>>>>> 129a4f4839b0d55d179a9514a7313f5b4d1cfcac
       setCartNum(nonUserCart.items.length);
       setTotalPrice(nonUserCart.totalPrice);
     }
 
-<<<<<<< HEAD
-    // Fetch categories
-=======
     axios.get('/api/homepage')
       .then(response => {
         setProducts(response.data);
@@ -64,7 +51,6 @@ const MainPage = () => {
         console.error('Error fetching products!', error);
       });
 
->>>>>>> 129a4f4839b0d55d179a9514a7313f5b4d1cfcac
     axios.get('/api/categories/root')
       .then((response) => {
         setCategories(response.data);
@@ -72,7 +58,6 @@ const MainPage = () => {
       .catch((error) => {
         console.error('Error fetching categories:', error);
       });
-<<<<<<< HEAD
 
     fetchProductsWithPopularity();
   }, []);
@@ -94,8 +79,7 @@ const MainPage = () => {
         console.error('Error fetching products:', error);
       });
   };
-=======
-  }, []);
+  
 
   useEffect(() => {
     const userId = Cookies.get('userId');
@@ -117,7 +101,6 @@ const MainPage = () => {
       setTotalPrice(nonUserCart.totalPrice);
     }
   }, [isCartVisible]);
->>>>>>> 129a4f4839b0d55d179a9514a7313f5b4d1cfcac
 
   const handleLoginClick = () => {
     navigate('/signinsignup');
@@ -206,14 +189,7 @@ const MainPage = () => {
           </form>
           <div style={navIconsStyle}>
             {userName ? (
-<<<<<<< HEAD
               <button onClick={handleUserPageClick} style={navButtonStyle}>
-=======
-              <button
-                onClick={handleUserPageClick}
-                style={navButtonStyle}
-              >
->>>>>>> 129a4f4839b0d55d179a9514a7313f5b4d1cfcac
                 {userName}
               </button>
             ) : (
@@ -253,7 +229,6 @@ const MainPage = () => {
             </div>
           </>
         )}
-<<<<<<< HEAD
         
 
         {/* Sort Dropdown */}
@@ -271,8 +246,6 @@ const MainPage = () => {
             <option value="popularity">Popularity</option>
           </select>
         </div>
-=======
->>>>>>> 129a4f4839b0d55d179a9514a7313f5b4d1cfcac
 
         {/* Product Grid */}
         <div style={{ padding: '20px' }}>
@@ -309,11 +282,7 @@ const MainPage = () => {
   );
 };
 
-<<<<<<< HEAD
 // CSS Styles as JavaScript objects
-=======
-// CSS Styles
->>>>>>> 129a4f4839b0d55d179a9514a7313f5b4d1cfcac
 const logoContainerStyle = {
   display: 'flex',
   alignItems: 'center',
