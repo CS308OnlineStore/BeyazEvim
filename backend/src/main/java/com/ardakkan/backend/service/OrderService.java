@@ -9,6 +9,7 @@ import com.ardakkan.backend.repo.InvoiceRepository;
 import com.ardakkan.backend.repo.OrderRepository;
 import com.ardakkan.backend.repo.ProductInstanceRepository;
 import com.ardakkan.backend.repo.UserRepository;
+import jakarta.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -146,6 +147,18 @@ public class OrderService {
         // Generate the invoice PDF
         Long invoiceId = order.getInvoice().getId();
         byte[] pdfData = invoiceService.generateInvoicePdf(invoiceId);
+
+        try {
+            String userEmail = order.getUser().getEmail();
+            String subject = "Your Invoice for Order #" + order.getId();
+            String text = "Dear " + order.getUser().getFirstName() + ",\n\nThank you for your purchase! Please find your invoice attached.\n\nBest regards,\nBeyaz Evim";
+            String attachmentName = "invoice_" + invoiceId + ".pdf";
+
+            MailService.sendMailWithAttachment(userEmail, subject, text, attachmentName, pdfData);
+        } catch (MessagingException e) {
+            throw new RuntimeException("Failed to send email with invoice: " + e.getMessage());
+        }
+
 
         // Return the PDF as a response
         return ResponseEntity.ok()
