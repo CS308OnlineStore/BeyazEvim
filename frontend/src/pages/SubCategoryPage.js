@@ -3,6 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import logo from '../assets/BeyazEvim_logo.jpeg';
+import { useNavigate } from 'react-router-dom';
+
 
 const SubCategoryPage = () => {
   const { subcategory } = useParams(); // Get subcategory ID from URL
