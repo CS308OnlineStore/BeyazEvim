@@ -69,12 +69,14 @@ const UserPage = () => {
       const token = Cookies.get('authToken');
       const userId = Cookies.get('userId');
 
+      // PUT isteği ile adresi güncelleme (düz metin gönderimi)
       const response = await axios.put(
         `/api/users/${userId}/address`,
-        { address: newAddress },
-        { headers: { Authorization: `Bearer ${token}` } }
+        newAddress, // Yeni adres string olarak gönderiliyor
+        { headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'text/plain' } } // text/plain header eklendi
       );
 
+      // Kullanıcı bilgisini güncelle
       setUserInfo((prevState) => ({
         ...prevState,
         address: response.data.address,
