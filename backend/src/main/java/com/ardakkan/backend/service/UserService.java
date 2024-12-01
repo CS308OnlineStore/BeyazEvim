@@ -151,3 +151,25 @@ public class UserService {
         return user;
     }
 }
+
+    
+    
+public String getUserAddress(Long userId) {
+    User user = userRepository.findById(userId)
+            .orElseThrow(() -> new RuntimeException("User not found"));
+    return user.getAddress();
+}
+
+public void updateUserAddress(Long userId, String newAddress) {
+    if (newAddress == null || newAddress.trim().isEmpty()) {
+        throw new IllegalArgumentException("Adres null veya boş olamaz.");
+    }
+
+    User user = userRepository.findById(userId)
+            .orElseThrow(() -> new RuntimeException("User not found"));
+    user.setAddress(newAddress);
+    userRepository.save(user);
+}
+}
+
+}
