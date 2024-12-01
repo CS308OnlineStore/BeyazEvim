@@ -22,5 +22,7 @@ public class MailController {
         mailService.sendSimpleMail(to, subject, text);
         return "Mail sent successfully!";
     }
+
+
 }
 
