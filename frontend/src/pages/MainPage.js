@@ -10,16 +10,14 @@ const MainPage = () => {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [hoveredCategory, setHoveredCategory] = useState(null);
-  //const [subCategories, setSubCategories] = useState({});
   const [isCartHovered, setIsCartHovered] = useState(false);
   const [isCartVisible, setIsCartVisible] = useState(false);
   const [userName, setUserName] = useState('');
   const [totalPrice, setTotalPrice] = useState(0.0);
   const [cartNum, setCartNum] = useState(0);
+  const [searchQuery, setSearchQuery] = useState(''); // Search query state
 
   useEffect(() => {
-    //localStorage.clear();
-
     const token = Cookies.get('authToken');
     const userName = Cookies.get('userName');
     const userId = Cookies.get('userId');
@@ -35,11 +33,10 @@ const MainPage = () => {
           setCartNum(orderItems.length);
         })
         .catch((error) => {
-          console.error('Error fetching categories:', error);
+          console.error('Error fetching cart:', error);
         });
-    }
-    else {
-      const nonUserEmptyCart = { items: [], totalPrice: 0.0 };  
+    } else {
+      const nonUserEmptyCart = { items: [], totalPrice: 0.0 };
       const nonUserCart = JSON.parse(localStorage.getItem('cart')) || nonUserEmptyCart;
       setCartNum(nonUserCart.items.length);
       setTotalPrice(nonUserCart.totalPrice);
@@ -50,7 +47,7 @@ const MainPage = () => {
         setProducts(response.data);
       })
       .catch(error => {
-        console.error("There was an error fetching the products!", error);
+        console.error('Error fetching products!', error);
       });
 
     axios.get('/api/categories/root')
@@ -60,25 +57,23 @@ const MainPage = () => {
       .catch((error) => {
         console.error('Error fetching categories:', error);
       });
-      
   }, []);
 
-  useEffect(() => { 
+  useEffect(() => {
     const userId = Cookies.get('userId');
-    if (userId){
+    if (userId) {
       axios.get(`/api/orders/${userId}/cart`)
-          .then((response) => {
-            const { id, totalPrice, orderItems } = response.data;
-            Cookies.set('cartId', id, { expires: 7 });
-            setTotalPrice(totalPrice);
-            setCartNum(orderItems.length);
-          })
-          .catch((error) => {
-            console.error('Error fetching shopping cart:', error);
-          });
-    }
-    else {
-      const nonUserEmptyCart = { items: [], totalPrice: 0.0 };  
+        .then((response) => {
+          const { id, totalPrice, orderItems } = response.data;
+          Cookies.set('cartId', id, { expires: 7 });
+          setTotalPrice(totalPrice);
+          setCartNum(orderItems.length);
+        })
+        .catch((error) => {
+          console.error('Error fetching shopping cart:', error);
+        });
+    } else {
+      const nonUserEmptyCart = { items: [], totalPrice: 0.0 };
       const nonUserCart = JSON.parse(localStorage.getItem('cart')) || nonUserEmptyCart;
       setCartNum(nonUserCart.items.length);
       setTotalPrice(nonUserCart.totalPrice);
@@ -90,7 +85,7 @@ const MainPage = () => {
   };
 
   const handleUserPageClick = () => {
-    navigate('/UserPage'); 
+    navigate('/UserPage');
   };
 
   const handleCartClick = () => {
@@ -108,8 +103,14 @@ const MainPage = () => {
   const handleSubCategoryClick = (subcategoryId) => {
     navigate(`/category/${subcategoryId}`);
   };
+
   const handleProductClick = (productId) => {
     navigate(`/product/${productId}`);
+  };
+
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    navigate(`/search?query=${searchQuery}`); // Navigate to search page with query
   };
 
   return (
@@ -152,15 +153,22 @@ const MainPage = () => {
       <div style={{ flex: 1 }}>
         {/* Header Section */}
         <header style={headerStyle}>
-          <input
-            type="text"
-            placeholder="What are you looking for?"
-            style={searchBarStyle}
-          />
+          <form onSubmit={handleSearchSubmit} style={{ display: 'flex', width: '100%' }}>
+            <input
+              type="text"
+              placeholder="What are you looking for?"
+              style={searchBarStyle}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)} // Update search query state
+            />
+            <button type="submit" style={searchButtonStyle}>
+              Search
+            </button>
+          </form>
           <div style={navIconsStyle}>
             {userName ? (
               <button
-                onClick={handleUserPageClick} // Navigate to User Page
+                onClick={handleUserPageClick}
                 style={navButtonStyle}
               >
                 {userName}
@@ -193,24 +201,26 @@ const MainPage = () => {
         {/* Cart Overlay and Dropdown */}
         {isCartVisible && (
           <>
-            {/* Blur Overlay */}
             <div
               style={cartOverlayStyle}
               onClick={handleCartClick} // Close the cart if overlay is clicked
             ></div>
-            {/* Cart Dropdown */}
             <div style={cartDropdownStyle}>
               <ShoppingCart onClose={handleCartClick} />
             </div>
           </>
         )}
-        
+
         {/* Product Grid */}
         <div style={{ padding: '20px' }}>
           <h1>BeyazEvim - Your White Goods Store</h1>
           <div style={productGridStyle}>
             {products.map((product) => (
-              <div key={product.id} style={productCardStyle} onClick={()=> handleProductClick(product.id)}>
+              <div
+                key={product.id}
+                style={productCardStyle}
+                onClick={() => handleProductClick(product.id)}
+              >
                 <img
                   src={product.image || 'https://via.placeholder.com/150'}
                   alt={product.name}
@@ -218,8 +228,13 @@ const MainPage = () => {
                 />
                 <h3>{product.name}</h3>
                 <p>{product.description}</p>
-                <hr></hr>
-                <p style={{ fontWeight: 'bold', color: product.stockCount > 0 ? 'inherit' : 'red' }}>
+                <hr />
+                <p
+                  style={{
+                    fontWeight: 'bold',
+                    color: product.stockCount > 0 ? 'inherit' : 'red',
+                  }}
+                >
                   {product.stockCount > 0 ? `₺${product.price}` : 'OUT OF STOCK'}
                 </p>
               </div>
@@ -231,8 +246,7 @@ const MainPage = () => {
   );
 };
 
-
-// CSS Styles as JavaScript objects
+// CSS Styles
 const logoContainerStyle = {
   display: 'flex',
   alignItems: 'center',
@@ -267,6 +281,17 @@ const searchBarStyle = {
   padding: '10px',
   borderRadius: '5px',
   border: '1px solid #ddd',
+};
+
+const searchButtonStyle = {
+  padding: '10px',
+  marginLeft: '10px',
+  backgroundColor: '#007bff',
+  color: 'white',
+  border: 'none',
+  borderRadius: '5px',
+  cursor: 'pointer',
+  transition: 'background-color 0.3s ease',
 };
 
 const navIconsStyle = {
@@ -320,19 +345,18 @@ const dropdownItemStyle = {
   whiteSpace: 'nowrap',
 };
 
-
 const cartDropdownStyle = {
   position: 'absolute',
-  top: '0', 
-  right: '0', 
-  width: '30%', 
-  height: '100vh', 
+  top: 0,
+  right: 0,
+  width: '30%',
+  height: '100vh',
   backgroundColor: 'white',
-  boxShadow: '-2px 0 8px rgba(0, 0, 0, 0.2)', 
-  padding: '20px', 
+  boxShadow: '-2px 0 8px rgba(0, 0, 0, 0.2)',
+  padding: '20px',
   zIndex: 100,
-  borderRadius: '0', 
-  transition: 'width 0.3s ease-in-out', 
+  borderRadius: '0',
+  transition: 'width 0.3s ease-in-out',
 };
 
 const cartOverlayStyle = {
@@ -341,8 +365,8 @@ const cartOverlayStyle = {
   left: 0,
   width: '100%',
   height: '100%',
-  backgroundColor: 'rgba(0, 0, 0, 0.4)', 
-  zIndex: 99, 
+  backgroundColor: 'rgba(0, 0, 0, 0.4)',
+  zIndex: 99,
   transition: 'opacity 0.3s ease-in-out',
 };
 
@@ -379,13 +403,13 @@ const cartIconStyle = {
   fontSize: '20px',
   color: 'white',
   marginRight: '10px',
-  cursor: 'pointer', 
+  cursor: 'pointer',
   transition: 'background-color 0.3s ease',
 };
 
 const hoveredCartIconStyle = {
   ...cartIconStyle,
-  backgroundColor: 'red', // Change background color on hover
+  backgroundColor: 'red',
 };
 
 const cartTextStyle = {
