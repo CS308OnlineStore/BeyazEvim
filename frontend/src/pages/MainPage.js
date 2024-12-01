@@ -10,16 +10,14 @@ const MainPage = () => {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [hoveredCategory, setHoveredCategory] = useState(null);
-  //const [subCategories, setSubCategories] = useState({});
   const [isCartHovered, setIsCartHovered] = useState(false);
   const [isCartVisible, setIsCartVisible] = useState(false);
   const [userName, setUserName] = useState('');
   const [totalPrice, setTotalPrice] = useState(0.0);
   const [cartNum, setCartNum] = useState(0);
+  const [sortOption, setSortOption] = useState('default'); // New state for sorting
 
   useEffect(() => {
-    //localStorage.clear();
-
     const token = Cookies.get('authToken');
     const userName = Cookies.get('userName');
     const userId = Cookies.get('userId');
@@ -35,24 +33,15 @@ const MainPage = () => {
           setCartNum(orderItems.length);
         })
         .catch((error) => {
-          console.error('Error fetching categories:', error);
+          console.error('Error fetching cart details:', error);
         });
-    }
-    else {
-      const nonUserEmptyCart = { items: [], totalPrice: 0.0 };  
-      const nonUserCart = JSON.parse(localStorage.getItem('cart')) || nonUserEmptyCart;
+    } else {
+      const nonUserCart = JSON.parse(localStorage.getItem('cart')) || { items: [], totalPrice: 0.0 };
       setCartNum(nonUserCart.items.length);
       setTotalPrice(nonUserCart.totalPrice);
     }
 
-    axios.get('/api/homepage')
-      .then(response => {
-        setProducts(response.data);
-      })
-      .catch(error => {
-        console.error("There was an error fetching the products!", error);
-      });
-
+    // Fetch categories
     axios.get('/api/categories/root')
       .then((response) => {
         setCategories(response.data);
@@ -60,37 +49,34 @@ const MainPage = () => {
       .catch((error) => {
         console.error('Error fetching categories:', error);
       });
-      
+
+    fetchProductsWithPopularity();
   }, []);
 
-  useEffect(() => { 
-    const userId = Cookies.get('userId');
-    if (userId){
-      axios.get(`/api/orders/${userId}/cart`)
-          .then((response) => {
-            const { id, totalPrice, orderItems } = response.data;
-            Cookies.set('cartId', id, { expires: 7 });
-            setTotalPrice(totalPrice);
-            setCartNum(orderItems.length);
-          })
-          .catch((error) => {
-            console.error('Error fetching shopping cart:', error);
-          });
-    }
-    else {
-      const nonUserEmptyCart = { items: [], totalPrice: 0.0 };  
-      const nonUserCart = JSON.parse(localStorage.getItem('cart')) || nonUserEmptyCart;
-      setCartNum(nonUserCart.items.length);
-      setTotalPrice(nonUserCart.totalPrice);
-    }
-  }, [isCartVisible]);
+  useEffect(() => {
+    fetchProductsWithPopularity();
+  }, [sortOption]); // Re-fetch products when sort option changes
+
+  const fetchProductsWithPopularity = () => {
+    const endpoint = sortOption === 'popularity' 
+      ? '/api/comments/products/popularity' 
+      : '/api/homepage';
+    
+    axios.get(endpoint)
+      .then((response) => {
+        setProducts(response.data);
+      })
+      .catch((error) => {
+        console.error('Error fetching products:', error);
+      });
+  };
 
   const handleLoginClick = () => {
     navigate('/signinsignup');
   };
 
   const handleUserPageClick = () => {
-    navigate('/UserPage'); 
+    navigate('/UserPage');
   };
 
   const handleCartClick = () => {
@@ -108,6 +94,7 @@ const MainPage = () => {
   const handleSubCategoryClick = (subcategoryId) => {
     navigate(`/category/${subcategoryId}`);
   };
+
   const handleProductClick = (productId) => {
     navigate(`/product/${productId}`);
   };
@@ -159,10 +146,7 @@ const MainPage = () => {
           />
           <div style={navIconsStyle}>
             {userName ? (
-              <button
-                onClick={handleUserPageClick} // Navigate to User Page
-                style={navButtonStyle}
-              >
+              <button onClick={handleUserPageClick} style={navButtonStyle}>
                 {userName}
               </button>
             ) : (
@@ -205,12 +189,33 @@ const MainPage = () => {
           </>
         )}
         
+
+        {/* Sort Dropdown */}
+        <div style={sortDropdownContainerStyle}>
+          <label htmlFor="sortDropdown" style={sortDropdownLabelStyle}>
+            Sort by:
+          </label>
+          <select
+            id="sortDropdown"
+            style={sortDropdownStyle}
+            value={sortOption}
+            onChange={(e) => setSortOption(e.target.value)}
+          >
+            <option value="default">Default</option>
+            <option value="popularity">Popularity</option>
+          </select>
+        </div>
+
         {/* Product Grid */}
         <div style={{ padding: '20px' }}>
           <h1>BeyazEvim - Your White Goods Store</h1>
           <div style={productGridStyle}>
             {products.map((product) => (
-              <div key={product.id} style={productCardStyle} onClick={()=> handleProductClick(product.id)}>
+              <div
+                key={product.id}
+                style={productCardStyle}
+                onClick={() => handleProductClick(product.id)}
+              >
                 <img
                   src={product.image || 'https://via.placeholder.com/150'}
                   alt={product.name}
@@ -218,8 +223,13 @@ const MainPage = () => {
                 />
                 <h3>{product.name}</h3>
                 <p>{product.description}</p>
-                <hr></hr>
-                <p style={{ fontWeight: 'bold', color: product.stockCount > 0 ? 'inherit' : 'red' }}>
+                <hr />
+                <p
+                  style={{
+                    fontWeight: 'bold',
+                    color: product.stockCount > 0 ? 'inherit' : 'red',
+                  }}
+                >
                   {product.stockCount > 0 ? `₺${product.price}` : 'OUT OF STOCK'}
                 </p>
               </div>
@@ -230,7 +240,6 @@ const MainPage = () => {
     </div>
   );
 };
-
 
 // CSS Styles as JavaScript objects
 const logoContainerStyle = {
@@ -405,5 +414,30 @@ const cartPriceStyle = {
   fontSize: '12px',
   color: 'white',
 };
+
+const sortDropdownContainerStyle = {
+  marginBottom: '20px',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'flex-start',
+};
+
+const sortDropdownLabelStyle = {
+  fontSize: '16px',
+  fontWeight: 'bold',
+  marginRight: '10px',
+  color: '#333',
+};
+
+const sortDropdownStyle = {
+  padding: '10px',
+  borderRadius: '5px',
+  border: '1px solid #ccc',
+  fontSize: '16px',
+  cursor: 'pointer',
+  backgroundColor: '#fff',
+};
+
+
 
 export default MainPage;
