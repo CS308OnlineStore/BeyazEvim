@@ -160,7 +160,7 @@ const UserPage = () => {
 
     
     <div style={pageContainerStyle}>
-      <header style={headerStyle}>
+      <header style={logoContainerStyle}>
         <div style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }} onClick={handleLogoClick}>
           <img src={logo} alt="BeyazEvim Logo" style={logoStyle} />
           <h1 style={logoTextStyle}>BeyazEvim</h1>
