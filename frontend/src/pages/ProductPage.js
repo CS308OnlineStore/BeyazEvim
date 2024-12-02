@@ -29,7 +29,7 @@ const ProductPage = () => {
       });
 
       // Fetch comments for the product
-    axios.get(`/api/products/${id}/comments`)
+    axios.get(`/api/comments/products/${id}`)
       .then((response) => {
         setComments(response.data);
       })
@@ -138,13 +138,13 @@ const ProductPage = () => {
     }
 
     const commentData = {
-      productId: id,
-      userId,
-      content: newComment,
+      title: newTitle,
+      text: newComment,
       rating: newRating,
+
     };
 
-    axios.post('/api/comments', commentData)
+    axios.post(`/api/comments/users/${userId}/products/${id}`, commentData)
       .then((response) => {
         alert('Comment successfully added!');
         setComments((prevComments) => [...prevComments, response.data.comment]);
@@ -267,11 +267,11 @@ const ProductPage = () => {
           comments.map((comment) => (
             <div key={comment.commentId} style={commentCardStyle}>
               <p>
-                <span style={userNameStyle}>User {comment.userId}:</span> {comment.content}
+                <span style={userNameStyle}>User {comment.userId}:</span> {comment.text}
               </p>
               <p>Rating: {comment.rating} / 5</p>
               <p style={commentDateStyle}>
-                {new Date(comment.createdAt).toLocaleString()}
+                {new Date(comment.createdDate).toLocaleString()}
               </p>
             </div>
           ))
