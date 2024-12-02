@@ -17,7 +17,7 @@ const MainPage = () => {
   const [cartNum, setCartNum] = useState(0);
   const [sortOption, setSortOption] = useState('default'); // New state for sorting
   const [searchQuery, setSearchQuery] = useState(''); // Search query state
-  
+
   useEffect(() => {
     const token = Cookies.get('authToken');
     const userName = Cookies.get('userName');
@@ -59,26 +59,50 @@ const MainPage = () => {
         console.error('Error fetching categories:', error);
       });
 
-    fetchProductsWithPopularity();
+      fetchProductsWithSorting();
   }, []);
 
   useEffect(() => {
-    fetchProductsWithPopularity();
+    fetchProductsWithSorting();
   }, [sortOption]); // Re-fetch products when sort option changes
 
-  const fetchProductsWithPopularity = () => {
-    const endpoint = sortOption === 'popularity' 
-      ? '/api/comments/products/popularity' 
-      : '/api/homepage';
-    
-    axios.get(endpoint)
+  const fetchProductsWithSorting = () => {
+    axios
+      .get('/api/homepage') // Fetch all products with their details
       .then((response) => {
-        setProducts(response.data);
+        let sortedProducts = [...response.data];
+  
+        switch (sortOption) {
+          case 'popularity':
+            // Sort by popularity in descending order
+            sortedProducts.sort((a, b) => b.popularity - a.popularity);
+            break;
+  
+          case 'alphabetical':
+            // Sort by name in alphabetical order (case insensitive)
+            sortedProducts.sort((a, b) =>
+              a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
+            );
+            break;
+  
+          case 'price':
+            // Sort by price in ascending order
+            sortedProducts.sort((a, b) => a.price - b.price);
+            break;
+  
+          default:
+            // Default sorting (could be as it comes from the API)
+            sortedProducts = response.data;
+            break;
+        }
+  
+        setProducts(sortedProducts); // Update the products state with the sorted list
       })
       .catch((error) => {
-        console.error('Error fetching products:', error);
+        console.error('Error fetching and sorting products:', error);
       });
   };
+  
   
 
   useEffect(() => {
@@ -253,6 +277,8 @@ const MainPage = () => {
           >
             <option value="default">Default</option>
             <option value="popularity">Popularity</option>
+            <option value="alphabetical">Alphabetical</option>
+            <option value="price">Price</option>
           </select>
         </div>
 
@@ -291,7 +317,7 @@ const MainPage = () => {
   );
 };
 
-// CSS Styles
+// CSS Styles as JavaScript objects
 const logoContainerStyle = {
   display: 'flex',
   alignItems: 'center',
