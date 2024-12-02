@@ -17,6 +17,7 @@ const ProductPage = () => {
   //comment rating 
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
+  const [newTitle, setNewTitle] = useState('');
   const [newRating, setNewRating] = useState(0);
 
   useEffect(() => {
@@ -148,6 +149,7 @@ const ProductPage = () => {
       .then((response) => {
         alert('Comment successfully added!');
         setComments((prevComments) => [...prevComments, response.data.comment]);
+        setNewTitle('')
         setNewComment('');
         setNewRating(0);
       })
@@ -265,7 +267,7 @@ const ProductPage = () => {
         <h3>Comments</h3>
         {comments.length > 0 ? (
           comments.map((comment) => (
-            <div key={comment.commentId} style={commentCardStyle}>
+            <div key={comment.id} style={commentCardStyle}>
               <p>
                 <span style={userNameStyle}>User {comment.userId}:</span> {comment.text}
               </p>
