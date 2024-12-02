@@ -17,7 +17,7 @@ const MainPage = () => {
   const [cartNum, setCartNum] = useState(0);
   const [sortOption, setSortOption] = useState('default'); // New state for sorting
   const [searchQuery, setSearchQuery] = useState(''); // Search query state
-
+  
   useEffect(() => {
     const token = Cookies.get('authToken');
     const userName = Cookies.get('userName');
@@ -131,9 +131,18 @@ const MainPage = () => {
   };
 
   const handleSearchSubmit = (e) => {
-    e.preventDefault();
-    navigate(`/search?query=${searchQuery}`); // Navigate to search page with query
+    e.preventDefault(); // Formun varsayılan davranışını engelle
+    
+    if (!searchQuery.trim()) { // Eğer `searchQuery` boşsa veya sadece boşluk içeriyorsa
+      alert('Please enter a search term.');
+      return;
+    }
+    
+    // Kullanıcıdan alınan sorguyu URL ile güvenli bir şekilde geç
+    navigate(`/search?searchString=${encodeURIComponent(searchQuery.trim())}`);
   };
+  
+  
 
   return (
     <div style={{ fontFamily: 'Arial, sans-serif', display: 'flex' }}>
@@ -282,7 +291,7 @@ const MainPage = () => {
   );
 };
 
-// CSS Styles as JavaScript objects
+// CSS Styles
 const logoContainerStyle = {
   display: 'flex',
   alignItems: 'center',

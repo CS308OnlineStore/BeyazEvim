@@ -10,14 +10,16 @@ const UserPage = () => {
     firstName: 'Unknown',
     lastName: 'Unknown',
     email: 'Unknown',
-    address: 'No address available',
-    phoneNumber: 'Unknown',
+    address: '',
+    phoneNumber: '',
     role: 'Unknown',
   });
   const [pastOrders, setPastOrders] = useState([]);
   const [currentOrders, setCurrentOrders] = useState([]);
   const [isEditingAddress, setIsEditingAddress] = useState(false);
   const [newAddress, setNewAddress] = useState('');
+  const [isEditingPhone, setIsEditingPhone] = useState(false);
+  const [newPhone, setNewPhone] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -37,15 +39,19 @@ const UserPage = () => {
         });
         setUserInfo((prevState) => ({
           ...prevState,
-          address: addressResponse.data.address,
+          address: addressResponse.data.address || '',
         }));
 
         const ordersResponse = await axios.get(`/api/orders/user/${userId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
-        const past = ordersResponse.data.filter(order => order.status === 'DELIVERED'); // Delivered orders
-        const current = ordersResponse.data.filter(order => order.status !== 'DELIVERED'); // Active orders
+        const past = ordersResponse.data.filter(order => order.status === 'DELIVERED');
+        const current = ordersResponse.data.filter(order => 
+          order.status === 'PROCESSING' || 
+          order.status === 'IN-TRANSIT' || 
+          order.status === 'DELIVERED'
+        );
 
         setPastOrders(past);
         setCurrentOrders(current);
@@ -69,14 +75,12 @@ const UserPage = () => {
       const token = Cookies.get('authToken');
       const userId = Cookies.get('userId');
 
-      // PUT isteği ile adresi güncelleme (düz metin gönderimi)
       const response = await axios.put(
         `/api/users/${userId}/address`,
-        newAddress, // Yeni adres string olarak gönderiliyor
-        { headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'text/plain' } } // text/plain header eklendi
+        { address: newAddress },
+        { headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' } }
       );
 
-      // Kullanıcı bilgisini güncelle
       setUserInfo((prevState) => ({
         ...prevState,
         address: response.data.address,
@@ -88,6 +92,50 @@ const UserPage = () => {
     } catch (err) {
       console.error('Error updating address:', err);
       alert('Failed to update address.');
+    }
+  };
+
+  const handleEditPhone = () => {
+    setIsEditingPhone(true);
+  };
+
+  const handleSavePhone = async () => {
+    if (!/^\d{10,15}$/.test(newPhone)) {
+      alert('Phone number must be 10-15 digits long.');
+      return;
+    }
+
+    const token = Cookies.get('authToken');
+    const userId = Cookies.get('userId');
+
+    try {
+      const response = await axios.put(
+        `/api/users/${userId}/phone`,
+        newPhone,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'text/plain',
+          },
+        }
+      );
+
+      setUserInfo((prevState) => ({
+        ...prevState,
+        phoneNumber: response.data.phoneNumber,
+      }));
+
+      setIsEditingPhone(false);
+      setNewPhone('');
+      alert('Phone number updated successfully.');
+    } catch (err) {
+      console.error('Error updating phone number:', err.response || err.message);
+
+      if (err.response?.status === 403) {
+        alert('You do not have permission to update the phone number. Please contact support.');
+      } else {
+        alert(`Failed to update phone number: ${err.response?.data?.message || err.message}`);
+      }
     }
   };
 
@@ -118,17 +166,36 @@ const UserPage = () => {
                 value={newAddress}
                 onChange={(e) => setNewAddress(e.target.value)}
                 style={inputStyle}
+                placeholder="Enter new address"
               />
               <button onClick={handleSaveAddress} style={saveButtonStyle}>Save</button>
             </span>
           ) : (
             <>
-              {userInfo.address}
+              {userInfo.address || 'No address available'}
               <button onClick={handleEditAddress} style={editButtonStyle}>Edit</button>
             </>
           )}
         </p>
-        <p><strong>Phone Number:</strong> {userInfo.phoneNumber}</p>
+        <p>
+          <strong>Phone Number:</strong> {isEditingPhone ? (
+            <span>
+              <input
+                type="text"
+                value={newPhone}
+                onChange={(e) => setNewPhone(e.target.value)}
+                style={inputStyle}
+                placeholder="Enter new phone number"
+              />
+              <button onClick={handleSavePhone} style={saveButtonStyle}>Save</button>
+            </span>
+          ) : (
+            <>
+              {userInfo.phoneNumber || 'No phone number available'}
+              <button onClick={handleEditPhone} style={editButtonStyle}>Edit</button>
+            </>
+          )}
+        </p>
         <p><strong>Role:</strong> {userInfo.role}</p>
 
         <h2 style={sectionTitleStyle}>Current Orders</h2>
