@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Cookies from 'js-cookie';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import logo from '../assets/BeyazEvim_logo.jpeg'; // Import the logo
 
 const UserPage = () => {
   const navigate = useNavigate();
@@ -65,6 +66,10 @@ const UserPage = () => {
 
     fetchUserData();
   }, [navigate]);
+
+  const handleLogoClick = () => {
+    navigate('/'); // Navigate to the main page
+  };
 
   const handleEditAddress = () => {
     setIsEditingAddress(true);
@@ -152,7 +157,15 @@ const UserPage = () => {
   if (error) return <div style={{ color: 'red', textAlign: 'center', marginTop: '50px' }}>{error}</div>;
 
   return (
+
+    
     <div style={pageContainerStyle}>
+      <header style={headerStyle}>
+        <div style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }} onClick={handleLogoClick}>
+          <img src={logo} alt="BeyazEvim Logo" style={logoStyle} />
+          <h1 style={logoTextStyle}>BeyazEvim</h1>
+        </div>
+      </header>
       <div style={contentContainerStyle}>
         <h2 style={sectionTitleStyle}>User Information</h2>
         <p><strong>First Name:</strong> {userInfo.firstName}</p>
@@ -299,6 +312,26 @@ const orderCardStyle = {
   borderRadius: '5px',
   marginBottom: '10px',
   backgroundColor: '#f9f9f9',
+};
+
+const logoContainerStyle = {
+  display: 'flex',
+  alignItems: 'center',
+  padding: '20px',
+  justifyContent: 'center',
+  cursor: 'pointer', // Add this to make the logo clickable
+};
+
+const logoStyle = {
+  width: '50px',
+  height: '50px',
+  marginRight: '10px',
+};
+
+const logoTextStyle = {
+  fontSize: '24px',
+  fontWeight: 'bold',
+  color: '#ff0000',
 };
 
 export default UserPage;
