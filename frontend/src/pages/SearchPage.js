@@ -80,6 +80,10 @@ const SearchPage = () => {
     navigate('/cart');
   };
 
+  const handleProductClick = (productId) => {
+    navigate(`/product/${productId}`);
+  };
+
   return (
     <div style={{ fontFamily: 'Arial, sans-serif', display: 'flex' }}>
       {/* Sidebar Categories Section */}
@@ -161,24 +165,24 @@ const SearchPage = () => {
                   products.map((product) => (
                     <div
                       key={product.id}
-                      style={{
-                        border: '1px solid #ddd',
-                        padding: '10px',
-                        borderRadius: '5px',
-                        width: '200px',
-                        textAlign: 'center',
-                      }}
+                      style={productCardStyle}
+                      onClick={() => handleProductClick(product.id)}
                     >
                       <img
-                        src={product.image_path || 'https://via.placeholder.com/150'}
+                        src={product.image || 'https://via.placeholder.com/150'}
                         alt={product.name}
-                        style={{ width: '100%', borderRadius: '5px' }}
+                        style={{ width: '100%', borderRadius: '10px' }}
                       />
-                      <h3 style={{ fontSize: '18px', margin: '10px 0' }}>{product.name}</h3>
-                      <p style={{ fontSize: '14px', color: '#555' }}>{product.description}</p>
-                      <p style={{ fontWeight: 'bold', margin: '10px 0' }}>₺{product.price.toFixed(2)}</p>
-                      <p style={{ fontSize: '14px', color: '#777' }}>
-                        Stock: {product.stockCount > 0 ? product.stockCount : 'Out of Stock'}
+                      <h3>{product.name}</h3>
+                      <p>{product.description}</p>
+                      <hr />
+                      <p
+                        style={{
+                          fontWeight: 'bold',
+                          color: product.stockCount > 0 ? 'inherit' : 'red',
+                        }}
+                      >
+                        {product.stockCount > 0 ? `₺${product.price}` : 'OUT OF STOCK'}
                       </p>
                     </div>
                   ))
