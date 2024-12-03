@@ -51,15 +51,38 @@ public class CommentService {
         comment.setText(text);
         comment.setUser(user);
         comment.setProductModel(productModel);
-        comment.setApproved(false);  // İlk başta onaysız olabilir
+        // text null ise otomatik olarak onaylanır, aksi halde onaysız olur
+        if (text == null || text.trim().isEmpty()) {
+            comment.setApproved(true); // Text boşsa veya null ise direkt onayla
+        } else {
+            comment.setApproved(false); // Text varsa onaysız başlasın
+        }
 
-     // Yorumunu kaydet
+        // Yorumunu kaydet
         Comment savedComment = commentRepository.save(comment);
 
         // Ürün modelinin popülerliğini güncelle
         updateProductPopularity(productModel);
-
+        updateProductRating(productModel);
         return savedComment;
+    }
+    
+    
+    private void updateProductRating(ProductModel productModel) {
+        // Tüm yorumları al
+        List<Comment> comments = commentRepository.findByProductModel(productModel);
+
+        // Ortalama rating'i hesapla
+        double averageRating = comments.stream()
+                .mapToInt(Comment::getRating)
+                .average()
+                .orElse(0.0);
+
+        // Ürünün rating'ini güncelle
+        productModel.setRating(averageRating);
+
+        // Ürün modelini kaydet
+        productModelRepository.save(productModel);
     }
     
     private void updateProductPopularity(ProductModel productModel) {

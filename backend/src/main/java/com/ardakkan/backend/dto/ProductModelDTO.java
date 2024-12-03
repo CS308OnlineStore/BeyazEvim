@@ -9,6 +9,7 @@ public class ProductModelDTO {
     private String image_path;
     private int stockCount; 
     private Double populerity;
+    private Double rating;
 
     // Getter ve Setter'lar
     
@@ -75,6 +76,15 @@ public class ProductModelDTO {
 	public void setPopulerity(Double populerity) {
 		this.populerity = populerity;
 	}
+
+	public Double getRating() {
+		return rating;
+	}
+
+	public void setRating(Double rating) {
+		this.rating = rating;
+	}
+	
     
 }
 

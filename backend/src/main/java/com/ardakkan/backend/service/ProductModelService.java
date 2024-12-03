@@ -168,6 +168,7 @@ public class ProductModelService {
         dto.setBrand(productModel.getDistributorInformation());
         dto.setImage_path(productModel.getPhotoPath());
         dto.setPopulerity(productModel.getPopularity());
+        dto.setRating(productModel.getRating());
 
         // Stok bilgisini al
         int stockCount = getAvailableProductInstanceCount(productModel.getId());

@@ -1,5 +1,6 @@
 package com.ardakkan.backend.controller;
 
+import com.ardakkan.backend.dto.CommentRequest;
 import com.ardakkan.backend.entity.Comment;
 import com.ardakkan.backend.service.CommentService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,13 +25,18 @@ public class CommentController {
     public ResponseEntity<Comment> addComment(
             @PathVariable Long userId, 
             @PathVariable Long productModelId, 
-            @RequestParam String title, 
-            @RequestParam Integer rating, 
-            @RequestParam String text) {
+            @RequestBody CommentRequest commentRequest) {
         // Yorum ekleme işlemi
-        Comment savedComment = commentService.addComment(userId, productModelId, title, rating, text);
+        Comment savedComment = commentService.addComment(
+                userId, 
+                productModelId, 
+                commentRequest.getTitle(), 
+                commentRequest.getRating(), 
+                commentRequest.getText()
+        );
         return ResponseEntity.status(HttpStatus.CREATED).body(savedComment);
     }
+
 
 
     // Tüm yorumları getir

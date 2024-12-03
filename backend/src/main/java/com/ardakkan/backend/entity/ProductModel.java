@@ -41,7 +41,10 @@ public class ProductModel {
     private Category category;
     
     @Column
-    private Double popularity= 0.0;  
+    private Double popularity= 0.0; 
+    
+    @Column 
+    private Double rating= 0.0;
     
 
     // Getter ve Setter'lar
@@ -108,6 +111,18 @@ public class ProductModel {
 	public void setPopularity(Double popularity) {
 		this.popularity = popularity;
 	}
+
+	public Double getRating() {
+		return rating;
+	}
+
+	public void setRating(Double rating) {
+		this.rating = rating;
+	}
+
+	
+	
+	
     
 }
 
