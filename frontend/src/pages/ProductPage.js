@@ -156,8 +156,8 @@ const ProductPage = () => {
         return;
     }
 
-    if (!newComment || newRating <= 0) {
-        alert('Please provide a comment and a rating.');
+    if ( newRating <= 0 ) {
+        alert('Please provide a rating.');
         return;
     }
 
@@ -169,7 +169,8 @@ const ProductPage = () => {
   
   try{
     await axios.post(`/api/comments/users/${userId}/products/${id}`, commentData);
-    alert("Thank you for comment!")
+    alert("Thank you for comment!");
+    window.location.reload();
   } catch (error) {
       console.error("Error adding comment:", error);
   }
@@ -249,8 +250,31 @@ const ProductPage = () => {
           )}
         </div>
       </div>
-  
+
+      <div style={commentSectionStyle}> 
+          <h3>Total Rating: {productDetails.rating ? `${productDetails.rating}/5` : "No rating yet"}</h3>
+      </div>
+      
       {/* Comments Section */}
+      <div style={commentSectionStyle}>
+        <h3>Comments</h3>
+        {comments.length > 0 ? (
+          comments.map((comment) => (
+            <div key={comment.id} style={commentCardStyle}>
+              <p>
+                <span style={userNameStyle}>User {comment.userId}:</span> {comment.text}
+              </p>
+              <p>Rating: {comment.rating} / 5</p>
+              <p style={commentDateStyle}>
+                {new Date(comment.createdDate).toLocaleString()}
+              </p>
+            </div>
+          ))
+        ) : (
+          <p>No comments yet. Be the first to leave one!</p>
+        )}
+      </div>
+
       <div style={commentSectionStyle}>
         <h3>Leave a Comment</h3>
         <textarea
@@ -281,23 +305,6 @@ const ProductPage = () => {
         <button onClick={handleAddComment} style={submitButtonStyle}>
           Submit
         </button>
-  
-        <h3>Comments</h3>
-        {comments.length > 0 ? (
-          comments.map((comment) => (
-            <div key={comment.id} style={commentCardStyle}>
-              <p>
-                <span style={userNameStyle}>User {comment.userId}:</span> {comment.text}
-              </p>
-              <p>Rating: {comment.rating} / 5</p>
-              <p style={commentDateStyle}>
-                {new Date(comment.createdDate).toLocaleString()}
-              </p>
-            </div>
-          ))
-        ) : (
-          <p>No comments yet. Be the first to leave one!</p>
-        )}
       </div>
     </div>
   );
