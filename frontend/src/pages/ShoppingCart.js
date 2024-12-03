@@ -146,6 +146,7 @@ const ShoppingCart = ({onClose}) => {
                 <PaymentForm
                   onPaymentSuccess={() => {
                     setShowPayment(false);
+                    onClose();
                   }}
                 />
               ) : (

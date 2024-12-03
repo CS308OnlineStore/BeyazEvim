@@ -47,11 +47,13 @@ const UserPage = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
 
-        const past = ordersResponse.data.filter(order => order.status === 'DELIVERED');
+        const past = ordersResponse.data.filter(order => 
+          order.status === 'DELIVERED' ||
+          order.status === 'RETURNED'
+        );
         const current = ordersResponse.data.filter(order => 
-          order.status === 'PROCESSING' || 
-          order.status === 'IN-TRANSIT' || 
-          order.status === 'DELIVERED'
+          order.status === 'PURCHASED' || 
+          order.status === 'SHIPPED'
         );
 
         setPastOrders(past);
@@ -211,7 +213,7 @@ const UserPage = () => {
         </p>
         <p><strong>Role:</strong> {userInfo.role}</p>
 
-        <h2 style={sectionTitleStyle}>Current Orders</h2>
+        <h2 style={sectionTitleStyle}>Active Orders</h2>
         {currentOrders.length > 0 ? (
           currentOrders.map((order, index) => (
             <div key={index} style={orderCardStyle}>
@@ -220,9 +222,12 @@ const UserPage = () => {
               <p><strong>Items:</strong></p>
               <ul>
                 {order.orderItems.map((item, idx) => (
-                  <li key={idx}>{item.productName}</li>
+                  <li key={idx}>
+                    <p>{item.productModel.name} - {item.quantity} x ₺{item.unitPrice}</p>
+                  </li>
                 ))}
               </ul>
+              <p><strong>Total:</strong> ₺{order.totalPrice}</p>
             </div>
           ))
         ) : (
@@ -234,7 +239,15 @@ const UserPage = () => {
           pastOrders.map((order, index) => (
             <div key={index} style={orderCardStyle}>
               <p><strong>Order ID:</strong> {order.id}</p>
-              <p><strong>Status:</strong> Delivered</p>
+              <p><strong>Status:</strong> {order.status}</p>
+              <p><strong>Items:</strong></p>
+              <ul>
+                {order.orderItems.map((item, idx) => (
+                  <li key={idx}>
+                  <p>{item.productModel.name} - {item.quantity} x ₺{item.unitPrice}</p>
+                </li>
+                ))}
+              </ul>
               <p><strong>Total:</strong> ₺{order.totalPrice}</p>
             </div>
           ))
