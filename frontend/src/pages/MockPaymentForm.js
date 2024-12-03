@@ -23,21 +23,35 @@ const PaymentForm = ({ onPaymentSuccess }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
 
+    const newTab = window.open('', '_blank');
+
     setTimeout(() => {
-      axios.post(`/api/orders/purchase/${cartId}`)
-      .then(response => {
-        if (response.status === 200) {
-          alert('Payment Successful!');
-          if (onPaymentSuccess) onPaymentSuccess();
-        } else {
-          alert('Failed to process the order.');
-        }
-      })
-      .catch(error => {
-        console.error('Error posting order:', error);
-        alert('Error processing order. Please try again.');
-      });
-    }, 500);
+      axios.post(`/api/orders/purchase/${cartId}`, null, { responseType: 'blob' }) // Set responseType to 'blob'
+        .then(response => {
+          if (response.status === 200) {
+            alert('Payment Successful!');
+
+            const blobUrl = URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
+      
+            if (newTab) {
+              newTab.location.href = blobUrl;
+            } else {
+              alert('Unable to open a new tab. Please check your browser settings.');
+            }
+
+            if (onPaymentSuccess) onPaymentSuccess();
+            
+          } else {
+            alert('Failed to process the order.');
+          }
+        })
+        .catch(error => {
+          console.error('Error posting order:', error);
+          alert('Error processing order. Please try again.');
+
+          if (newTab) newTab.close();
+        });
+    }, 1000);
   };
 
   return (

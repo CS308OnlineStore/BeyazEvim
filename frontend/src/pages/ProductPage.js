@@ -46,9 +46,6 @@ const ProductPage = () => {
         console.error("Error fetching comments:", error);
       });
 
-
-
-
     const userId = Cookies.get('userId');
     if (userId) {
       axios.get(`/api/orders/${userId}/cart`)
@@ -163,24 +160,19 @@ const ProductPage = () => {
         alert('Please provide a comment and a rating.');
         return;
     }
-    
-    const commentData = {
-        title: newTitle,
-        rating: newRating,
-        text: newComment,
-    };
 
-    try {
-        console.log(commentData);
-        await axios.post(`/api/comments/users/${userId}/products/${id}`, commentData);
-        alert('Comment successfully added!');
-        setNewTitle('');
-        setNewComment('');
-        setNewRating(0);
-    } catch (error) {
-        console.error('Error adding comment:', error);
-        alert('Failed to add comment.');
-    }
+    const commentData = {
+      title: newTitle,
+      rating: newRating,
+      text: newComment,
+  };
+  
+  try{
+    await axios.post(`/api/comments/users/${userId}/products/${id}`, commentData);
+    alert("Thank you for comment!")
+  } catch (error) {
+      console.error("Error adding comment:", error);
+  }
   };
 
 
