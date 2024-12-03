@@ -5,17 +5,13 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.PreUpdate;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Table;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.Size;
 
 @Entity
 @Table(name = "Comment")  // Veritabanındaki tablo adı
@@ -26,20 +22,20 @@ public class Comment {
     private Long id;
 
     @Column(nullable = false, length = 45)
-    @Size(max = 45, message = "Title can be up to 45 characters")
     private String title;  // Şemadaki "Commentcol" alanı
 
     @Column(nullable = false)
-    @Min(value = 1, message = "Rating must be at least 1")
-    @Max(value = 5, message = "Rating must be at most 5")
     private Integer rating;  // 1-5 arasında puanlama
 
     @Column(nullable = false, length = 245)
-    @Size(max = 245, message = "Comment text can be up to 245 characters")
     private String text;
 
     @Column(nullable = false)
-    private Boolean approved = false;
+    private Boolean approved;
+    
+    // Yeni eklenen tarih alanı
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime createdDate;
 
     // Many-to-One ilişki: Bir yorum bir kullanıcıya aittir
     @ManyToOne
@@ -51,27 +47,7 @@ public class Comment {
     @JoinColumn(name = "productModel_id", nullable = false)  // Veritabanındaki foreign key alanı
     private ProductModel productModel;
 
-    @Column(nullable = false, updatable = false)
-    private LocalDateTime createdAt;
-
-    @Column(nullable = false)
-    private LocalDateTime updatedAt;
-
-    @PrePersist
-    protected void onCreate() {
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        this.updatedAt = LocalDateTime.now();
-    }
-
-
     // Getter ve Setter'lar
-
-    
     public Long getId() {
         return id;
     }
@@ -127,14 +103,14 @@ public class Comment {
     public void setProductModel(ProductModel productModel) {
         this.productModel = productModel;
     }
+
+	public LocalDateTime getCreatedDate() {
+		return createdDate;
+	}
+
+	public void setCreatedDate(LocalDateTime createdDate) {
+		this.createdDate = createdDate;
+	}
     
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
-    }
 }
 

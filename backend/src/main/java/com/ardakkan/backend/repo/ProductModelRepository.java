@@ -17,7 +17,7 @@ public interface ProductModelRepository extends JpaRepository<ProductModel, Long
     List<ProductModel> findByDistributorInformation(String brand);
 
     List<ProductModel> findByNameContainingIgnoreCase(String name);
-    
-    
+    List<ProductModel> findByDistributorInformationContainingIgnoreCaseOrDescriptionContainingIgnoreCaseOrNameContainingIgnoreCaseOrCategory_CategoryNameContainingIgnoreCase(
+            String distributorInformation, String description, String name, String categoryName);
 
 }

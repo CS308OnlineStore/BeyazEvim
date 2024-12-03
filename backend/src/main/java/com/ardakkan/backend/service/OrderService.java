@@ -130,10 +130,9 @@ public class OrderService {
             throw new IllegalStateException("Order is not in cart status: " + orderId);
         }
 
-        // Order status updated to PURCHASED
+        // Sipariş durumunu PURCHASED olarak güncelle
         order.setStatus(OrderStatus.PURCHASED);
         orderRepository.save(order);
-        
         // Process each order item
         for (OrderItem orderItem : order.getOrderItems()) {
             List<Long> productInstanceIds = orderItem.getProductInstanceIds();
@@ -152,6 +151,10 @@ public class OrderService {
         Long invoiceId = order.getInvoice().getId();
         byte[] pdfData = invoiceService.generateInvoicePdf(invoiceId);
 
+        // Yeni bir CART oluştur
+        createNewCart(order.getUser().getId());
+
+        
         try {
             String userEmail = order.getUser().getEmail();
             String subject = "Your Invoice for Order #" + order.getId();
@@ -179,6 +182,7 @@ public class OrderService {
         invoice.setTotalPrice(order.getTotalPrice());  // Toplam tutar, siparişin toplamı olacak
         invoice.setCreatedAt(new Date());  // Faturanın oluşturulma tarihini şu anki tarihe set ediyoruz
         invoice.setDetails("Sipariş için fatura: " + order.getId());
+        System.out.println("Invoice: " + invoice);
 
         // Faturayı kaydet
         invoiceRepository.save(invoice);

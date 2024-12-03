@@ -44,6 +44,7 @@ public class ProductModelService {
             existingProductModel.setDescription(productModelDetails.getDescription());
             existingProductModel.setPrice(productModelDetails.getPrice());
             existingProductModel.setCategory(productModelDetails.getCategory());
+            existingProductModel.setPopularity(productModelDetails.getPopularity());
             return productModelRepository.save(existingProductModel);
         } else {
             throw new RuntimeException("ProductModel not found with id: " + id);
@@ -124,6 +125,23 @@ public class ProductModelService {
         }
     }
     
+    public List<ProductModelDTO> searchProductModels(String searchString) {
+        // Arama terimi boşsa, tüm ürünleri döndür
+        if (searchString == null || searchString.trim().isEmpty()) {
+            return getAllProductModelsDTO();
+        }
+
+        // distributorInformation, description, name ve category alanlarında arama yap
+        List<ProductModel> productModels = productModelRepository
+                .findByDistributorInformationContainingIgnoreCaseOrDescriptionContainingIgnoreCaseOrNameContainingIgnoreCaseOrCategory_CategoryNameContainingIgnoreCase(
+                        searchString, searchString, searchString, searchString);
+
+        // Arama sonuçlarını DTO'ya dönüştür
+        return productModels.stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+    
     
  // Toplu ProductModel ekleme
     public List<ProductModel> saveAllProductModels(List<ProductModel> productModels) {
@@ -149,6 +167,7 @@ public class ProductModelService {
         dto.setPrice(productModel.getPrice());
         dto.setBrand(productModel.getDistributorInformation());
         dto.setImage_path(productModel.getPhotoPath());
+        dto.setPopulerity(productModel.getPopularity());
 
         // Stok bilgisini al
         int stockCount = getAvailableProductInstanceCount(productModel.getId());

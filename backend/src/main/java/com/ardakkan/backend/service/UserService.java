@@ -102,6 +102,41 @@ public class UserService {
                 .orElseThrow(() -> new UsernameNotFoundException("Kullanıcı bulunamadı: " + email));
     }
     
+    public String getUserAddress(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        return user.getAddress();
+    }
+    
+    public UserDTO updateUserAddress(Long userId, String newAddress) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalStateException("Kullanıcı bulunamadı: " + userId));
+
+        // Yeni adresi güncelle
+        user.setAddress(newAddress);
+
+        // Kullanıcıyı veritabanında güncelle
+        userRepository.save(user);
+
+        // Güncellenen kullanıcıyı DTO'ya dönüştür ve döndür
+        return convertToDTO(user);
+    }
+
+    public UserDTO updateUserPhoneNumber(Long userId, String newPhoneNumber) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalStateException("Kullanıcı bulunamadı: " + userId));
+
+        // Yeni telefon numarasını güncelle
+        user.setPhoneNumber(newPhoneNumber);
+
+        // Kullanıcıyı veritabanında güncelle
+        userRepository.save(user);
+
+        // Güncellenen kullanıcıyı DTO'ya dönüştür ve döndür
+        return convertToDTO(user);
+    }
+
+    
     public void updateWishlist(Long userId, List<Long> wishlistProductModelIds) {
         User user = convertToEntity(findUserById(userId));
         List<ProductModel> wishlist = wishlistProductModelIds.stream()
@@ -150,26 +185,4 @@ public class UserService {
 
         return user;
     }
-}
-
-    
-    
-public String getUserAddress(Long userId) {
-    User user = userRepository.findById(userId)
-            .orElseThrow(() -> new RuntimeException("User not found"));
-    return user.getAddress();
-}
-
-public void updateUserAddress(Long userId, String newAddress) {
-    if (newAddress == null || newAddress.trim().isEmpty()) {
-        throw new IllegalArgumentException("Adres null veya boş olamaz.");
-    }
-
-    User user = userRepository.findById(userId)
-            .orElseThrow(() -> new RuntimeException("User not found"));
-    user.setAddress(newAddress);
-    userRepository.save(user);
-}
-}
-
 }
