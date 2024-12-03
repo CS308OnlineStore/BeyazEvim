@@ -19,6 +19,14 @@ const ProductPage = () => {
   const [newComment, setNewComment] = useState('');
   const [newTitle, setNewTitle] = useState('');
   const [newRating, setNewRating] = useState(0);
+  const ratingTitles = {
+    1: "Poor",
+    2: "Fair",
+    3: "Good",
+    4: "Very Good",
+    5: "Excellent",
+  };
+  
 
   useEffect(() => {
     axios.get(`/api/product-models/${id}`)
@@ -126,40 +134,54 @@ const ProductPage = () => {
 
   }
 
-  const handleAddComment = () => {
+  const handleAddComment = async () => {
     const userId = Cookies.get('userId');
     if (!userId) {
       alert('You need to log in to leave a comment.');
       return;
     }
 
-    if (!newComment || newRating <= 0) {
-      alert('Please provide a comment and a rating.');
-      return;
+    try {
+      const response = await axios.get(`/api/orders/user/${userId}`);
+      const filteredOrders = response.data.filter(order => order.status !== "CART");
+      
+      const purchasedProductIds = filteredOrders.flatMap(order =>
+        order.orderItems.map(item => item.productModel.id)
+    );
+
+      if (!purchasedProductIds.includes(parseInt(id))) {
+          alert("You need to have bought the item to leave a comment.");
+          return;
+      }
+    } catch (error) {
+        console.error("Error fetching orders:", error);
+        alert("An error occurred while verifying your purchase.");
+        return;
     }
 
+    if (!newComment || newRating <= 0) {
+        alert('Please provide a comment and a rating.');
+        return;
+    }
+    
     const commentData = {
-      title: newTitle,
-      text: newComment,
-      rating: newRating,
-
+        title: newTitle,
+        rating: newRating,
+        text: newComment,
     };
 
-    axios.post(`/api/comments/users/${userId}/products/${id}`, commentData)
-      .then((response) => {
+    try {
+        console.log(commentData);
+        await axios.post(`/api/comments/users/${userId}/products/${id}`, commentData);
         alert('Comment successfully added!');
-        setComments((prevComments) => [...prevComments, response.data.comment]);
-        setNewTitle('')
+        setNewTitle('');
         setNewComment('');
         setNewRating(0);
-      })
-      .catch((error) => {
+    } catch (error) {
         console.error('Error adding comment:', error);
         alert('Failed to add comment.');
-      });
+    }
   };
-
-
 
 
   if (!productDetails) {
@@ -249,7 +271,11 @@ const ProductPage = () => {
           <label>Rating:</label>
           <select
             value={newRating}
-            onChange={(e) => setNewRating(parseInt(e.target.value, 10))}
+            onChange={(e) => {
+              const selectedRating = parseInt(e.target.value, 10);
+              setNewRating(selectedRating);
+              setNewTitle(ratingTitles[selectedRating]);
+            }}
             style={ratingSelectStyle}
           >
             <option value="0">Select a rating</option>
