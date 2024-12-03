@@ -76,7 +76,16 @@ const ShoppingCart = ({onClose}) => {
       alert("SignUp or Login to complete order!")
       navigate('/signinsignup');
     } else {
-      setShowPayment(true);
+      axios.get(`/api/users/${userId}/address`)
+        .then(response => {
+          console.log(response.data.newAddress);
+          if (response.data.newAddress) {
+            setShowPayment(true);
+          } else {
+            alert("Add address to complete order!");
+            navigate('/userpage');
+          }
+        })
     }
   };
 

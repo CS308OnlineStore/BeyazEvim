@@ -40,7 +40,7 @@ const UserPage = () => {
         });
         setUserInfo((prevState) => ({
           ...prevState,
-          address: addressResponse.data.address || '',
+          address: addressResponse.data.newAddress || '',
         }));
 
         const ordersResponse = await axios.get(`/api/orders/user/${userId}`, {
@@ -84,8 +84,8 @@ const UserPage = () => {
 
       const response = await axios.put(
         `/api/users/${userId}/address`,
-        { address: newAddress },
-        { headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' } }
+        { newAddress },
+        { headers: { Authorization: `Bearer ${token}` } }
       );
 
       setUserInfo((prevState) => ({
