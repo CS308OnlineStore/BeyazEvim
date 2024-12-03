@@ -130,9 +130,16 @@ public class OrderService {
             throw new IllegalStateException("Order is not in cart status: " + orderId);
         }
 
+<<<<<<< HEAD
+        // Order status updated to PURCHASED
+        order.setStatus(OrderStatus.PURCHASED);
+        orderRepository.save(order);
+
+=======
         // Sipariş durumunu PURCHASED olarak güncelle
         order.setStatus(OrderStatus.PURCHASED);
         orderRepository.save(order);
+>>>>>>> 4cca47a90fb944472177d0a5201d6bffe431c704
         // Process each order item
         for (OrderItem orderItem : order.getOrderItems()) {
             List<Long> productInstanceIds = orderItem.getProductInstanceIds();
