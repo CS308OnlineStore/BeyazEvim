@@ -14,6 +14,20 @@ const ProductPage = () => {
   const [cartNum, setCartNum] = useState(0);
   const [totalPrice, setTotalPrice] = useState(0.0);
 
+  //comment rating 
+  const [comments, setComments] = useState([]);
+  const [newComment, setNewComment] = useState('');
+  const [newTitle, setNewTitle] = useState('');
+  const [newRating, setNewRating] = useState(0);
+  const ratingTitles = {
+    1: "Poor",
+    2: "Fair",
+    3: "Good",
+    4: "Very Good",
+    5: "Excellent",
+  };
+  
+
   useEffect(() => {
     axios.get(`/api/product-models/${id}`)
       .then(response => {
@@ -21,6 +35,15 @@ const ProductPage = () => {
       })
       .catch(error => {
         console.error("There was an error fetching the product details!", error);
+      });
+
+      // Fetch comments for the product
+    axios.get(`/api/comments/products/${id}`)
+      .then((response) => {
+        setComments(response.data);
+      })
+      .catch((error) => {
+        console.error("Error fetching comments:", error);
       });
 
     const userId = Cookies.get('userId');
@@ -100,10 +123,59 @@ const ProductPage = () => {
     navigate('/');
   }
 
+  const handleLogoClick = () => {
+    navigate('/'); // Navigate to MainPage
+  };
   //To be implemented later
   const handleAddToWishlist = () => {
 
   }
+
+  const handleAddComment = async () => {
+    const userId = Cookies.get('userId');
+    if (!userId) {
+      alert('You need to log in to leave a comment.');
+      return;
+    }
+
+    try {
+      const response = await axios.get(`/api/orders/user/${userId}`);
+      const filteredOrders = response.data.filter(order => order.status !== "CART");
+      
+      const purchasedProductIds = filteredOrders.flatMap(order =>
+        order.orderItems.map(item => item.productModel.id)
+    );
+
+      if (!purchasedProductIds.includes(parseInt(id))) {
+          alert("You need to have bought the item to leave a comment.");
+          return;
+      }
+    } catch (error) {
+        console.error("Error fetching orders:", error);
+        alert("An error occurred while verifying your purchase.");
+        return;
+    }
+
+    if ( newRating <= 0 ) {
+        alert('Please provide a rating.');
+        return;
+    }
+
+    const commentData = {
+      title: newTitle,
+      rating: newRating,
+      text: newComment,
+  };
+  
+  try{
+    await axios.post(`/api/comments/users/${userId}/products/${id}`, commentData);
+    alert("Thank you for comment!");
+    window.location.reload();
+  } catch (error) {
+      console.error("Error adding comment:", error);
+  }
+  };
+
 
   if (!productDetails) {
     return <p>Loading product details...</p>;
@@ -113,7 +185,7 @@ const ProductPage = () => {
     <div>
       {/* Header Section */}
       <header style={headerStyle}>
-        <div style={headerLeftStyle}>
+        <div style={{ ...headerLeftStyle, cursor: 'pointer' }} onClick={handleLogoClick}>
           <img src={logo} alt="BeyazEvim Logo" style={logoStyle} />
           <h3 style={logoTextStyle}>BeyazEvim</h3>
         </div>
@@ -141,17 +213,21 @@ const ProductPage = () => {
           </div>
         </div>
       </header>
-
+  
       {/* Product Details Section */}
       <div style={productDetailsContainerStyle}>
         <div style={productDetailsStyle}>
-          <img src={productDetails.image || 'https://via.placeholder.com/150'} alt={productDetails.name} style={{ width: '150px', height: '150px', borderRadius: '10px' }} />
+          <img
+            src={productDetails.image || 'https://via.placeholder.com/150'}
+            alt={productDetails.name}
+            style={{ width: '150px', height: '150px', borderRadius: '10px' }}
+          />
           <h1>{productDetails.name}</h1>
           <p>{productDetails.description}</p>
           <p style={{ fontWeight: 'bold' }}>₺{productDetails.price}</p>
-        { productDetails.stockCount > 0 && ( <p>In Stock : {productDetails.stockCount}</p>) }
-
-        {/* Counter Component */}
+          {productDetails.stockCount > 0 && <p>In Stock : {productDetails.stockCount}</p>}
+  
+          {/* Counter Component */}
           {productDetails.stockCount > 0 ? (
             <div style={counterStyle}>
               <button onClick={handleDecrease} style={buttonStyle}>-</button>
@@ -161,18 +237,78 @@ const ProductPage = () => {
           ) : (
             <p style={{ color: 'red', marginBottom: '10px' }}>Out of Stock</p>
           )}
-
+  
           {/* Add to Cart Button */}
           {productDetails.stockCount > 0 ? (
-            <button style={cartButtonStyle} onClick={handleAddToCart}>Add to Cart</button>
+            <button style={cartButtonStyle} onClick={handleAddToCart}>
+              Add to Cart
+            </button>
           ) : (
-            <button style={cartButtonStyle} onClick={handleAddToWishlist}>Add to Wishlist</button>
+            <button style={cartButtonStyle} onClick={handleAddToWishlist}>
+              Add to Wishlist
+            </button>
           )}
         </div>
       </div>
+
+      <div style={commentSectionStyle}> 
+          <h3>Total Rating: {productDetails.rating ? `${productDetails.rating}/5` : "No rating yet"}</h3>
+      </div>
+      
+      {/* Comments Section */}
+      <div style={commentSectionStyle}>
+        <h3>Comments</h3>
+        {comments.length > 0 ? (
+          comments.map((comment) => (
+            <div key={comment.id} style={commentCardStyle}>
+              <p>
+                <span style={userNameStyle}>User {comment.userId}:</span> {comment.text}
+              </p>
+              <p>Rating: {comment.rating} / 5</p>
+              <p style={commentDateStyle}>
+                {new Date(comment.createdDate).toLocaleString()}
+              </p>
+            </div>
+          ))
+        ) : (
+          <p>No comments yet. Be the first to leave one!</p>
+        )}
+      </div>
+
+      <div style={commentSectionStyle}>
+        <h3>Leave a Comment</h3>
+        <textarea
+          value={newComment}
+          onChange={(e) => setNewComment(e.target.value)}
+          placeholder="Write your comment here"
+          style={commentInputStyle}
+        />
+        <div>
+          <label>Rating:</label>
+          <select
+            value={newRating}
+            onChange={(e) => {
+              const selectedRating = parseInt(e.target.value, 10);
+              setNewRating(selectedRating);
+              setNewTitle(ratingTitles[selectedRating]);
+            }}
+            style={ratingSelectStyle}
+          >
+            <option value="0">Select a rating</option>
+            <option value="1">1 - Poor</option>
+            <option value="2">2 - Fair</option>
+            <option value="3">3 - Good</option>
+            <option value="4">4 - Very Good</option>
+            <option value="5">5 - Excellent</option>
+          </select>
+        </div>
+        <button onClick={handleAddComment} style={submitButtonStyle}>
+          Submit
+        </button>
+      </div>
     </div>
   );
-};
+}
 
 // CSS styles
 const headerStyle = {
@@ -301,6 +437,58 @@ const cartButtonStyle = {
   border: 'none',
   borderRadius: '5px',
   cursor: 'pointer',
+};
+
+const commentSectionStyle = {
+  padding: '20px',
+  marginTop: '20px',
+  borderTop: '1px solid #ddd',
+};
+
+const commentInputStyle = {
+  width: '100%',
+  height: '80px',
+  padding: '10px',
+  marginBottom: '10px',
+  borderRadius: '5px',
+  border: '1px solid #ccc',
+  resize: 'none',
+};
+
+const ratingSelectStyle = {
+  marginLeft: '10px',
+  padding: '5px',
+  borderRadius: '5px',
+  border: '1px solid #ccc',
+};
+
+const submitButtonStyle = {
+  marginTop: '10px',
+  padding: '10px 20px',
+  fontSize: '14px',
+  fontWeight: 'bold',
+  color: '#fff',
+  backgroundColor: '#007BFF',
+  border: 'none',
+  borderRadius: '5px',
+  cursor: 'pointer',
+  transition: 'background-color 0.3s ease',
+};
+
+const commentCardStyle = {
+  marginBottom: '10px',
+  borderBottom: '1px solid #ddd',
+  paddingBottom: '10px',
+};
+
+const userNameStyle = {
+  fontWeight: 'bold',
+};
+
+const commentDateStyle = {
+  fontStyle: 'italic',
+  fontSize: '12px',
+  color: '#888',
 };
 
 export default ProductPage;

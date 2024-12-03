@@ -1,13 +1,17 @@
 // src/pages/ShoppingCart.js
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Cookies from 'js-cookie';
+import PaymentForm from './MockPaymentForm';
 
 const ShoppingCart = ({onClose}) => {
   const [cartItems, setCartItems] = useState([]);
   const [totalPrice, setTotalPrice] = useState(0);
   const [cartUpdated, setCartUpdated] = useState(false);
+  const [showPayment, setShowPayment] = useState(false);
 
+  const navigate = useNavigate();
   const userId = Cookies.get('userId');
    
   useEffect(() => {
@@ -64,6 +68,24 @@ const ShoppingCart = ({onClose}) => {
         }
       };
       localStorage.setItem('cart', JSON.stringify(nonUserCart));
+    }
+  };
+
+  const handleCompleteOrder = () => {
+    if (!userId) {
+      alert("SignUp or Login to complete order!")
+      navigate('/signinsignup');
+    } else {
+      axios.get(`/api/users/${userId}/address`)
+        .then(response => {
+          console.log(response.data.newAddress);
+          if (response.data.newAddress) {
+            setShowPayment(true);
+          } else {
+            alert("Add address to complete order!");
+            navigate('/userpage');
+          }
+        })
     }
   };
 
@@ -129,22 +151,31 @@ const ShoppingCart = ({onClose}) => {
           </div>
           {/* Buttons */}
           <div style={{ marginTop: '20px', textAlign: 'center' }}>
-            <button
-              style={{
-                backgroundColor: '#28a745',
-                color: 'white',
-                border: 'none',
-                padding: '10px 20px',
-                cursor: 'pointer',
-                width: '100%',
-                marginBottom: '10px',
-                borderRadius: '5px',
-                fontSize: '16px',
-              }}
-              onClick={() => alert('Proceeding with your order!')}
-            >
-              Complete Order
-            </button>
+            {showPayment ? (
+                <PaymentForm
+                  onPaymentSuccess={() => {
+                    setShowPayment(false);
+                    onClose();
+                  }}
+                />
+              ) : (
+                <button
+                  style={{
+                    backgroundColor: '#28a745',
+                    color: 'white',
+                    border: 'none',
+                    padding: '10px 20px',
+                    cursor: 'pointer',
+                    width: '100%',
+                    marginBottom: '10px',
+                    borderRadius: '5px',
+                    fontSize: '16px',
+                  }}
+                  onClick={handleCompleteOrder}
+                >
+                  Complete Order
+                </button>
+              )}
             <br />
             <button
               style={{

@@ -40,6 +40,11 @@ public class ProductModel {
     @JoinColumn(name = "category_id", nullable = false)
     private Category category;
     
+    @Column
+    private Double popularity= 0.0; 
+    
+    @Column 
+    private Double rating= 0.0;
     
 
     // Getter ve Setter'lar
@@ -98,5 +103,26 @@ public class ProductModel {
     public void setCategory(Category category) {
         this.category = category;
     }
+
+	public Double getPopularity() {
+		return popularity;
+	}
+
+	public void setPopularity(Double popularity) {
+		this.popularity = popularity;
+	}
+
+	public Double getRating() {
+		return rating;
+	}
+
+	public void setRating(Double rating) {
+		this.rating = rating;
+	}
+
+	
+	
+	
+    
 }
 

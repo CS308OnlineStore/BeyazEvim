@@ -44,19 +44,29 @@ public class UserController {
         userService.updateWishlist(userId, wishlistProductModelIds);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
- // Kullanıcının adresini getir
-    @GetMapping("/{id}/address")
-    public ResponseEntity<String> getUserAddress(@PathVariable Long id) {
-        String address = userService.getUserAddress(id);
+    
+    
+    // Kullanıcının adresini güncelle
+    @PutMapping("/{userId}/address")
+    public ResponseEntity<UserDTO> updateUserAddress(@PathVariable Long userId, @RequestBody String newAddress) {
+        UserDTO updatedUser = userService.updateUserAddress(userId, newAddress);
+        return new ResponseEntity<>(updatedUser, HttpStatus.OK);
+    }
+
+    // Kullanıcının telefon numarasını güncelle
+    @PutMapping("/{userId}/phone")
+    public ResponseEntity<UserDTO> updateUserPhoneNumber(@PathVariable Long userId, @RequestBody String newPhoneNumber) {
+        UserDTO updatedUser = userService.updateUserPhoneNumber(userId, newPhoneNumber);
+        return new ResponseEntity<>(updatedUser, HttpStatus.OK);
+    }
+    //Kullanıcının adresini getir
+     @GetMapping("/{userId}/address")
+    public ResponseEntity<String> getUserAddress(@PathVariable Long userId) {
+        String address = userService.getUserAddress(userId);
         return new ResponseEntity<>(address, HttpStatus.OK);
     }
 
-    // Kullanıcının adresini güncelle
-    @PutMapping("/{id}/address")
-    public ResponseEntity<Void> updateUserAddress(@PathVariable Long id, @RequestBody String newAddress) {
-        userService.updateUserAddress(id, newAddress);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-    }
+    
 
 }
 

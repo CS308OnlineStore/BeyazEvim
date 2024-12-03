@@ -5,11 +5,12 @@ import com.ardakkan.backend.dto.OrderItemDTO;
 import com.ardakkan.backend.entity.Order;
 import com.ardakkan.backend.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.http.MediaType;
+import org.springframework.http.HttpHeaders;
+
 
 import java.util.List;
 
@@ -60,13 +61,15 @@ public class OrderController {
         return ResponseEntity.ok(cartItems);
     }
     */
-
+   
     @GetMapping("/{userId}/cart")
     public ResponseEntity<OrderDTO> getUserCart(@PathVariable Long userId) {
         OrderDTO cart = orderService.getUserCart(userId);
         return ResponseEntity.ok(cart);
     }
-
+    
+    
+    
     // Sipariş güncelleme
     @PutMapping("/{id}")
     public ResponseEntity<Order> updateOrder(@PathVariable Long id, @RequestBody Order updatedOrder) {
@@ -87,8 +90,8 @@ public class OrderController {
         orderService.deleteOrder(id);
         return ResponseEntity.ok().build();
     }
-
-    //Siparişi satın alma
+    
+  //Siparişi satın alma
     @PostMapping("/purchase/{orderId}")
     public ResponseEntity<byte[]> purchaseCart(@PathVariable Long orderId) {
         try {

@@ -1,6 +1,6 @@
 package com.ardakkan.backend.controller;
 
-import com.ardakkan.backend.dto.CommentDTO;
+import com.ardakkan.backend.dto.CommentRequest;
 import com.ardakkan.backend.entity.Comment;
 import com.ardakkan.backend.service.CommentService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,68 +21,69 @@ public class CommentController {
         this.commentService = commentService;
     }
 
-   
-    // Yeni bir yorum ekle
     @PostMapping("/users/{userId}/products/{productModelId}")
-    public ResponseEntity<CommentDTO> addComment(
+    public ResponseEntity<Comment> addComment(
             @PathVariable Long userId, 
             @PathVariable Long productModelId, 
-            @RequestBody Comment comment) {
-        // Rating doğrulaması
-        if (comment.getRating() < 1 || comment.getRating() > 5) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
-        }
-        CommentDTO savedComment = commentService.addComment(userId, productModelId, comment);
+            @RequestBody CommentRequest commentRequest) {
+        // Yorum ekleme işlemi
+        Comment savedComment = commentService.addComment(
+                userId, 
+                productModelId, 
+                commentRequest.getTitle(), 
+                commentRequest.getRating(), 
+                commentRequest.getText()
+        );
         return ResponseEntity.status(HttpStatus.CREATED).body(savedComment);
     }
 
+
+
     // Tüm yorumları getir
     @GetMapping
-    public ResponseEntity<List<CommentDTO>> getAllComments() {
-        List<CommentDTO> comments = commentService.getAllComments();
+    public ResponseEntity<List<Comment>> getAllComments() {
+        List<Comment> comments = commentService.getAllComments();
         return ResponseEntity.ok(comments);
     }
 
     // Belirli bir yorum ID'sine göre getir
     @GetMapping("/{commentId}")
-    public ResponseEntity<CommentDTO> getCommentById(@PathVariable Long commentId) {
-        CommentDTO commentDTO = commentService.getCommentDTOById(commentId);
-        return ResponseEntity.ok(commentDTO);
+    public ResponseEntity<Comment> getCommentById(@PathVariable Long commentId) {
+        Comment comment = commentService.getCommentById(commentId);
+        return ResponseEntity.ok(comment);
     }
-
 
     // Belirli bir kullanıcıya ait yorumları getir
     @GetMapping("/users/{userId}")
-    public ResponseEntity<List<CommentDTO>> getCommentsByUser(@PathVariable Long userId) {
-        List<CommentDTO> comments = commentService.getCommentsByUser(userId);
+    public ResponseEntity<List<Comment>> getCommentsByUser(@PathVariable Long userId) {
+        List<Comment> comments = commentService.getCommentsByUser(userId);
         return ResponseEntity.ok(comments);
     }
 
     // Belirli bir ürün modeline ait yorumları getir
     @GetMapping("/products/{productModelId}")
-    public ResponseEntity<List<CommentDTO>> getCommentsByProductModel(@PathVariable Long productModelId) {
-        List<CommentDTO> comments = commentService.getCommentsByProductModel(productModelId);
+    public ResponseEntity<List<Comment>> getCommentsByProductModel(@PathVariable Long productModelId) {
+        List<Comment> comments = commentService.getCommentsByProductModel(productModelId);
         return ResponseEntity.ok(comments);
     }
 
     // Yorum güncelle
     @PutMapping("/{commentId}")
-    public ResponseEntity<CommentDTO> updateComment(
-            @PathVariable Long commentId,
+    public ResponseEntity<Comment> updateComment(
+            @PathVariable Long commentId, 
             @RequestBody Comment updatedComment) {
-        CommentDTO updated = commentService.updateComment(commentId, updatedComment);
+        Comment updated = commentService.updateComment(commentId, updatedComment);
         return ResponseEntity.ok(updated);
     }
 
     // Yorum onayla veya onayı kaldır
     @PatchMapping("/{commentId}/approve")
-    public ResponseEntity<CommentDTO> approveComment(
+    public ResponseEntity<Comment> approveComment(
             @PathVariable Long commentId, 
             @RequestParam boolean isApproved) {
-        CommentDTO approvedComment = commentService.approveComment(commentId, isApproved);
+        Comment approvedComment = commentService.approveComment(commentId, isApproved);
         return ResponseEntity.ok(approvedComment);
     }
-
 
     // Yorum sil
     @DeleteMapping("/{commentId}")
@@ -90,15 +91,5 @@ public class CommentController {
         commentService.deleteComment(commentId);
         return ResponseEntity.noContent().build();
     }
-
-    // Ürün popülerlik hesaplama
-    @GetMapping("/products/{productModelId}/popularity")
-    public ResponseEntity<Double> getProductPopularity(@PathVariable Long productModelId) {
-        try {
-            double popularity = commentService.calculatePopularity(productModelId);
-            return ResponseEntity.ok(popularity);
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-        }
-    }
 }
+

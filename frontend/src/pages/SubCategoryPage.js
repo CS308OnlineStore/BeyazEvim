@@ -3,9 +3,12 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import logo from '../assets/BeyazEvim_logo.jpeg';
+import { useNavigate } from 'react-router-dom';
+
 
 const SubCategoryPage = () => {
   const { subcategory } = useParams(); // Get subcategory ID from URL
+  const navigate = useNavigate(); // Initialize useNavigate
   const [products, setProducts] = useState([]);
   const [brands, setBrands] = useState([]);
   const [selectedFilters, setSelectedFilters] = useState({
@@ -53,6 +56,11 @@ const SubCategoryPage = () => {
   // Handle filter changes
   const handleFilterChange = (filterType, value) => {
     setSelectedFilters((prev) => ({ ...prev, [filterType]: value }));
+  };
+
+  // Redirect to MainPage when clicking the logo
+  const handleLogoClick = () => {
+    navigate('/');
   };
 
   // Filter products based on selected filters

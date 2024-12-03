@@ -85,5 +85,11 @@ public class Invoice {
     public void setOrder(Order order) {
         this.order = order;
     }
-}
 
+	@Override
+	public String toString() {
+		return "Invoice [id=" + id + ", totalPrice=" + totalPrice + ", createdAt=" + createdAt + ", details=" + details
+				+ ", user=" + user + ", order=" + order + "]";
+	}
+    
+}

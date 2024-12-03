@@ -102,4 +102,23 @@ public class ProductModelController {
         List<ProductModelDTO> randomProducts = productModelService.getRandomProductModels();
         return new ResponseEntity<>(randomProducts, HttpStatus.OK);
     }
+    
+    @GetMapping("/search/{searchString}")
+    public ResponseEntity<List<ProductModelDTO>> searchProductModels(@PathVariable String searchString) {
+        if (searchString == null || searchString.trim().isEmpty()) {
+            return ResponseEntity.badRequest().build(); // Boş arama sorguları için hata döndür
+        }
+        List<ProductModelDTO> productModels = productModelService.searchProductModels(searchString.trim());
+        return ResponseEntity.ok(productModels);
+    }
+    
+    /*
+   // Arama fonksiyonu - Kullanıcının arama terimini alır ve ürünleri döndürür
+    @GetMapping("/search")
+    public ResponseEntity<List<ProductModelDTO>> searchProductModels(@RequestParam String searchString) {
+        // Arama işlemini servisten çağırıyoruz
+        List<ProductModelDTO> productModels = productModelService.searchProductModels(searchString);
+        return ResponseEntity.ok(productModels);
+    }
+    */
 }
