@@ -1,8 +1,6 @@
 package com.ardakkan.backend;
 
-import com.ardakkan.backend.entity.Invoice;
-import com.ardakkan.backend.entity.Order;
-import com.ardakkan.backend.entity.User;
+import com.ardakkan.backend.entity.*;
 import com.ardakkan.backend.repo.InvoiceRepository;
 import com.ardakkan.backend.repo.ProductModelRepository;
 import com.ardakkan.backend.service.InvoiceService;
@@ -12,6 +10,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.util.ArrayList;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -73,30 +72,34 @@ class InvoiceTest {
         verify(invoiceRepository, times(1)).deleteById(invoiceId);
     }
 
+
     @Test
-    void testGenerateInvoicePdf() {
+    void testGetInvoiceById() {
         // Arrange
         Long invoiceId = 1L;
-        Invoice invoice = new Invoice();
-        invoice.setId(invoiceId);
-        invoice.setTotalPrice(300.0);
+        Invoice mockInvoice = new Invoice();
+        mockInvoice.setId(invoiceId);
+        mockInvoice.setTotalPrice(300.0);
 
-        User user = new User();
-        user.setFirstName("John");
-        user.setLastName("Doe");
-        invoice.setUser(user);
+        User mockUser = new User();
+        mockUser.setFirstName("John");
+        mockUser.setLastName("Doe");
+        mockInvoice.setUser(mockUser);
 
-        Order order = new Order();
-        invoice.setOrder(order);
-
-        when(invoiceRepository.findById(invoiceId)).thenReturn(Optional.of(invoice));
+        when(invoiceRepository.findById(invoiceId)).thenReturn(Optional.of(mockInvoice));
 
         // Act
-        byte[] pdfBytes = invoiceService.generateInvoicePdf(invoiceId);
+        Invoice result = invoiceService.findInvoiceById(invoiceId);
 
         // Assert
-        assertNotNull(pdfBytes);
-        assertTrue(pdfBytes.length > 0);
+        assertNotNull(result);
+        assertEquals(invoiceId, result.getId());
+        assertEquals(300.0, result.getTotalPrice());
+        assertEquals("John", result.getUser().getFirstName());
+        assertEquals("Doe", result.getUser().getLastName());
+
+        // Verify repository interaction
         verify(invoiceRepository, times(1)).findById(invoiceId);
     }
+
 }
