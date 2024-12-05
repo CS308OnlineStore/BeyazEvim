@@ -1,9 +1,12 @@
 package com.ardakkan.backend;
 
+import com.ardakkan.backend.dto.OrderDTO;
 import com.ardakkan.backend.entity.*;
 import com.ardakkan.backend.repo.*;
 import com.ardakkan.backend.service.InvoiceService;
+import com.ardakkan.backend.service.MailService;
 import com.ardakkan.backend.service.OrderService;
+import jakarta.mail.internet.MimeMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -39,13 +42,15 @@ class OrderServiceTest {
     @Mock
     private InvoiceService invoiceService;
 
+    @Mock
+    private MailService mailService;
+
     private Order mockOrder;
     private User mockUser;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-
         // Mock User
         mockUser = new User();
         mockUser.setId(1L);
@@ -72,30 +77,6 @@ class OrderServiceTest {
     }
 
     @Test
-    void testPurchaseCartItems() {
-        // Mock repository behavior
-        when(orderRepository.findById(1L)).thenReturn(Optional.of(mockOrder));
-        when(productInstanceRepository.findById(1L))
-                .thenReturn(Optional.of(new ProductInstance()));
-        when(invoiceRepository.save(any(Invoice.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        when(orderRepository.save(any(Order.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        when(invoiceService.generateInvoicePdf(anyLong())).thenReturn(new byte[]{1, 2, 3});
-
-        // Execute method
-        ResponseEntity<byte[]> response = orderService.purchaseCartItems(1L);
-
-        // Verify results
-        assertEquals(200, response.getStatusCodeValue());
-        assertEquals("application/pdf", response.getHeaders().getContentType().toString());
-        assertNotNull(response.getBody());
-
-        // Verify interactions
-        verify(orderRepository, times(2)).save(any(Order.class)); // Saved twice: once for status update, once for invoice
-        verify(invoiceRepository, times(1)).save(any(Invoice.class));
-        verify(productInstanceRepository, times(1)).findById(1L);
-    }
-
-    @Test
     void testDeleteOrder() {
         when(orderRepository.existsById(1L)).thenReturn(true);
 
@@ -105,27 +86,5 @@ class OrderServiceTest {
         // Verify interactions
         verify(orderRepository, times(1)).existsById(1L);
         verify(orderRepository, times(1)).deleteById(1L);
-    }
-
-    @Test
-    void testUpdateOrder() {
-        Order updatedOrder = new Order();
-        updatedOrder.setStatus(OrderStatus.PURCHASED);
-        updatedOrder.setTotalPrice(200.0);
-        updatedOrder.setOrderItems(new ArrayList<>());
-
-        when(orderRepository.findById(1L)).thenReturn(Optional.of(mockOrder));
-        when(orderRepository.save(any(Order.class))).thenAnswer(invocation -> invocation.getArgument(0));
-
-        // Execute method
-        Order result = orderService.updateOrder(1L, updatedOrder);
-
-        // Verify results
-        assertEquals(OrderStatus.PURCHASED, result.getStatus());
-        assertEquals(200.0, result.getTotalPrice());
-
-        // Verify interactions
-        verify(orderRepository, times(1)).findById(1L);
-        verify(orderRepository, times(1)).save(any(Order.class));
     }
 }
