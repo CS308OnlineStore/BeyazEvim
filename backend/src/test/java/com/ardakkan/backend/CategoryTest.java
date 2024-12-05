@@ -106,6 +106,7 @@ class CategoryServiceTest {
         Category category = new Category();
         category.setId(1L);
         category.setParentCategory(null); // Root category
+        category.setSubCategories(new ArrayList<>()); // Initialize subCategories
 
         ProductModel product1 = new ProductModel();
         product1.setDistributorInformation("BrandA");
