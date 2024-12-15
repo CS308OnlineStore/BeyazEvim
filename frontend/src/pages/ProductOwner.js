@@ -1,23 +1,29 @@
 import React, { useState } from 'react';
 import { Layout, Menu, Modal, Form, Input, Button, Table, Popconfirm, Select } from 'antd';
-import { PlusOutlined, DeleteOutlined, AppstoreAddOutlined } from '@ant-design/icons';
+import {
+  PlusOutlined,
+  DeleteOutlined,
+  AppstoreAddOutlined,
+  SettingOutlined,
+  InboxOutlined,
+  CommentOutlined,
+  CheckCircleOutlined,
+  DatabaseOutlined,
+} from '@ant-design/icons';
 
 const { Header, Sider, Content } = Layout;
 const { Option } = Select;
 
-const ProductOwner = () => { // Component name matches file name
+const ProductOwner = () => {
   const [collapsed, setCollapsed] = useState(false);
+  const [currentPage, setCurrentPage] = useState('manageProducts'); // Track current active page
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [products, setProducts] = useState([]);
   const [form] = Form.useForm();
 
-  const toggleCollapsed = () => {
-    setCollapsed(!collapsed);
-  };
+  const toggleCollapsed = () => setCollapsed(!collapsed);
 
-  const showAddProductModal = () => {
-    setIsModalVisible(true);
-  };
+  const showAddProductModal = () => setIsModalVisible(true);
 
   const handleCancel = () => {
     setIsModalVisible(false);
@@ -39,6 +45,10 @@ const ProductOwner = () => { // Component name matches file name
     setProducts(products.filter((product) => product.key !== key));
   };
 
+  const handleMenuClick = ({ key }) => {
+    setCurrentPage(key);
+  };
+
   const columns = [
     { title: 'Product Name', dataIndex: 'name', key: 'name' },
     { title: 'Subcategory', dataIndex: 'subcategory', key: 'subcategory' },
@@ -58,21 +68,68 @@ const ProductOwner = () => { // Component name matches file name
     },
   ];
 
+  // Dynamic content 
+  const renderContent = () => {
+    switch (currentPage) {
+      case 'manageProducts':
+        return (
+          <>
+            <Button type="primary" icon={<PlusOutlined />} onClick={showAddProductModal}>
+              Add Product
+            </Button>
+            <Table columns={columns} dataSource={products} style={{ marginTop: 16 }} />
+          </>
+        );
+      case 'manageCategories':
+        return <h2>Manage Categories Page: Add/Delete Categories</h2>;
+      case 'updateProductStatus':
+        return <h2>Update Product Status Page: Update stock statuses</h2>;
+      case 'deliveryManagement':
+        return <h2>Delivery Management Page: Manage and mark deliveries</h2>;
+      case 'approveComments':
+        return <h2>Approve Comments Page: Approve or reject user comments</h2>;
+      default:
+        return null;
+    }
+  };
+
   return (
     <Layout style={{ minHeight: '100vh' }}>
+      {/* Sidebar Menu */}
       <Sider collapsible collapsed={collapsed} onCollapse={toggleCollapsed}>
-        <Menu theme="dark" mode="inline">
-          <Menu.Item key="1" icon={<AppstoreAddOutlined />} onClick={showAddProductModal}>
-            Add Product
+        <div style={{ height: '32px', margin: '16px', color: 'white', textAlign: 'center' }}>
+          Product Management
+        </div>
+        <Menu theme="dark" mode="inline" onClick={handleMenuClick} selectedKeys={[currentPage]}>
+          <Menu.Item key="manageProducts" icon={<AppstoreAddOutlined />}>
+            Manage Products
+          </Menu.Item>
+          <Menu.Item key="manageCategories" icon={<DatabaseOutlined />}>
+            Manage Categories
+          </Menu.Item>
+          <Menu.Item key="updateProductStatus" icon={<SettingOutlined />}>
+            Update Product Status
+          </Menu.Item>
+          <Menu.Item key="deliveryManagement" icon={<InboxOutlined />}>
+            Delivery Management
+          </Menu.Item>
+          <Menu.Item key="approveComments" icon={<CommentOutlined />}>
+            Approve Comments
           </Menu.Item>
         </Menu>
       </Sider>
+
+      {/* Main Content */}
       <Layout>
-        <Header style={{ background: '#fff', padding: 0 }} />
+        <Header style={{ background: '#fff', padding: 0, textAlign: 'center', fontSize: 18 }}>
+          Product Owner Management Page
+        </Header>
         <Content style={{ margin: '16px', padding: 24, background: '#fff' }}>
-          <Table columns={columns} dataSource={products} />
+          {renderContent()}
         </Content>
       </Layout>
+
+      {/* Add Product Modal */}
       <Modal title="Add New Product" visible={isModalVisible} onCancel={handleCancel} footer={null}>
         <Form form={form} layout="vertical" onFinish={handleAddProduct}>
           <Form.Item
@@ -85,7 +142,7 @@ const ProductOwner = () => { // Component name matches file name
           <Form.Item
             name="subcategory"
             label="Subcategory"
-            rules={[{ required: true, message: 'Please select a subcategory to change' }]}
+            rules={[{ required: true, message: 'Please select a subcategory' }]}
           >
             <Select placeholder="Select a subcategory">
               <Option value="subcategory1">Subcategory 1</Option>
@@ -103,4 +160,4 @@ const ProductOwner = () => { // Component name matches file name
   );
 };
 
-export default ProductOwner; // Ensure export matches file name
+export default ProductOwner;
