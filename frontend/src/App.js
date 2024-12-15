@@ -19,9 +19,9 @@ const App = () => {
         <Route path="/signinsignup" element={<SignInSignUp />} />
         <Route path="/signup" element={<SignUp />} />
         <Route path="/signin" element={<SignIn />} />
-        <Route path="/category/:subcategory" element={<SubCategoryPage />} /> {/* Add SubCategoryPage route */}
-        <Route path="/userpage" element={<UserPage />} /> {/* Add UserPage route */}
-        <Route path="/search" element={<SearchPage />} /> {/* Add SearchPage route */}
+        <Route path="/category/:subcategory" element={<SubCategoryPage />} /> 
+        <Route path="/userpage" element={<UserPage />} /> 
+        <Route path="/search" element={<SearchPage />} /> 
         <Route path="/product-owner" element={<ProductOwner />} />
       </Routes>
     </Router>
