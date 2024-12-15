@@ -9,6 +9,7 @@ import SignUp from './pages/SignUp';
 import SubCategoryPage from './pages/SubCategoryPage';
 import UserPage from './pages/UserPage';  
 import SearchPage from './pages/SearchPage';
+import ProductOwner from './pages/ProductOwner.js';
 const App = () => {
   return (
     <Router>
@@ -21,6 +22,7 @@ const App = () => {
         <Route path="/category/:subcategory" element={<SubCategoryPage />} /> {/* Add SubCategoryPage route */}
         <Route path="/userpage" element={<UserPage />} /> {/* Add UserPage route */}
         <Route path="/search" element={<SearchPage />} /> {/* Add SearchPage route */}
+        <Route path="/product-owner" element={<ProductOwner />} />
       </Routes>
     </Router>
   );
