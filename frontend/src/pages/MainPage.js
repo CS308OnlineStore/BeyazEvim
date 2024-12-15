@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Cookies from 'js-cookie';
 import axios from 'axios';
+import ShoppingCart from './ShoppingCart';
 import {
   Layout,
   Menu,
@@ -52,8 +53,6 @@ const MainPage = () => {
     if (token && userId) {
       setUserName(userName);
       fetchCart(userId);
-    } else {
-      fetchGuestCart();
     }
 
     fetchProducts();
@@ -68,19 +67,12 @@ const MainPage = () => {
     axios
       .get(`/api/orders/${userId}/cart`)
       .then((response) => {
-        const { totalPrice, orderItems } = response.data;
-        setCartItems(orderItems);
+        const { id, totalPrice, orderItems } = response.data;
+        Cookies.set('cartId', id, { expires: 7 });
         setTotalPrice(totalPrice);
         setCartNum(orderItems.length);
       })
       .catch((error) => console.error('Error fetching cart:', error));
-  };
-
-  const fetchGuestCart = () => {
-    const guestCart = JSON.parse(localStorage.getItem('cart')) || { items: [], totalPrice: 0.0 };
-    setCartItems(guestCart.items);
-    setTotalPrice(guestCart.totalPrice);
-    setCartNum(guestCart.items.length);
   };
 
   const fetchProducts = () => {
@@ -115,15 +107,6 @@ const MainPage = () => {
         break;
     }
     setProducts(sortedProducts);
-  };
-
-  const removeItem = (itemId) => {
-    setCartItems((prev) => prev.filter((item) => item.id !== itemId));
-    const updatedTotal = cartItems.reduce(
-      (sum, item) => (item.id !== itemId ? sum + item.price * item.quantity : sum),
-      0
-    );
-    setTotalPrice(updatedTotal);
   };
 
   const handleSearchSubmit = (e) => {
@@ -170,7 +153,7 @@ const MainPage = () => {
           />
           <div>
             {userName ? (
-              <Button type="link" icon={<UserOutlined />}>
+              <Button type="link" icon={<UserOutlined />} onClick={() => navigate('/userpage')}>
                 {userName}
               </Button>
             ) : (
@@ -218,50 +201,14 @@ const MainPage = () => {
         </Content>
 
         {/* Shopping Cart Drawer */}
-        <Drawer
+        <Drawer 
           title="Your Shopping Cart"
           placement="right"
           onClose={() => setIsCartVisible(false)}
           visible={isCartVisible}
           width={400}
         >
-          {cartItems.length > 0 ? (
-            <>
-              {cartItems.map((item) => (
-                <Card key={item.id} style={{ marginBottom: '10px' }}>
-                  <Row align="middle">
-                    <Col span={6}>
-                      <Avatar
-                        shape="square"
-                        size={64}
-                        src={item.image || 'https://via.placeholder.com/64'}
-                        alt={item.name}
-                      />
-                    </Col>
-                    <Col span={12}>
-                      <Text strong>{item.name}</Text>
-                      <br />
-                      <Text>{item.quantity} x ₺{item.price}</Text>
-                    </Col>
-                    <Col span={6} style={{ textAlign: 'right' }}>
-                      <Button
-                        type="text"
-                        danger
-                        icon={<DeleteOutlined />}
-                        onClick={() => removeItem(item.id)}
-                      />
-                    </Col>
-                  </Row>
-                </Card>
-              ))}
-              <Divider />
-              <Title level={4} style={{ textAlign: 'right' }}>
-                Total: ₺{totalPrice.toFixed(2)}
-              </Title>
-            </>
-          ) : (
-            <Text>Your cart is empty.</Text>
-          )}
+          <ShoppingCart onClose={() => setIsCartVisible(false)} />
         </Drawer>
       </Layout>
     </Layout>
