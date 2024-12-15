@@ -85,7 +85,7 @@ const ProductOwner = () => { // Component name matches file name
           <Form.Item
             name="subcategory"
             label="Subcategory"
-            rules={[{ required: true, message: 'Please select a subcategory' }]}
+            rules={[{ required: true, message: 'Please select a subcategory to change' }]}
           >
             <Select placeholder="Select a subcategory">
               <Option value="subcategory1">Subcategory 1</Option>
