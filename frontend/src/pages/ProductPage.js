@@ -38,7 +38,7 @@ const ProductPage = () => {
         console.error("There was an error fetching the product details!", error);
       });
 
-      // Fetch comments for the product
+    
     axios.get(`/api/comments/products/${id}`)
       .then((response) => {
         setComments(response.data);
@@ -127,10 +127,17 @@ const ProductPage = () => {
   const handleLogoClick = () => {
     navigate('/'); // Navigate to MainPage
   };
-  //To be implemented later
+  
   const handleAddToWishlist = () => {
-
-  }
+    const userId = Cookies.get('userId');
+    axios.post(`/api/orders/${userId}/wishlist/${id}`)
+      .then(response => {
+        if (response.status === 200) {
+          alert('Successfully added to wishlist!');
+        } else { alert("Failed to add item to wishlist!"); }
+        })
+        .catch((error) => console.error('Error adding item to wishlist:', error));
+  };
 
   const handleAddComment = async () => {
     const userId = Cookies.get('userId');

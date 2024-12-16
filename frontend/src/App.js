@@ -11,11 +11,7 @@ import UserPage from './pages/UserPage';
 import SearchPage from './pages/SearchPage';
 import ProductOwner from './pages/ProductOwner.js';
 import ManageProductsPage from './pages/ManageProductsPage';
-import ManageCategoriesPage from './pages/ManageCategoriesPage';
-import UpdateProductStatusPage from './pages/UpdateProductStatusPage';
-import DeliveryManagementPage from './pages/DeliveryManagementPage';
-import ApproveCommentsPage from './pages/ApproveCommentsPage';
-
+import Wishlist from './pages/Whislist.js';
 
 const App = () => {
   return (
@@ -31,14 +27,10 @@ const App = () => {
         <Route path="/search" element={<SearchPage />} /> 
         <Route path="/product-owner" element={<ProductOwner />} />
         <Route path="/manage-products" element={<ManageProductsPage />} />
+        <Route path="/wishlist" element={<Wishlist />} />
       </Routes>
     </Router>
   );
 };
 
 export default App;
-
-//<Route path="/manage-categories" element={<ManageCategoriesPage />} />
-//<Route path="/update-product-status" element={<UpdateProductStatusPage />} />
-//<Route path="/delivery-management" element={<DeliveryManagementPage />} />
-//<Route path="/approve-comments" element={<ApproveCommentsPage />} />

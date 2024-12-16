@@ -22,6 +22,8 @@ import {
   ShoppingCartOutlined,
   UserOutlined,
   SearchOutlined,
+  HeartOutlined,
+  HeartFilled,
 } from '@ant-design/icons';
 import newLogo from '../assets/BeyazEvim_new_logo.jpeg';
 import slide1 from '../assets/slide1.jpg';
@@ -45,6 +47,7 @@ const MainPage = () => {
   const [userName, setUserName] = useState('');
   const [sortOption, setSortOption] = useState('default');
   const [searchQuery, setSearchQuery] = useState('');
+  const [isHeartHovered, setIsHeartHovered] = useState(false);
 
   // Fetch Initial Data
   useEffect(() => {
@@ -170,6 +173,15 @@ const MainPage = () => {
                 Login
               </Button>
             )}
+            {/* Heart Icon for Wishlist */}
+            <span
+              onMouseEnter={() => setIsHeartHovered(true)}
+              onMouseLeave={() => setIsHeartHovered(false)}
+              onClick={() => navigate('/wishlist')}
+              style={{ marginLeft: '20px', cursor: 'pointer', fontSize: '24px', color: 'white' }}
+            >
+              {isHeartHovered ? <HeartFilled /> : <HeartOutlined />}
+            </span>
             <Badge count={cartNum}>
               <ShoppingCartOutlined
                 onClick={() => setIsCartVisible(true)}
