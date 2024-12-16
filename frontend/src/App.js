@@ -31,13 +31,14 @@ const App = () => {
         <Route path="/search" element={<SearchPage />} /> 
         <Route path="/product-owner" element={<ProductOwner />} />
         <Route path="/manage-products" element={<ManageProductsPage />} />
-        <Route path="/manage-categories" element={<ManageCategoriesPage />} />
-        <Route path="/update-product-status" element={<UpdateProductStatusPage />} />
-        <Route path="/delivery-management" element={<DeliveryManagementPage />} />
-        <Route path="/approve-comments" element={<ApproveCommentsPage />} />
       </Routes>
     </Router>
   );
 };
 
 export default App;
+
+//<Route path="/manage-categories" element={<ManageCategoriesPage />} />
+//<Route path="/update-product-status" element={<UpdateProductStatusPage />} />
+//<Route path="/delivery-management" element={<DeliveryManagementPage />} />
+//<Route path="/approve-comments" element={<ApproveCommentsPage />} />

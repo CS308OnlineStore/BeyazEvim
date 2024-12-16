@@ -7,87 +7,40 @@ import {
   SettingOutlined,
   InboxOutlined,
   CommentOutlined,
-  CheckCircleOutlined,
   DatabaseOutlined,
 } from '@ant-design/icons';
+import ManageProductsPage from './ManageProductsPage';
+import ManageCategoriesPage from './ManageCategoriesPage';
+import UpdateProductStatusPage from './UpdateProductStatusPage';
+import DeliveryManagementPage from './DeliveryManagementPage';
+import ApproveCommentsPage from './ApproveCommentsPage';
 
 const { Header, Sider, Content } = Layout;
-const { Option } = Select;
 
 const ProductOwner = () => {
   const [collapsed, setCollapsed] = useState(false);
   const [currentPage, setCurrentPage] = useState('manageProducts'); // Track current active page
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [products, setProducts] = useState([]);
-  const [form] = Form.useForm();
 
   const toggleCollapsed = () => setCollapsed(!collapsed);
-
-  const showAddProductModal = () => setIsModalVisible(true);
-
-  const handleCancel = () => {
-    setIsModalVisible(false);
-    form.resetFields();
-  };
-
-  const handleAddProduct = (values) => {
-    const newProduct = {
-      key: products.length + 1,
-      name: values.name,
-      subcategory: values.subcategory,
-    };
-    setProducts([...products, newProduct]);
-    setIsModalVisible(false);
-    form.resetFields();
-  };
-
-  const handleDeleteProduct = (key) => {
-    setProducts(products.filter((product) => product.key !== key));
-  };
 
   const handleMenuClick = ({ key }) => {
     setCurrentPage(key);
   };
 
-  const columns = [
-    { title: 'Product Name', dataIndex: 'name', key: 'name' },
-    { title: 'Subcategory', dataIndex: 'subcategory', key: 'subcategory' },
-    {
-      title: 'Action',
-      key: 'action',
-      render: (_, record) => (
-        <Popconfirm
-          title="Are you sure to delete this product?"
-          onConfirm={() => handleDeleteProduct(record.key)}
-        >
-          <Button type="primary" danger icon={<DeleteOutlined />}>
-            Delete
-          </Button>
-        </Popconfirm>
-      ),
-    },
-  ];
 
-  // Dynamic content 
+  // Dynamic content rendering
   const renderContent = () => {
     switch (currentPage) {
       case 'manageProducts':
-        return (
-          <>
-            <Button type="primary" icon={<PlusOutlined />} onClick={showAddProductModal}>
-              Add Product
-            </Button>
-            <Table columns={columns} dataSource={products} style={{ marginTop: 16 }} />
-          </>
-        );
+        return <ManageProductsPage />;
       case 'manageCategories':
-        return <h2>Manage Categories Page: Add/Delete Categories</h2>;
+        return <ManageCategoriesPage />; // Entegre edilen sayfa
       case 'updateProductStatus':
-        return <h2>Update Product Status Page: Update stock statuses</h2>;
+        return <UpdateProductStatusPage />;
       case 'deliveryManagement':
-        return <h2>Delivery Management Page: Manage and mark deliveries</h2>;
+        return <DeliveryManagementPage/>;
       case 'approveComments':
-        return <h2>Approve Comments Page: Approve or reject user comments</h2>;
+        return <ApproveCommentsPage/>;
       default:
         return null;
     }
@@ -119,7 +72,7 @@ const ProductOwner = () => {
         </Menu>
       </Sider>
 
-      {/* Main Content */}
+      {/* Main Layout */}
       <Layout>
         <Header style={{ background: '#fff', padding: 0, textAlign: 'center', fontSize: 18 }}>
           Product Owner Management Page
@@ -128,34 +81,6 @@ const ProductOwner = () => {
           {renderContent()}
         </Content>
       </Layout>
-
-      {/* Add Product Modal */}
-      <Modal title="Add New Product" visible={isModalVisible} onCancel={handleCancel} footer={null}>
-        <Form form={form} layout="vertical" onFinish={handleAddProduct}>
-          <Form.Item
-            name="name"
-            label="Product Name"
-            rules={[{ required: true, message: 'Please enter the product name' }]}
-          >
-            <Input placeholder="Enter product name" />
-          </Form.Item>
-          <Form.Item
-            name="subcategory"
-            label="Subcategory"
-            rules={[{ required: true, message: 'Please select a subcategory' }]}
-          >
-            <Select placeholder="Select a subcategory">
-              <Option value="subcategory1">Subcategory 1</Option>
-              <Option value="subcategory2">Subcategory 2</Option>
-            </Select>
-          </Form.Item>
-          <Form.Item>
-            <Button type="primary" htmlType="submit" icon={<PlusOutlined />}>
-              Add Product
-            </Button>
-          </Form.Item>
-        </Form>
-      </Modal>
     </Layout>
   );
 };
