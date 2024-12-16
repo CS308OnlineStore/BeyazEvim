@@ -130,13 +130,18 @@ const ProductPage = () => {
   
   const handleAddToWishlist = () => {
     const userId = Cookies.get('userId');
-    axios.post(`/api/orders/${userId}/wishlist/${id}`)
-      .then(response => {
-        if (response.status === 200) {
-          alert('Successfully added to wishlist!');
-        } else { alert("Failed to add item to wishlist!"); }
-        })
-        .catch((error) => console.error('Error adding item to wishlist:', error));
+    if (userId) {
+      axios.post(`/api/users/${userId}/wishlist/${id}`)
+        .then(response => {
+          if (response.status === 200) {
+            alert('Successfully added to wishlist!');
+          } else { alert("Failed to add item to wishlist!"); }
+          })
+          .catch((error) => console.error('Error adding item to wishlist:', error));
+    } else { 
+      alert('Please SignIn before using wishlist!')
+      navigate('/signinsignup')
+    }
   };
 
   const handleAddComment = async () => {
@@ -241,6 +246,14 @@ const ProductPage = () => {
               <button onClick={handleDecrease} style={buttonStyle}>-</button>
               <span style={countStyle}>{count}</span>
               <button onClick={handleIncrease} style={buttonStyle}>+</button>
+            
+              {/* Add to Wishlist Button */}
+              <button
+                style={wishlistButtonStyle}
+                onClick={handleAddToWishlist}
+              >
+                Add to Wishlist
+              </button>
             </div>
           ) : (
             <p style={{ color: 'red', marginBottom: '10px' }}>Out of Stock</p>
@@ -497,6 +510,17 @@ const commentDateStyle = {
   fontStyle: 'italic',
   fontSize: '12px',
   color: '#888',
+};
+
+const wishlistButtonStyle = {
+  padding: '10px 20px',
+  backgroundColor: '#f5a623',
+  color: 'white',
+  border: 'none',
+  borderRadius: '5px',
+  cursor: 'pointer',
+  marginLeft: '10px',
+  fontSize: '14px',
 };
 
 export default ProductPage;

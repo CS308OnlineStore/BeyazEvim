@@ -42,7 +42,6 @@ const MainPage = () => {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [isCartVisible, setIsCartVisible] = useState(false);
-  const [totalPrice, setTotalPrice] = useState(0.0);
   const [cartNum, setCartNum] = useState(0);
   const [userName, setUserName] = useState('');
   const [sortOption, setSortOption] = useState('default');
@@ -72,9 +71,8 @@ const MainPage = () => {
     axios
       .get(`/api/orders/${userId}/cart`)
       .then((response) => {
-        const { id, totalPrice, orderItems } = response.data;
+        const { id, orderItems } = response.data;
         Cookies.set('cartId', id, { expires: 7 });
-        setTotalPrice(totalPrice);
         setCartNum(orderItems.length);
       })
       .catch((error) => console.error('Error fetching cart:', error));
@@ -122,6 +120,15 @@ const MainPage = () => {
     }
     navigate(`/search?searchString=${encodeURIComponent(searchQuery.trim())}`);
   };
+
+  const handeWishlistClick = () =>{
+    if (userName){
+      navigate('/wishlist')
+    } else {
+      alert('Please SignIn before using wishlist!');
+      navigate('/signinsignup');
+    }
+  }
 
   return (
     <Layout>
@@ -177,7 +184,7 @@ const MainPage = () => {
             <span
               onMouseEnter={() => setIsHeartHovered(true)}
               onMouseLeave={() => setIsHeartHovered(false)}
-              onClick={() => navigate('/wishlist')}
+              onClick={handeWishlistClick}
               style={{ marginLeft: '20px', cursor: 'pointer', fontSize: '24px', color: 'white' }}
             >
               {isHeartHovered ? <HeartFilled /> : <HeartOutlined />}

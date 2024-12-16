@@ -51,7 +51,7 @@ const ManageProductsPage = () => {
   // Alt kategorileri çekme
   const handleCategoryChange = (value) => {
     axios
-      .get(`/api/categories?parentCategory=${value}`)
+      .get(`/api/categories`)
       .then((res) => {
         setSubcategories(res.data);
         form.setFieldsValue({ subcategoryId: undefined });

@@ -11,22 +11,23 @@ const Wishlist = () => {
   const [wishlist, setWishlist] = useState([]);
   const [userID, setUserID] = useState([]);
 
-  const userId = Cookies.get('userId');
-  setUserID(userId);
-
   useEffect(() => {
-    
-    fetchWishlist(userID);
-  }, [userID]);
+    const userId = Cookies.get('userId');
 
-  const fetchWishlist = (userID) => {
-    axios.get(`/api/users/${userID}/wishlist`)
+    if (userId) {
+      setUserID(userId);
+      fetchWishlist(userId);
+    }
+  }, []);
+
+  const fetchWishlist = (userId) => {
+    axios.get(`/api/users/${userId}/wishlist`)
         .then((response) => setWishlist(response.data))
         .catch((error) => console.error('Error fetching wishlist:', error));
   }
 
   const removeFromWishlist = (productModelId) => {
-    axios.get(`/api/users/${userID}/wishlist/${productModelId}`)
+    axios.delete(`/api/users/${userID}/wishlist/${productModelId}`)
         .then(response => {
             if (response.status === 200) {
                 alert("Successfully removed item from wishlist!");
