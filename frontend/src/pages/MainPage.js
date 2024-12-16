@@ -14,17 +14,19 @@ import {
   Typography,
   Row,
   Col,
-  Avatar,
   Divider,
   Select,
+  Carousel,
 } from 'antd';
 import {
   ShoppingCartOutlined,
   UserOutlined,
   SearchOutlined,
-  DeleteOutlined,
 } from '@ant-design/icons';
 import newLogo from '../assets/BeyazEvim_new_logo.jpeg';
+import slide1 from '../assets/slide1.jpg';
+import slide2 from '../assets/slide2.jpg';
+import slide3 from '../assets/slide3.jpg';
 
 
 const { Header, Sider, Content } = Layout;
@@ -37,7 +39,6 @@ const MainPage = () => {
   // State Variables
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [cartItems, setCartItems] = useState([]);
   const [isCartVisible, setIsCartVisible] = useState(false);
   const [totalPrice, setTotalPrice] = useState(0.0);
   const [cartNum, setCartNum] = useState(0);
@@ -147,8 +148,6 @@ const MainPage = () => {
         </Menu>
       </Sider>
 
-      
-
       {/* Main Layout */}
       <Layout>
         {/* Header */}
@@ -180,9 +179,24 @@ const MainPage = () => {
           </div>
         </Header>
 
-        {/* Content */}
+        {/* Carousel */}
         <Content style={{ padding: '20px' }}>
-          <Row justify="space-between" style={{ marginBottom: '20px' }}>
+        <Carousel autoplay>
+            <div>
+              <img src={slide1} alt="Slide 1" style={{ width: '100%', height: 'auto' }} />
+            </div>
+            <div>
+              <img src={slide2} alt="Slide 2" style={{ width: '100%', height: 'auto' }} />
+            </div>
+            <div>
+              <img src={slide3} alt="Slide 3" style={{ width: '100%', height: 'auto' }} />
+            </div>
+          </Carousel>
+
+          
+          
+          {/* Product Grid */}
+          <Row justify="space-between" style={{ marginTop: '20px' }}>
             <Title level={4}>Sort by:</Title>
             <Select value={sortOption} onChange={(value) => setSortOption(value)} style={{ width: 200 }}>
               <Option value="default">Default</Option>
@@ -191,7 +205,7 @@ const MainPage = () => {
               <Option value="price">Price</Option>
             </Select>
           </Row>
-          <Row gutter={[16, 16]}>
+          <Row gutter={[16, 16]} style={{ marginTop: '20px' }}>
             {products.map((product) => (
               <Col key={product.id} xs={24} sm={12} md={8} lg={6}>
                 <Card
