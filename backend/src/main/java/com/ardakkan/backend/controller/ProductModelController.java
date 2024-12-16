@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -112,13 +113,42 @@ public class ProductModelController {
         return ResponseEntity.ok(productModels);
     }
     
-    /*
-   // Arama fonksiyonu - Kullanıcının arama terimini alır ve ürünleri döndürür
-    @GetMapping("/search")
-    public ResponseEntity<List<ProductModelDTO>> searchProductModels(@RequestParam String searchString) {
-        // Arama işlemini servisten çağırıyoruz
-        List<ProductModelDTO> productModels = productModelService.searchProductModels(searchString);
-        return ResponseEntity.ok(productModels);
+    @PostMapping("/{productId}/discount/{discountRate}")
+    public ResponseEntity<String> applyDiscount(
+            @PathVariable Long productId,
+            @PathVariable Double discountRate) {
+        try {
+            productModelService.organizeDiscount(productId, discountRate);
+            return ResponseEntity.ok("Discount of " + discountRate + "% applied successfully to Product with ID: " + productId);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
-    */
+    
+    @PostMapping("/{productModelId}/stock")
+    public ResponseEntity<?> addStock(
+            @PathVariable Long productModelId,
+            @RequestBody Map<String, Integer> request) {
+
+        int quantityToAdd = request.getOrDefault("quantityToAdd", 0);
+        if (quantityToAdd <= 0) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "error", "quantityToAdd must be greater than 0"
+            ));
+        }
+
+        try {
+            productModelService.addStock(productModelId, quantityToAdd);
+            int updatedStock = productModelService.getAvailableProductInstanceCount(productModelId);
+
+            return ResponseEntity.ok(Map.of(
+                    "message", quantityToAdd + " units of stock successfully added to ProductModel with ID: " + productModelId,
+                    "updatedStock", updatedStock
+            ));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of(
+                    "error", e.getMessage()
+            ));
+        }
+    }
 }

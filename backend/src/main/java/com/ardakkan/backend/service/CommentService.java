@@ -2,6 +2,8 @@ package com.ardakkan.backend.service;
 
 
 
+import com.ardakkan.backend.dto.CommentDTO;
+import com.ardakkan.backend.dto.UserDTO;
 import com.ardakkan.backend.entity.Comment;
 import com.ardakkan.backend.entity.ProductModel;
 import com.ardakkan.backend.entity.User;
@@ -145,6 +147,18 @@ public class CommentService {
         commentRepository.delete(comment);
     }
     
+    // Onaylanmış yorumları getir
+    public List<Comment> getApprovedComments() {
+        return commentRepository.findByApproved(true);
+    }
+    
+    // Onaylanmamış yorumları getir
+    public List<Comment> getUnapprovedComments() {
+        return commentRepository.findByApproved(false);
+    }
+
+
+    
     // Popülerlik hesapla
     public double calculatePopularity(Long productModelId) {
         // Ürün modelini al
@@ -168,5 +182,29 @@ public class CommentService {
         int totalComments = comments.size();
         return averageRating + Math.log(totalComments + 1); // Ağırlık eklenmiş popülerlik skoru
     }
+    
+    
+    public CommentDTO convertToDTO(Comment comment) {
+        CommentDTO dto = new CommentDTO();
+        dto.setId(comment.getId());
+        dto.setTitle(comment.getTitle());
+        dto.setRating(comment.getRating());
+        dto.setText(comment.getText());
+        dto.setApproved(comment.getApproved());
+        dto.setCreatedDate(comment.getCreatedDate().toString());
+
+        UserDTO userDTO = new UserDTO();
+        userDTO.setId(comment.getUser().getId());
+        userDTO.setFirstName(comment.getUser().getFirstName());
+        userDTO.setLastName(comment.getUser().getLastName());
+        userDTO.setEmail(comment.getUser().getEmail());
+        userDTO.setAddress(comment.getUser().getAddress());
+        userDTO.setPhoneNumber(comment.getUser().getPhoneNumber());
+        userDTO.setRole(comment.getUser().getRole());
+       
+        dto.setUser(userDTO);
+        return dto;
+    }
+
 }
 

@@ -16,6 +16,7 @@
 /Users/ardaakkan/Documents/workspace-spring-tool-suite-4-4.20.0.RELEASE/BeyazEvimBackend/src/main/java/com/ardakkan/backend/controller/ProductModelController.java
 /Users/ardaakkan/Documents/workspace-spring-tool-suite-4-4.20.0.RELEASE/BeyazEvimBackend/src/main/java/com/ardakkan/backend/controller/UserController.java
 /Users/ardaakkan/Documents/workspace-spring-tool-suite-4-4.20.0.RELEASE/BeyazEvimBackend/src/main/java/com/ardakkan/backend/dto/CategoryProductsDTO.java
+/Users/ardaakkan/Documents/workspace-spring-tool-suite-4-4.20.0.RELEASE/BeyazEvimBackend/src/main/java/com/ardakkan/backend/dto/CommentRequest.java
 /Users/ardaakkan/Documents/workspace-spring-tool-suite-4-4.20.0.RELEASE/BeyazEvimBackend/src/main/java/com/ardakkan/backend/dto/OrderDTO.java
 /Users/ardaakkan/Documents/workspace-spring-tool-suite-4-4.20.0.RELEASE/BeyazEvimBackend/src/main/java/com/ardakkan/backend/dto/OrderItemDTO.java
 /Users/ardaakkan/Documents/workspace-spring-tool-suite-4-4.20.0.RELEASE/BeyazEvimBackend/src/main/java/com/ardakkan/backend/dto/ProductInstanceRequest.java

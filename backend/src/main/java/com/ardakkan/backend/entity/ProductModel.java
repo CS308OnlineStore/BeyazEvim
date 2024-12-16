@@ -46,6 +46,9 @@ public class ProductModel {
     @Column 
     private Double rating= 0.0;
     
+    @Column
+    private Double discount = 0.0;
+    
 
     // Getter ve Setter'lar
     public Long getId() {
@@ -120,7 +123,21 @@ public class ProductModel {
 		this.rating = rating;
 	}
 
-	
+	public Double getDiscount() {
+	    return discount;
+	}
+
+	public void setDiscount(Double discount) {
+	    this.discount = discount;
+	}
+
+	// İndirimi uygulayarak fiyatı döndüren bir metot
+	public Double getDiscountedPrice() {
+	    if (discount != null && discount > 0) {
+	        return price - (price * discount / 100);
+	    }
+	    return price;
+	}
 	
 	
     

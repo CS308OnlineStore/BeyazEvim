@@ -32,16 +32,23 @@ public class OrderService {
     private final ProductInstanceRepository productInstanceRepository;
     private final ProductModelService productModelService;
     private final InvoiceService invoiceService;
+    private final MailService MailService;
+    private final NotificationService notificationService;
     //private final Invoice invoice;
 
     @Autowired
-    public OrderService(OrderRepository orderRepository, UserRepository userRepository, InvoiceRepository invoiceRepository, ProductInstanceRepository productInstanceRepository, ProductModelService productModelService, InvoiceService invoiceService) {
+    public OrderService(OrderRepository orderRepository, UserRepository userRepository, 
+    		InvoiceRepository invoiceRepository, ProductInstanceRepository productInstanceRepository, 
+    		ProductModelService productModelService, InvoiceService invoiceService,
+    		MailService MailService, NotificationService notificationService) {
         this.orderRepository = orderRepository;
         this.userRepository = userRepository;
         this.invoiceRepository = invoiceRepository;
         this.productInstanceRepository = productInstanceRepository;
         this.productModelService = productModelService;
         this.invoiceService = invoiceService;
+        this.MailService=MailService;
+        this.notificationService=notificationService;
     }
 
     // Sipariş oluşturma
@@ -130,16 +137,9 @@ public class OrderService {
             throw new IllegalStateException("Order is not in cart status: " + orderId);
         }
 
-<<<<<<< HEAD
-        // Order status updated to PURCHASED
-        order.setStatus(OrderStatus.PURCHASED);
-        orderRepository.save(order);
-
-=======
         // Sipariş durumunu PURCHASED olarak güncelle
         order.setStatus(OrderStatus.PURCHASED);
         orderRepository.save(order);
->>>>>>> 4cca47a90fb944472177d0a5201d6bffe431c704
         // Process each order item
         for (OrderItem orderItem : order.getOrderItems()) {
             List<Long> productInstanceIds = orderItem.getProductInstanceIds();
@@ -228,6 +228,41 @@ public class OrderService {
         // Order nesnesini OrderDTO'ya dönüştürerek döndür
         return convertToDTO(cartOrder);
     }
+    
+    public void cancelOrder(Long orderId) {
+        // Siparişi bul
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new IllegalStateException("Order not found: " + orderId));
+
+        // Siparişin durumu "PURCHASED" mı kontrol et
+        if (!order.getStatus().equals(OrderStatus.PURCHASED)) {
+            throw new IllegalStateException("Only purchased orders can be canceled: " + orderId);
+        }
+
+        // Sipariş içindeki her ürünün durumunu "IN_STOCK" olarak güncelle
+        for (OrderItem orderItem : order.getOrderItems()) {
+            List<Long> productInstanceIds = orderItem.getProductInstanceIds();
+            for (Long productInstanceId : productInstanceIds) {
+                ProductInstance productInstance = productInstanceRepository.findById(productInstanceId)
+                        .orElseThrow(() -> new IllegalStateException("ProductInstance not found: " + productInstanceId));
+
+                productInstance.setStatus(ProductInstanceStatus.IN_STOCK);
+                productInstanceRepository.save(productInstance);
+            }
+        }
+
+        // Sipariş durumunu "CANCELED" olarak güncelle
+        order.setStatus(OrderStatus.CANCELED);
+        orderRepository.save(order);
+
+     // Kullanıcıya mail gönder (NotificationService üzerinden)
+        notificationService.notifyOrderCancellation(
+                order.getUser().getEmail(),
+                order.getUser().getFirstName(),
+                order.getId()
+        );
+    }
+
 
 
 

@@ -30,7 +30,7 @@ public class CategoryController {
 
     
     
- // Belirli bir kategorinin alt kategorilerini getir
+    // Belirli bir kategorinin alt kategorilerini getir
     @GetMapping("/{categoryId}/subcategories")
     public ResponseEntity<List<Category>> getSubCategories(@PathVariable Long categoryId) {
         List<Category> subCategories = categoryService.getSubCategories(categoryId);
