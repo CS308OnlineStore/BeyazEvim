@@ -24,7 +24,8 @@ import {
   SearchOutlined,
   DeleteOutlined,
 } from '@ant-design/icons';
-import logo from '../assets/BeyazEvim_logo.jpeg';
+import newLogo from '../assets/BeyazEvim_new_logo.jpeg';
+
 
 const { Header, Sider, Content } = Layout;
 const { Title, Text } = Typography;
@@ -123,14 +124,21 @@ const MainPage = () => {
       {/* Sidebar */}
       <Sider width={250} style={{ background: '#fff' }}>
         <div style={{ textAlign: 'center', padding: '20px' }}>
-          <img src={logo} alt="BeyazEvim Logo" style={{ width: '50px', height: '50px' }} />
+          <img 
+            src={newLogo} 
+            alt="BeyazEvim Logo" 
+            style={{ width: '150px', height: '150px' }} 
+          />
           <Title level={3}>BeyazEvim</Title>
         </div>
         <Menu mode="inline">
           {categories.map((category) => (
             <Menu.SubMenu key={category.id} title={category.categoryName}>
               {category.subCategories.map((subcategory) => (
-                <Menu.Item key={subcategory.id} onClick={() => navigate(`/category/${subcategory.id}`)}>
+                <Menu.Item 
+                  key={subcategory.id} 
+                  onClick={() => navigate(`/category/${subcategory.id}`)}
+                >
                   {subcategory.categoryName}
                 </Menu.Item>
               ))}
@@ -138,6 +146,8 @@ const MainPage = () => {
           ))}
         </Menu>
       </Sider>
+
+      
 
       {/* Main Layout */}
       <Layout>

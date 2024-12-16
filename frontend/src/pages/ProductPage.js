@@ -3,7 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 import Cookies from 'js-cookie';
-import logo from '../assets/BeyazEvim_logo.jpeg';
+import newLogo from '../assets/BeyazEvim_new_logo.jpeg';
+
 
 const ProductPage = () => {
   const { id } = useParams(); 
@@ -186,7 +187,7 @@ const ProductPage = () => {
       {/* Header Section */}
       <header style={headerStyle}>
         <div style={{ ...headerLeftStyle, cursor: 'pointer' }} onClick={handleLogoClick}>
-          <img src={logo} alt="BeyazEvim Logo" style={logoStyle} />
+          <img src={newLogo} alt="BeyazEvim Logo" style={logoStyle} />
           <h3 style={logoTextStyle}>BeyazEvim</h3>
         </div>
         <input

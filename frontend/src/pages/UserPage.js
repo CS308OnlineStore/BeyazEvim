@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import Cookies from 'js-cookie';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import logo from '../assets/BeyazEvim_logo.jpeg'; // Import the logo
+import newLogo from '../assets/BeyazEvim_new_logo.jpeg';
+
 
 const UserPage = () => {
   const navigate = useNavigate();
@@ -164,7 +165,7 @@ const UserPage = () => {
     <div style={pageContainerStyle}>
       <header style={logoContainerStyle}>
         <div style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }} onClick={handleLogoClick}>
-          <img src={logo} alt="BeyazEvim Logo" style={logoStyle} />
+          <img src={newLogo} alt="BeyazEvim Logo" style={logoStyle} />
           <h1 style={logoTextStyle}>BeyazEvim</h1>
         </div>
       </header>

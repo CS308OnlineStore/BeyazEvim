@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Cookies from 'js-cookie';
 import axios from 'axios';
-import logo from '../assets/BeyazEvim_logo.jpeg';
+import newLogo from '../assets/BeyazEvim_new_logo.jpeg';
+
 
 const SearchPage = () => {
   const navigate = useNavigate();
@@ -89,7 +90,7 @@ const SearchPage = () => {
       {/* Sidebar Categories Section */}
       <div style={{ width: '250px' }}>
         <div style={logoContainerStyle} onClick={() => navigate('/')}>
-          <img src={logo} alt="BeyazEvim Logo" style={logoStyle} />
+          <img src={newLogo} alt="BeyazEvim Logo" style={logoStyle} />
           <h3 style={logoTextStyle}>BeyazEvim</h3>
         </div>
       </div>
