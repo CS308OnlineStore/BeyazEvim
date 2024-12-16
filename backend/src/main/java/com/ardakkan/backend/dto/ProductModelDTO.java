@@ -5,14 +5,16 @@ public class ProductModelDTO {
     private String name;
     private String description;
     private Double price;
+    private Double discountedPrice;
+    private Double discount=0.0;
     private String brand;
     private String image_path;
     private int stockCount; 
     private Double populerity;
     private Double rating;
+    
 
     // Getter ve Setter'lar
-    
     public Long getId() {
         return id;
     }
@@ -83,6 +85,22 @@ public class ProductModelDTO {
 
 	public void setRating(Double rating) {
 		this.rating = rating;
+	}
+
+	public Double getDiscountedPrice() {
+		return discountedPrice;
+	}
+
+	public void setDiscountedPrice(Double discountedprice) {
+		this.discountedPrice = discountedprice;
+	}
+
+	public Double getDiscount() {
+		return discount;
+	}
+
+	public void setDiscount(Double discount) {
+		this.discount = discount;
 	}
 	
     

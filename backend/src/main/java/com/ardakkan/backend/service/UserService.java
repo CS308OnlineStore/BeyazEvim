@@ -1,11 +1,13 @@
 package com.ardakkan.backend.service;
 
+import com.ardakkan.backend.dto.ProductModelDTO;
 import com.ardakkan.backend.dto.RegisterRequest;
 import com.ardakkan.backend.dto.UserDTO;
 import com.ardakkan.backend.entity.User;
 import com.ardakkan.backend.entity.UserRoles;
 import com.ardakkan.backend.entity.ProductModel;
 import com.ardakkan.backend.repo.UserRepository;
+
 import com.ardakkan.backend.repo.ProductModelRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -26,13 +28,15 @@ public class UserService {
     private final ProductModelRepository productModelRepository;
     private final PasswordEncoder passwordEncoder;
     private final OrderService orderService;
+    private final ProductModelService productModelService;
 
     @Autowired
-    public UserService(UserRepository userRepository, ProductModelRepository productModelRepository, PasswordEncoder passwordEncoder, OrderService orderService ) {
+    public UserService(UserRepository userRepository, ProductModelRepository productModelRepository, PasswordEncoder passwordEncoder, OrderService orderService,ProductModelService productModelService) {
         this.userRepository = userRepository;
         this.productModelRepository = productModelRepository;
         this.passwordEncoder = passwordEncoder;
         this.orderService=orderService;
+		this.productModelService = productModelService;
     }
 
     public void registerUser(RegisterRequest registerRequest) {
@@ -146,6 +150,66 @@ public class UserService {
         user.setWishlist(wishlist);
         userRepository.save(user);
     }
+    
+    public void addProductToWishlist(Long userId, Long productModelId) {
+        // Kullanıcıyı ID ile buluyoruz
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalStateException("Kullanıcı bulunamadı."));
+
+        // Ürün modelini ID ile buluyoruz
+        ProductModel productModel = productModelRepository.findById(productModelId)
+                .orElseThrow(() -> new IllegalStateException("Ürün bulunamadı."));
+
+        // Kullanıcı zaten bu ürünü wishlist'ine eklemişse, bir şey yapmıyoruz
+        if (user.getWishlist().contains(productModel)) {
+            throw new IllegalStateException("Bu ürün zaten wishlist'te mevcut.");
+        }
+
+        // Ürünü kullanıcının wishlist'ine ekliyoruz
+        user.getWishlist().add(productModel);
+
+        // Kullanıcıyı güncelliyoruz ve kaydediyoruz
+        userRepository.save(user);
+    }
+    
+    public void removeProductFromWishlist(Long userId, Long productModelId) {
+        // Kullanıcıyı ID ile buluyoruz
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalStateException("Kullanıcı bulunamadı."));
+
+        // Ürün modelini ID ile buluyoruz
+        ProductModel productModel = productModelRepository.findById(productModelId)
+                .orElseThrow(() -> new IllegalStateException("Ürün bulunamadı."));
+
+        // Kullanıcı wishlist'inde ürünü arıyoruz
+        if (!user.getWishlist().contains(productModel)) {
+            throw new IllegalStateException("Bu ürün wishlist'te mevcut değil.");
+        }
+
+        // Ürünü wishlist'ten çıkarıyoruz
+        user.getWishlist().remove(productModel);
+
+        // Kullanıcıyı güncelliyoruz ve kaydediyoruz
+        userRepository.save(user);
+    }
+    
+    
+ // Kullanıcının wishlist'ini döndüren fonksiyon
+    public List<ProductModelDTO> getWishlist(Long userId) {
+        // Kullanıcıyı ID ile buluyoruz
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalStateException("Kullanıcı bulunamadı."));
+
+        // Kullanıcının wishlist'inde olan ürünleri alıyoruz
+        List<ProductModel> wishlist = user.getWishlist();
+
+        // Wishlist'teki ürünleri ProductModelDTO'ya dönüştürüp döndürüyoruz
+        return wishlist.stream()
+                .map(productModelService::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
+
 
     private UserDTO convertToDTO(User user) {
         UserDTO userDTO = new UserDTO();

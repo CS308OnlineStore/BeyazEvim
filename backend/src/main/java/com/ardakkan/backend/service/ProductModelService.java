@@ -6,6 +6,9 @@ import com.ardakkan.backend.dto.ProductModelDTO;
 import com.ardakkan.backend.entity.ProductInstance;
 import com.ardakkan.backend.entity.ProductInstanceStatus;
 import com.ardakkan.backend.repo.ProductModelRepository;
+
+import jakarta.transaction.Transactional;
+
 import com.ardakkan.backend.repo.ProductInstanceRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,12 +24,14 @@ public class ProductModelService {
 
     private final ProductModelRepository productModelRepository;
     private final ProductInstanceRepository productInstanceRepository;
+    private final NotificationService NotificationService;
 
     @Autowired
     public ProductModelService(ProductModelRepository productModelRepository,
-                               ProductInstanceRepository productInstanceRepository) {
+                               ProductInstanceRepository productInstanceRepository,NotificationService NotificationService) {
         this.productModelRepository = productModelRepository;
         this.productInstanceRepository = productInstanceRepository;
+		this.NotificationService = NotificationService;
     }
 
     // Yeni bir ProductModel ekleme
@@ -45,6 +50,7 @@ public class ProductModelService {
             existingProductModel.setPrice(productModelDetails.getPrice());
             existingProductModel.setCategory(productModelDetails.getCategory());
             existingProductModel.setPopularity(productModelDetails.getPopularity());
+            existingProductModel.setRating(productModelDetails.getRating());
             return productModelRepository.save(existingProductModel);
         } else {
             throw new RuntimeException("ProductModel not found with id: " + id);
@@ -109,7 +115,7 @@ public class ProductModelService {
         }
     }
 
- // Belirli bir ProductModel'in AVAILABLE durumda olan ProductInstance sayısını getirme
+    // Belirli bir ProductModel'in AVAILABLE durumda olan ProductInstance sayısını getirme
     public int getAvailableProductInstanceCount(Long productModelId) {
         Optional<ProductModel> productModel = productModelRepository.findById(productModelId);
         if (productModel.isPresent()) {
@@ -124,6 +130,39 @@ public class ProductModelService {
             throw new RuntimeException("ProductModel not found with id: " + productModelId);
         }
     }
+    
+    @Transactional
+    public void addStock(Long productModelId, int quantityToAdd) {
+        // Ürün modelini getir
+        ProductModel productModel = productModelRepository.findById(productModelId)
+                .orElseThrow(() -> new RuntimeException("ProductModel not found with id: " + productModelId));
+
+        for (int i = 0; i < quantityToAdd; i++) {
+            // Yeni bir ProductInstance oluştur
+            ProductInstance productInstance = new ProductInstance();
+            productInstance.setProductModel(productModel);
+            productInstance.setStatus(ProductInstanceStatus.IN_STOCK); // Varsayılan durum: IN_STOCK
+            productInstance.setSerialNumber("temporary_serial_number");
+            // Önce ProductInstance'ı kaydet ki ID oluşsun
+            productInstance = productInstanceRepository.save(productInstance);
+
+            // Seri numarasını ayarla: productModelId+productInstanceId
+            String serialNumber = String.format("SN%d000%d", productModelId, productInstance.getId());
+            productInstance.setSerialNumber(serialNumber);
+
+            // Güncellenmiş ProductInstance'ı tekrar kaydet
+            productInstanceRepository.save(productInstance);
+        }
+
+        // Güncel stok sayısını kontrol et
+        int updatedStock = getAvailableProductInstanceCount(productModelId);
+
+        // Eğer stok sıfırdan pozitif bir değere geçtiyse bildirim gönder
+        if (updatedStock > 0 && updatedStock - quantityToAdd == 0) {
+            NotificationService.notifyUsersForRestock(productModel);
+        }
+    }
+
     
     public List<ProductModelDTO> searchProductModels(String searchString) {
         // Arama terimi boşsa, tüm ürünleri döndür
@@ -143,7 +182,7 @@ public class ProductModelService {
     }
     
     
- // Toplu ProductModel ekleme
+   // Toplu ProductModel ekleme
     public List<ProductModel> saveAllProductModels(List<ProductModel> productModels) {
         return productModelRepository.saveAll(productModels);
     }
@@ -157,6 +196,26 @@ public class ProductModelService {
                 .limit(16)
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
+    }
+    
+    public void organizeDiscount(Long productId, Double discountRate) {
+        if (discountRate == null || discountRate < 0 || discountRate > 100) {
+            throw new IllegalArgumentException("Discount rate must be between 0 and 100.");
+        }
+
+        // Ürünü ID ile bul
+        ProductModel productModel = productModelRepository.findById(productId)
+                .orElseThrow(() -> new IllegalArgumentException("Product with ID " + productId + " not found."));
+
+        // İndirimi ayarla
+        productModel.setDiscount(discountRate);
+
+        // Güncellenmiş ürünü kaydet
+        productModelRepository.save(productModel);
+
+        System.out.println("Discount of " + discountRate + "% applied to Product with ID: " + productId);
+        NotificationService.notifyUsersAboutDiscount(productId);
+        
     }
 
     public ProductModelDTO convertToDTO(ProductModel productModel) {
@@ -173,7 +232,9 @@ public class ProductModelService {
         // Stok bilgisini al
         int stockCount = getAvailableProductInstanceCount(productModel.getId());
         dto.setStockCount(stockCount);
-
+        // İndirim bilgilerini ata
+        dto.setDiscount(productModel.getDiscount());
+        dto.setDiscountedPrice(productModel.getDiscountedPrice());
         return dto;
     }
 

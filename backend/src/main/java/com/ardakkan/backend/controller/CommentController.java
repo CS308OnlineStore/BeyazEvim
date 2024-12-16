@@ -1,5 +1,6 @@
 package com.ardakkan.backend.controller;
 
+import com.ardakkan.backend.dto.CommentDTO;
 import com.ardakkan.backend.dto.CommentRequest;
 import com.ardakkan.backend.entity.Comment;
 import com.ardakkan.backend.service.CommentService;
@@ -41,16 +42,41 @@ public class CommentController {
 
     // Tüm yorumları getir
     @GetMapping
-    public ResponseEntity<List<Comment>> getAllComments() {
+    public ResponseEntity<List<CommentDTO>> getAllComments() {
         List<Comment> comments = commentService.getAllComments();
-        return ResponseEntity.ok(comments);
+        List<CommentDTO> approvedCommentDTOs = comments.stream()
+                .map(comment -> commentService.convertToDTO(comment))
+                .toList();
+        return ResponseEntity.ok(approvedCommentDTOs);
     }
+    
+    @GetMapping("/approved")
+    public ResponseEntity<List<CommentDTO>> getApprovedComments() {
+        List<Comment> approvedComments = commentService.getApprovedComments();
+        List<CommentDTO> approvedCommentDTOs = approvedComments.stream()
+                .map(comment -> commentService.convertToDTO(comment))
+                .toList();
+        return ResponseEntity.ok(approvedCommentDTOs);
+    }
+
+
+    // Onaylanmamış yorumları getir
+    @GetMapping("/unapproved")
+    public ResponseEntity<List<CommentDTO>> getUnapprovedComments() {
+        List<Comment> unapprovedComments = commentService.getUnapprovedComments();
+        List<CommentDTO> unapprovedCommentDTOs = unapprovedComments.stream()
+                .map(comment -> commentService.convertToDTO(comment))
+                .toList();
+        return ResponseEntity.ok(unapprovedCommentDTOs);
+    }
+
 
     // Belirli bir yorum ID'sine göre getir
     @GetMapping("/{commentId}")
-    public ResponseEntity<Comment> getCommentById(@PathVariable Long commentId) {
+    public ResponseEntity<CommentDTO> getCommentById(@PathVariable Long commentId) {
         Comment comment = commentService.getCommentById(commentId);
-        return ResponseEntity.ok(comment);
+        CommentDTO commentdto=commentService.convertToDTO(comment);
+        return ResponseEntity.ok(commentdto);
     }
 
     // Belirli bir kullanıcıya ait yorumları getir

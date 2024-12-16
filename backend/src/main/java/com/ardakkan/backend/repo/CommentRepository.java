@@ -19,7 +19,7 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
 
     List<Comment> findByUserAndProductModel(User user, ProductModel productModel);
     
-    
+    List<Comment> findByApproved(boolean approved);
     // Belirli bir ürün modeline ait ve onaylanmış yorumları bulma
     List<Comment> findByProductModelAndApproved(ProductModel productModel, Boolean approved);
 }

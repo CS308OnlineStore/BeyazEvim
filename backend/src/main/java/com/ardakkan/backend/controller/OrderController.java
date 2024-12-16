@@ -104,4 +104,15 @@ public class OrderController {
                     .body(("Error: " + e.getMessage()).getBytes());
         }
     }
+    
+    @PutMapping("/orders/{orderId}/cancel")
+    public ResponseEntity<String> cancelOrder(@PathVariable Long orderId) {
+        try {
+            orderService.cancelOrder(orderId);
+            return ResponseEntity.ok("Order has been successfully canceled and refund will be processed within 5-10 business days.");
+        } catch (IllegalStateException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+    
 }
