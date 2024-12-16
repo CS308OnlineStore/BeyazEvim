@@ -10,6 +10,13 @@ import SubCategoryPage from './pages/SubCategoryPage';
 import UserPage from './pages/UserPage';  
 import SearchPage from './pages/SearchPage';
 import ProductOwner from './pages/ProductOwner.js';
+import ManageProductsPage from './pages/ManageProductsPage';
+import ManageCategoriesPage from './pages/ManageCategoriesPage';
+import UpdateProductStatusPage from './pages/UpdateProductStatusPage';
+import DeliveryManagementPage from './pages/DeliveryManagementPage';
+import ApproveCommentsPage from './pages/ApproveCommentsPage';
+
+
 const App = () => {
   return (
     <Router>
@@ -23,6 +30,11 @@ const App = () => {
         <Route path="/userpage" element={<UserPage />} /> 
         <Route path="/search" element={<SearchPage />} /> 
         <Route path="/product-owner" element={<ProductOwner />} />
+        <Route path="/manage-products" element={<ManageProductsPage />} />
+        <Route path="/manage-categories" element={<ManageCategoriesPage />} />
+        <Route path="/update-product-status" element={<UpdateProductStatusPage />} />
+        <Route path="/delivery-management" element={<DeliveryManagementPage />} />
+        <Route path="/approve-comments" element={<ApproveCommentsPage />} />
       </Routes>
     </Router>
   );
