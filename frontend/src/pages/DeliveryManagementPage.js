@@ -62,18 +62,6 @@ const DeliveryManagementPage = () => {
       key: 'userId',
     },
     {
-      title: 'Product Model ID',
-      dataIndex: ['orderItems', '0', 'productModelId'],
-      key: 'productModelId',
-      render: (text) => text || 'N/A',
-    },
-    {
-      title: 'Quantity',
-      dataIndex: ['orderItems', '0', 'quantity'],
-      key: 'quantity',
-      render: (text) => text || 'N/A',
-    },
-    {
       title: 'Total Price',
       dataIndex: 'totalPrice',
       key: 'totalPrice',
