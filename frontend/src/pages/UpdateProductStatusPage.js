@@ -1,40 +1,48 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Form, Input, InputNumber, Button, message, Layout, Typography } from 'antd';
+import { Form, Select, InputNumber, Button, message, Layout, Typography } from 'antd';
 
 const { Header, Content } = Layout;
 const { Title } = Typography;
+const { Option } = Select;
 
 const UpdateProductStatusPage = () => {
   const [form] = Form.useForm();
-  const [currentStock, setCurrentStock] = useState(null);
+  const [products, setProducts] = useState([]);
   const [productId, setProductId] = useState(null);
+  const [currentStock, setCurrentStock] = useState(null);
   const [loading, setLoading] = useState(false);
   const [fetchingStock, setFetchingStock] = useState(false);
 
-  // Ürün adını kullanarak stoğu getirme fonksiyonu
-  const handleFetchStock = async () => {
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response = await axios.get('/api/homepage');
+        setProducts(response.data);
+      } catch (error) {
+        console.error('Error fetching products:', error);
+        message.error('Failed to load products.');
+      }
+    };
+
+    fetchProducts();
+  }, []);
+
+  const handleProductSelect = async (value) => {
     try {
-      const values = await form.validateFields(['productName']);
-      const { productName } = values;
+      const selectedProduct = products.find((product) => product.name === value);
 
-      setFetchingStock(true);
-
-      const response = await axios.get('/api/product-models', {
-        params: { name: productName }, // Ürün adına göre filtreleme
-      });
-
-      const product = response.data[0]; // İlk eşleşen ürünü al
-      if (!product) {
+      if (!selectedProduct) {
         throw new Error('Product not found');
       }
 
-      setCurrentStock(product.stock);
-      setProductId(product.id);
-      message.success(`Current stock for "${product.name}": ${product.stock}`);
+      setFetchingStock(true);
+      setCurrentStock(selectedProduct.stockCount);
+      setProductId(selectedProduct.id);
+      message.success(`Current stock for "${selectedProduct.name}": ${selectedProduct.stockCount}`);
     } catch (error) {
-      console.error('Error fetching product:', error);
-      message.error('Failed to fetch product. Check the product name.');
+      console.error('Error selecting product:', error);
+      message.error('Failed to fetch product stock.');
       setCurrentStock(null);
       setProductId(null);
     } finally {
@@ -43,29 +51,25 @@ const UpdateProductStatusPage = () => {
   };
 
   // Stoğu güncelleme fonksiyonu
-  const handleUpdateStock = async (operation) => {
+  const handleIncreaseStock = async () => {
     try {
       if (!productId) {
         message.error('Please fetch a product first.');
         return;
       }
 
-      const values = await form.validateFields(['quantity']);
-      const { quantity } = values;
+      const values = await form.validateFields(['quantityToAdd']);
 
       setLoading(true);
 
-      const response = await axios.put(`/api/product-models/${productId}`, {
-        operation: operation, // "increase" veya "decrease"
-        quantity: quantity,
-      });
+      const response = await axios.post(`/api/product-models/${productId}/stock`, values)
 
-      setCurrentStock(response.data.stock); // Güncel stok bilgisini güncelle
-      message.success(`Product stock ${operation === 'increase' ? 'increased' : 'decreased'} successfully!`);
+      setCurrentStock(response.data.updatedStock); 
+      message.success(`Product stock increased successfully!`);
       form.resetFields(['quantity']);
     } catch (error) {
-      console.error(`Error updating stock (${operation}):`, error);
-      message.error(`Failed to ${operation} product stock.`);
+      console.error(`Error updating stock: `, error);
+      message.error(`Failed to update product stock.`);
     } finally {
       setLoading(false);
     }
@@ -80,22 +84,23 @@ const UpdateProductStatusPage = () => {
       </Header>
       <Content style={{ padding: '20px' }}>
         <Form form={form} layout="vertical">
-          {/* Ürün Adı Girişi */}
+          {/* Product Selection */}
           <Form.Item
-            name="productName"
-            label="Product Name"
-            rules={[{ required: true, message: 'Please enter the Product Name' }]}
-          >
-            <Input placeholder="Enter Product Name" />
-          </Form.Item>
-          <Form.Item>
-            <Button
-              type="primary"
-              onClick={handleFetchStock}
+              name="productName"
+              label="Product Name"
+              rules={[{ required: true, message: 'Please select a product' }]}
+            >
+            <Select
+              placeholder="Select a Product"
+              onChange={handleProductSelect}
               loading={fetchingStock}
             >
-              Fetch Stock
-            </Button>
+              {products.map((product) => (
+                <Option key={product.id} value={product.name}>
+                  {product.name}
+                </Option>
+              ))}
+            </Select>
           </Form.Item>
 
           {/* Mevcut Stok Bilgisi */}
@@ -107,7 +112,7 @@ const UpdateProductStatusPage = () => {
 
           {/* Stok Güncelleme */}
           <Form.Item
-            name="quantity"
+            name="quantityToAdd"
             label="Quantity"
             rules={[
               { required: true, message: 'Please enter the Quantity' },
@@ -123,18 +128,11 @@ const UpdateProductStatusPage = () => {
           <Form.Item>
             <Button
               type="primary"
-              onClick={() => handleUpdateStock('increase')}
+              onClick={() => handleIncreaseStock()}
               loading={loading}
               style={{ marginRight: '10px' }}
             >
               Increase Stock
-            </Button>
-            <Button
-              type="primary"
-              onClick={() => handleUpdateStock('decrease')}
-              loading={loading}
-            >
-              Decrease Stock
             </Button>
           </Form.Item>
         </Form>
