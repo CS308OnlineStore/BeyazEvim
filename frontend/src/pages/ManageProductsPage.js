@@ -63,25 +63,34 @@ const ManageProductsPage = () => {
   };
 
   // Ürün ekleme işlemi
-  const handleAddProduct = (values) => {
+  const handleAddProduct = async (values) => {
     const payload = {
       name: values.productName,
       description: values.productDescription,
       price: values.productPrice,
-      stock: values.productStock,
       distributorInformation: 'Distributor info',
       photoPath: '/images/default.jpg',
       category: { id: values.subcategoryId || values.categoryId },
     };
 
-    axios
-      .post('/api/product-models', payload)
+    await axios.post('/api/product-models', payload)
       .then((response) => {
         message.success('Ürün başarıyla eklendi!');
         setProducts((prevProducts) => [...prevProducts, response.data]);
         form.resetFields();
+
+        const addStock = {"quantityToAdd" : values.productStock}
+        axios.post(`/api/product-models/${response.data.id}/stock`, addStock)
+          .then(() => {
+            message.success('Successfully updated stock!');
+          })
+          .catch(() => message.error('Failed to update stock'))
       })
-      .catch(() => message.error('Ürün eklenirken bir hata oluştu.'));
+      .catch(() => message.error('Failed to create item'));
+    
+    
+
+    
   };
 
   // Ürün silme işlemi
