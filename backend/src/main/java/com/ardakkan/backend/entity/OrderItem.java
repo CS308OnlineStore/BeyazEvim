@@ -42,7 +42,7 @@ public class OrderItem {
     @ElementCollection
     @CollectionTable(name = "order_item_product_instance", joinColumns = @JoinColumn(name = "order_item_id"))
     @Column(name = "product_instance_id")
-    private List<Long> productInstanceIds = new ArrayList<>();
+    private List<Long> productInstanceIds = new ArrayList<>(); 
 
     // Getter ve Setter'lar
     public Long getId() {

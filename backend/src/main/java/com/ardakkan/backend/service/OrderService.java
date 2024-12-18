@@ -262,6 +262,46 @@ public class OrderService {
                 order.getId()
         );
     }
+    
+    
+    public Order updateOrderStatus(Long orderId, OrderStatus newStatus) {
+        // Siparişi veritabanından bul
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new IllegalStateException("Order not found: " + orderId));
+
+        // Eğer yeni durum, geçerli bir geçiş değilse hata fırlat
+        if (order.getStatus() == OrderStatus.CANCELED) {
+            throw new IllegalStateException("Canceled orders cannot be updated: " + orderId);
+        }
+
+        // Eski durum ile yeni durumu kontrol et (örneğin RETURNED > SHIPPED yapılamaz)
+        if (!isValidStatusTransition(order.getStatus(), newStatus)) {
+            throw new IllegalStateException("Invalid status transition from " + order.getStatus() + " to " + newStatus);
+        }
+
+        // Siparişin durumunu güncelle
+        order.setStatus(newStatus);
+        orderRepository.save(order);
+
+        return order; // Güncellenmiş siparişi geri döner
+    }
+
+    private boolean isValidStatusTransition(OrderStatus currentStatus, OrderStatus newStatus) {
+        // Durum geçişi için kuralları belirle
+        switch (currentStatus) {
+            case CART:
+                return newStatus == OrderStatus.PURCHASED;
+            case PURCHASED:
+                return newStatus == OrderStatus.SHIPPED || newStatus == OrderStatus.CANCELED;
+            case SHIPPED:
+                return newStatus == OrderStatus.DELIVERED || newStatus == OrderStatus.RETURNED;
+            case DELIVERED:
+                return newStatus == OrderStatus.RETURNED;
+            default:
+                return false;
+        }
+    }
+
 
 
 
