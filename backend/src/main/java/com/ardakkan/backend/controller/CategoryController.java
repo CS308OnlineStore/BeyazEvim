@@ -90,4 +90,14 @@ public class CategoryController {
         ProductModel savedProductModel = categoryService.addProductModelToCategory(categoryId, productModel);
         return ResponseEntity.status(HttpStatus.CREATED).body(savedProductModel);
     }
+    
+    @PutMapping("/{categoryId}/deactivate")
+    public ResponseEntity<String> deactivateCategory(@PathVariable Long categoryId) {
+        try {
+            categoryService.deactivateCategory(categoryId);
+            return ResponseEntity.ok("Category and its subcategories have been successfully deactivated.");
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body("Error: " + e.getMessage());
+        }
+    }
 }

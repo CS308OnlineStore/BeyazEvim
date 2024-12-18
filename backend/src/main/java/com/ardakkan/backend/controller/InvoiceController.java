@@ -14,6 +14,9 @@ import com.itextpdf.kernel.pdf.PdfWriter;
 import com.itextpdf.layout.Document;
 import com.itextpdf.layout.element.Paragraph;
 import com.itextpdf.layout.element.Table;
+import org.springframework.http.MediaType;
+import org.springframework.http.HttpHeaders;
+
 
 @RestController
 @RequestMapping("/api/invoices")
@@ -68,6 +71,16 @@ public class InvoiceController {
     public ResponseEntity<Void> deleteInvoice(@PathVariable Long id) {
         invoiceService.deleteInvoice(id);
         return ResponseEntity.noContent().build();
+    }
+    
+    @GetMapping("/order/{orderId}/pdf")
+    public ResponseEntity<byte[]> getInvoicePdfByOrderId(@PathVariable Long orderId) {
+        byte[] pdfData = invoiceService.generateInvoicePdfByOrderId(orderId);
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_PDF)
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=invoice_order_" + orderId + ".pdf")
+                .body(pdfData);
     }
 
 }

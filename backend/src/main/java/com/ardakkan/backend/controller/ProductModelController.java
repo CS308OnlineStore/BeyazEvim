@@ -149,4 +149,20 @@ public class ProductModelController {
             ));
         }
     }
+    
+    @PostMapping("/{productModelId}/decrease-stock")
+    public ResponseEntity<String> decreaseStock(
+            @PathVariable Long productModelId,
+            @RequestParam int quantityToRemove) {
+        try {
+            productModelService.decreaseStock(productModelId, quantityToRemove);
+            return ResponseEntity.ok("Stock successfully decreased for product model ID: " + productModelId);
+        } catch (IllegalStateException e) {
+            return ResponseEntity.badRequest().body("Error: " + e.getMessage());
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unexpected error: " + e.getMessage());
+        }
+    }
+    
+    
 }

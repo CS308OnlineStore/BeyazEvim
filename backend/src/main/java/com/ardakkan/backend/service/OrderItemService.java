@@ -1,5 +1,7 @@
 package com.ardakkan.backend.service;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,60 +43,91 @@ public class OrderItemService {
         this.productModelRepository = productModelRepository;
 		this.productModelService = productModelService;
     }
+    
     @Transactional
     public OrderItemDTO addProductToCart(Long orderId, Long productModelId) {
         // Order'ı getir
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new IllegalStateException("Order bulunamadı: " + orderId));
 
-        // Stokta ya da sepette olan uygun ProductInstance'ı bulun
-        Optional<ProductInstance> productInstanceOpt = productInstanceRepository
-                .findFirstByProductModelIdAndStatus(productModelId, ProductInstanceStatus.IN_STOCK);
+        // IN_STOCK veya IN_CART durumunda olan ProductInstance'ları getir
+        List<ProductInstance> productInstances = productInstanceRepository
+                .findAllByProductModelIdAndStatusIn(productModelId, List.of(ProductInstanceStatus.IN_STOCK, ProductInstanceStatus.IN_CART));
 
-        if (productInstanceOpt.isEmpty()) {
-            productInstanceOpt = productInstanceRepository
-                    .findFirstByProductModelIdAndStatus(productModelId, ProductInstanceStatus.IN_CART);
-        }
-
-        if (productInstanceOpt.isEmpty()) {
+        if (productInstances.isEmpty()) {
             throw new IllegalStateException("Stokta veya sepette uygun ürün bulunamadı: " + productModelId);
         }
 
-        // Uygun ProductInstance bulundu
-        ProductInstance productInstance = productInstanceOpt.get();
-        Long productInstanceId = productInstance.getId(); // ID'yi alıyoruz
-        Double productPrice = productInstance.getProductModel().getPrice();
-
-        // Order ve ProductModel üzerinden mevcut bir OrderItem olup olmadığını kontrol edin
+        // Order ve ProductModel üzerinden mevcut bir OrderItem kontrolü
         Optional<OrderItem> existingOrderItemOpt = orderItemRepository
                 .findByOrderAndProductModelId(order, productModelId);
 
         OrderItem orderItem;
 
         if (existingOrderItemOpt.isPresent()) {
-            // Mevcut OrderItem bulundu, miktarı artır
             orderItem = existingOrderItemOpt.get();
-            orderItem.setQuantity(orderItem.getQuantity() + 1);
-            orderItem.getProductInstanceIds().add(productInstanceId); // ID'yi listeye ekle
-            order.setTotalPrice(order.getTotalPrice() + productPrice); // Toplam fiyatı güncelle
+
+            // Daha önce eklenmemiş bir ProductInstance bul
+            ProductInstance productInstance = findAvailableProductInstance(productInstances, orderItem);
+
+            // Eğer uygun ProductInstance yoksa hata fırlat
+            if (productInstance == null) {
+                throw new IllegalStateException("Tüm uygun ProductInstance'lar zaten eklenmiş: " + productModelId);
+            }
+
+            // Yeni ProductInstance'ı OrderItem'e ekle
+            addProductInstanceToOrderItem(orderItem, productInstance, order);
+
         } else {
-            // Yeni OrderItem oluştur
-            orderItem = new OrderItem();
-            orderItem.setOrder(order);
-            orderItem.setProductModelId(productModelId);
-            orderItem.setUnitPrice(productPrice); // Birim fiyatı ayarla
-            orderItem.setQuantity(1); // İlk miktar olarak 1 ayarla
-            orderItem.getProductInstanceIds().add(productInstanceId); // ID'yi listeye ekle
-            order.setTotalPrice(order.getTotalPrice() + productPrice); // Toplam fiyatı güncelle
+            // Yeni OrderItem oluştur ve ilk uygun ProductInstance'ı ekle
+            ProductInstance productInstance = productInstances.stream().findFirst().orElseThrow();
+            orderItem = createNewOrderItem(order, productModelId, productInstance);
         }
 
-        // Ürün sepete eklendiği için durumunu IN_CART olarak güncelle
+        // OrderItem'ı kaydet ve DTO'ya dönüştür
+        orderItemRepository.save(orderItem);
+        return convertToOrderItemDTO(orderItem);
+    }
+
+    private ProductInstance findAvailableProductInstance(List<ProductInstance> productInstances, OrderItem orderItem) {
+        for (ProductInstance instance : productInstances) {
+            if (!orderItem.getProductInstanceIds().contains(instance.getId())) {
+                return instance; // Daha önce eklenmemiş olanı döner
+            }
+        }
+        return null;
+    }
+
+    private void addProductInstanceToOrderItem(OrderItem orderItem, ProductInstance productInstance, Order order) {
+        Long productInstanceId = productInstance.getId();
+        Double productPrice = productInstance.getProductModel().getPrice();
+
+        orderItem.setQuantity(orderItem.getQuantity() + 1);
+        orderItem.getProductInstanceIds().add(productInstanceId);
+        order.setTotalPrice(order.getTotalPrice() + productPrice);
+
+        // ProductInstance durumunu IN_CART yap
+        productInstance.setStatus(ProductInstanceStatus.IN_CART);
+        productInstanceRepository.save(productInstance);
+    }
+
+    private OrderItem createNewOrderItem(Order order, Long productModelId, ProductInstance productInstance) {
+        Long productInstanceId = productInstance.getId();
+        Double productPrice = productInstance.getProductModel().getPrice();
+
+        OrderItem orderItem = new OrderItem();
+        orderItem.setOrder(order);
+        orderItem.setProductModelId(productModelId);
+        orderItem.setUnitPrice(productPrice);
+        orderItem.setQuantity(1);
+        orderItem.getProductInstanceIds().add(productInstanceId);
+        order.setTotalPrice(order.getTotalPrice() + productPrice);
+
+        // ProductInstance durumunu IN_CART yap
         productInstance.setStatus(ProductInstanceStatus.IN_CART);
         productInstanceRepository.save(productInstance);
 
-        // OrderItem'ı kaydet ve döndür
-        orderItemRepository.save(orderItem);
-        return  convertToOrderItemDTO(orderItem);
+        return orderItem;
     }
 
 

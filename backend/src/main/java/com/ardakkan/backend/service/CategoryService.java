@@ -7,6 +7,9 @@ import com.ardakkan.backend.entity.Category;
 import com.ardakkan.backend.entity.ProductModel;
 import com.ardakkan.backend.repo.CategoryRepository;
 import com.ardakkan.backend.repo.ProductModelRepository;
+
+import jakarta.transaction.Transactional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -56,12 +59,17 @@ public class CategoryService {
     // Belirli bir kategorinin alt kategorilerini getir
     public List<Category> getSubCategories(Long categoryId) {
         Category parentCategory = getCategoryById(categoryId);
-        return parentCategory.getSubCategories();
+
+        // Alt kategorileri filtreleyerek sadece aktif olanları döndür
+        return parentCategory.getSubCategories().stream()
+                .filter(Category::isActive) // Sadece isActive = true olanları al
+                .collect(Collectors.toList());
     }
+
 
     // Tüm kategorileri getir
     public List<Category> getAllCategories() {
-        return categoryRepository.findAll();
+    	return categoryRepository.findAllByIsActiveTrue();
     }
 
     // Belirli bir ID ile kategori getir
@@ -141,9 +149,28 @@ public class CategoryService {
     }
 
 
-    
-    
-   
+    @Transactional
+    public void deactivateCategory(Long categoryId) {
+        Category category = getCategoryById(categoryId);
+
+        // Kategoriyi etkisizleştir
+        category.setActive(false);
+        categoryRepository.save(category);
+
+        // Bu kategoriye bağlı tüm ürün modellerini etkisizleştir
+        List<ProductModel> productModels = productModelRepository.findByCategoryId(categoryId);
+        for (ProductModel productModel : productModels) {
+            productModel.setActive(false);
+            productModelRepository.save(productModel);
+        }
+
+        // Alt kategoriler için aynı işlemi yap
+        for (Category subCategory : category.getSubCategories()) {
+            deactivateCategory(subCategory.getId());
+        }
+    }
+
+
     
     
     // Belirli bir kategoriye yeni ürün modeli ekle
@@ -155,7 +182,7 @@ public class CategoryService {
     
   // Ana kategorileri getirme (parentCategory=null olanlar)
     public List<Category> getRootCategories() {
-        return categoryRepository.findByParentCategoryIsNull();
+    	return categoryRepository.findByParentCategoryIsNullAndIsActiveTrue();
     }
     
    

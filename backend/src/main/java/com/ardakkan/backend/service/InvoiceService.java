@@ -3,6 +3,7 @@ package com.ardakkan.backend.service;
 import com.ardakkan.backend.entity.ProductModel;
 import com.ardakkan.backend.entity.Invoice;
 import com.ardakkan.backend.repo.InvoiceRepository;
+import com.ardakkan.backend.repo.OrderRepository;
 import com.ardakkan.backend.repo.ProductModelRepository;
 import com.itextpdf.kernel.pdf.PdfWriter;
 import com.itextpdf.layout.Document;
@@ -21,9 +22,13 @@ import java.util.List;
 public class InvoiceService {
 
     private final InvoiceRepository invoiceRepository;
+    
 
     @Autowired
     private ProductModelRepository productModelRepository;
+    
+    @Autowired
+    private OrderRepository orderRepository;
 
     @Autowired
     public InvoiceService(InvoiceRepository invoiceRepository) {
@@ -112,6 +117,19 @@ public class InvoiceService {
         } catch (Exception e) {
             throw new RuntimeException("Failed to generate invoice PDF", e);
         }
+    }
+    
+    
+    public byte[] generateInvoicePdfByOrderId(Long orderId) {
+        // Order ID ile faturayı bul
+        Invoice invoice = invoiceRepository.findById(
+                orderRepository.findById(orderId)
+                        .orElseThrow(() -> new IllegalStateException("Order bulunamadı: " + orderId))
+                        .getInvoice().getId()
+        ).orElseThrow(() -> new IllegalStateException("Order'a bağlı fatura bulunamadı: " + orderId));
+
+        // Fatura PDF'sini oluştur ve geri döndür
+        return generateInvoicePdf(invoice.getId());
     }
 
 }

@@ -3,15 +3,20 @@ package com.ardakkan.backend.service;
 
 import com.ardakkan.backend.entity.ProductModel;
 import com.ardakkan.backend.dto.ProductModelDTO;
+import com.ardakkan.backend.entity.Order;
+import com.ardakkan.backend.entity.OrderItem;
 import com.ardakkan.backend.entity.ProductInstance;
 import com.ardakkan.backend.entity.ProductInstanceStatus;
 import com.ardakkan.backend.repo.ProductModelRepository;
 
 import jakarta.transaction.Transactional;
 
+import com.ardakkan.backend.repo.OrderItemRepository;
+import com.ardakkan.backend.repo.OrderRepository;
 import com.ardakkan.backend.repo.ProductInstanceRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
@@ -25,13 +30,19 @@ public class ProductModelService {
     private final ProductModelRepository productModelRepository;
     private final ProductInstanceRepository productInstanceRepository;
     private final NotificationService NotificationService;
+    private final OrderItemRepository orderItemRepository;
+    private final OrderRepository orderRepository;
 
     @Autowired
     public ProductModelService(ProductModelRepository productModelRepository,
-                               ProductInstanceRepository productInstanceRepository,NotificationService NotificationService) {
+                               ProductInstanceRepository productInstanceRepository,NotificationService NotificationService,OrderItemRepository orderItemRepository,
+                               OrderRepository orderRepository) {
         this.productModelRepository = productModelRepository;
         this.productInstanceRepository = productInstanceRepository;
 		this.NotificationService = NotificationService;
+		this.orderItemRepository= orderItemRepository;
+		this.orderRepository= orderRepository;
+		
     }
 
     // Yeni bir ProductModel ekleme
@@ -162,6 +173,88 @@ public class ProductModelService {
             NotificationService.notifyUsersForRestock(productModel);
         }
     }
+    
+    
+    
+    @Transactional
+    public void decreaseStock(Long productModelId, int quantityToRemove) {
+        // Ürün modelini getir
+        ProductModel productModel = productModelRepository.findById(productModelId)
+                .orElseThrow(() -> new RuntimeException("ProductModel not found with id: " + productModelId));
+
+        // Toplam mevcut ürün sayısını kontrol et
+        int availableStock = getAvailableProductInstanceCount(productModelId);
+        if (availableStock < quantityToRemove) {
+            throw new IllegalStateException("Yeterli stok yok. Toplam mevcut stok: " + availableStock);
+        }
+
+        int remainingToRemove = quantityToRemove;
+
+        // IN_STOCK durumundaki ProductInstance'ları getir
+        List<ProductInstance> inStockInstances = productInstanceRepository
+                .findTopNByProductModelIdAndStatus(productModelId, ProductInstanceStatus.IN_STOCK, PageRequest.of(0, quantityToRemove));
+
+        for (ProductInstance instance : inStockInstances) {
+            removeProductInstanceFromCarts(instance);
+            productInstanceRepository.delete(instance);
+            remainingToRemove--;
+            if (remainingToRemove == 0) {
+                break;
+            }
+        }
+
+        // Eğer hala silinecek ürün kaldıysa IN_CART durumundakileri getir ve işle
+        if (remainingToRemove > 0) {
+            List<ProductInstance> inCartInstances = productInstanceRepository
+                    .findTopNByProductModelIdAndStatus(productModelId, ProductInstanceStatus.IN_CART, PageRequest.of(0, remainingToRemove));
+
+            for (ProductInstance instance : inCartInstances) {
+                removeProductInstanceFromCarts(instance);
+                productInstanceRepository.delete(instance);
+                remainingToRemove--;
+                if (remainingToRemove == 0) {
+                    break;
+                }
+            }
+        }
+    }
+    
+    private void removeProductInstanceFromCarts(ProductInstance productInstance) {
+        // Bu ProductInstance'ın bulunduğu tüm OrderItem'ları getir
+        List<OrderItem> orderItems = orderItemRepository.findByProductInstanceId(productInstance.getId());
+
+        for (OrderItem orderItem : orderItems) {
+            // ProductInstance'ı listeden kaldır
+            orderItem.getProductInstanceIds().remove(productInstance.getId());
+
+            // Ürün birim fiyatını al
+            Double productPrice = orderItem.getUnitPrice();
+
+            // Miktarı güncelle
+            orderItem.setQuantity(orderItem.getQuantity() - 1);
+
+            // Eğer miktar sıfıra düştüyse:
+            if (orderItem.getQuantity() <= 0) {
+                // Order'ın toplam fiyatından OrderItem'ın toplam fiyatını çıkar
+                Order order = orderItem.getOrder();
+                order.setTotalPrice(order.getTotalPrice() - (productPrice * (orderItem.getQuantity() + 1))); // Toplam fiyatı azalt
+                orderRepository.save(order);
+
+                // OrderItem'ı sil
+                orderItemRepository.delete(orderItem);
+            } else {
+                // Miktar > 0 ise, toplam fiyatı güncelle ve OrderItem'ı kaydet
+                Order order = orderItem.getOrder();
+                order.setTotalPrice(order.getTotalPrice() - productPrice);
+                orderRepository.save(order);
+                orderItemRepository.save(orderItem);
+            }
+        }
+    }
+
+
+
+
 
     
     public List<ProductModelDTO> searchProductModels(String searchString) {

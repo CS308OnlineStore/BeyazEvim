@@ -49,6 +49,9 @@ public class ProductModel {
     @Column
     private Double discount = 0.0;
     
+    @Column(nullable = false)
+    private boolean isActive = true;
+    
 
     // Getter ve Setter'lar
     public Long getId() {
@@ -137,6 +140,14 @@ public class ProductModel {
 	        return price - (price * discount / 100);
 	    }
 	    return price;
+	}
+
+	public boolean isActive() {
+		return isActive;
+	}
+
+	public void setActive(boolean isActive) {
+		this.isActive = isActive;
 	}
 	
 	
