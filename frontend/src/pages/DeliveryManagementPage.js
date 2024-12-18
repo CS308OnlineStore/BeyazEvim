@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Table, Button, message, Layout, Typography, Spin, Alert, Select } from 'antd';
+import { Table, message, Layout, Typography, Spin, Alert, Select } from 'antd';
 
 const { Header, Content } = Layout;
 const { Title } = Typography;
@@ -11,6 +11,8 @@ const DeliveryManagementPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const addressCache = {};
+  
   useEffect(() => {
     fetchDeliveries();
   }, []);
@@ -19,29 +21,34 @@ const DeliveryManagementPage = () => {
     try {
       const response = await axios.get('/api/orders/all');
       const filteredDeliveries = response.data.filter(
-        (delivery) => ['PURCHASED', 'SHIPPED', 'DELIVERED'].includes(delivery.status)
+        (delivery) => ['PURCHASED', 'SHIPPED', 'DELIVERED'].includes(delivery.status) 
+      );
+      const deliveriesWithAddresses = await Promise.all(
+        filteredDeliveries.map(async (delivery) => {
+          if (addressCache[delivery.userId]) {
+            // Use cached address if available
+            return { ...delivery, deliveryAddress: addressCache[delivery.userId] };
+          }
+          try {
+            const addressResponse = await axios.get(`/api/users/${delivery.userId}/address`);
+            const address = addressResponse.data.newAddress;
+            addressCache[delivery.userId] = address;
+            return { ...delivery, deliveryAddress: address };
+          } catch (err) {
+            console.error(`Failed to fetch address for user ${delivery.userId}:`, err);
+            return { ...delivery, deliveryAddress: 'N/A' };
+          }
+        })
       );
 
-        const deliveriesWithAddresses = await Promise.all(
-          filteredDeliveries.map(async (delivery) => {
-            try {
-              const addressResponse = await axios.get(`/api/users/${delivery.userId}/address`);
-              return { ...delivery, deliveryAddress: addressResponse.data.newAddress };
-            } catch (err) {
-              console.error(`Failed to fetch address for user ${delivery.userId}:`, err);
-              return { ...delivery, deliveryAddress: 'N/A' }; // Fallback if API fails
-            }
-          })
-        );
-
-        setDeliveries(deliveriesWithAddresses);
-        setLoading(false);
-      }
-      catch(error) {
-        console.error('Error fetching deliveries:', error);
-        setError('Failed to fetch deliveries.');
-        setLoading(false);
-      };
+      setDeliveries(deliveriesWithAddresses);
+      setLoading(false);
+    }
+    catch(error) {
+      console.error('Error fetching deliveries:', error);
+      setError('Failed to fetch deliveries.');
+      setLoading(false);
+    };
   };
 
   const handleUpdateStatus = (orderId, newStatus) => {

@@ -32,7 +32,7 @@ const ManageProductsPage = () => {
 
   // Kategorileri ve ürünleri çekme
   useEffect(() => {
-    const fetchCategories = axios.get('/api/categories');
+    const fetchCategories = axios.get('/api/categories/root');
     const fetchProducts = axios.get('/api/product-models');
 
     Promise.all([fetchCategories, fetchProducts])
@@ -53,7 +53,8 @@ const ManageProductsPage = () => {
     axios
       .get(`/api/categories`)
       .then((res) => {
-        setSubcategories(res.data);
+        const filteredRes = res.data.filter(item => item.id === value);
+        setSubcategories(filteredRes[0].subCategories);
         form.setFieldsValue({ subcategoryId: undefined });
       })
       .catch(() => {
@@ -196,7 +197,7 @@ const ManageProductsPage = () => {
                 label="Distributor Information"
                 rules={[{ required: true, message: 'Please enter the distributor' }]}
               >
-                <InputNumber style={{ width: '100%' }} min={0} />
+                <Input.TextArea placeholder="Distributor Information" />
               </Form.Item>
 
               {/* Ürün Stoğu */}
