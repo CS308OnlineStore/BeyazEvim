@@ -68,7 +68,7 @@ const ManageProductsPage = () => {
       name: values.productName,
       description: values.productDescription,
       price: values.productPrice,
-      distributorInformation: 'Distributor info',
+      distributorInformation: values.distributorInformation,
       photoPath: '/images/default.jpg',
       category: { id: values.subcategoryId || values.categoryId },
     };
@@ -190,6 +190,15 @@ const ManageProductsPage = () => {
                 <InputNumber style={{ width: '100%' }} min={0} />
               </Form.Item>
 
+              {/* Ürün Distribütör İsmi */}
+              <Form.Item
+                name="distributorInformation"
+                label="Distributor Information"
+                rules={[{ required: true, message: 'Please enter the distributor' }]}
+              >
+                <InputNumber style={{ width: '100%' }} min={0} />
+              </Form.Item>
+
               {/* Ürün Stoğu */}
               <Form.Item
                 name="productStock"
@@ -232,7 +241,7 @@ const ManageProductsPage = () => {
                     title={product.name}
                     description={`Description: ${product.description} | Price: ₺${
                       product.discountedPrice || product.price
-                    } | Stock: ${product.stock}`}
+                    } | Stock: ${product.stockCount}`}
                   />
                 </List.Item>
               )}

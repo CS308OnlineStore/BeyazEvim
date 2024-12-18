@@ -15,27 +15,38 @@ const DeliveryManagementPage = () => {
     fetchDeliveries();
   }, []);
 
-  const fetchDeliveries = () => {
-    axios
-      .get('/api/orders/all')
-      .then((response) => {
-        // "CART" durumundaki siparişleri filtrele
-        const filteredDeliveries = response.data.filter(
-          (delivery) => delivery.status !== 'CART'
+  const fetchDeliveries = async () => {
+    try {
+      const response = await axios.get('/api/orders/all');
+      const filteredDeliveries = response.data.filter(
+        (delivery) => ['PURCHASED', 'SHIPPED', 'DELIVERED'].includes(delivery.status)
+      );
+
+        const deliveriesWithAddresses = await Promise.all(
+          filteredDeliveries.map(async (delivery) => {
+            try {
+              const addressResponse = await axios.get(`/api/users/${delivery.userId}/address`);
+              return { ...delivery, deliveryAddress: addressResponse.data.newAddress };
+            } catch (err) {
+              console.error(`Failed to fetch address for user ${delivery.userId}:`, err);
+              return { ...delivery, deliveryAddress: 'N/A' }; // Fallback if API fails
+            }
+          })
         );
-        setDeliveries(filteredDeliveries);
+
+        setDeliveries(deliveriesWithAddresses);
         setLoading(false);
-      })
-      .catch((error) => {
+      }
+      catch(error) {
         console.error('Error fetching deliveries:', error);
         setError('Failed to fetch deliveries.');
         setLoading(false);
-      });
+      };
   };
 
   const handleUpdateStatus = (orderId, newStatus) => {
     axios
-      .put(`/api/orders/${orderId}`, { status: newStatus })
+      .put(`/api/orders/${orderId}/status`, { status: newStatus })
       .then(() => {
         setDeliveries((prevDeliveries) =>
           prevDeliveries.map((delivery) =>
@@ -69,7 +80,7 @@ const DeliveryManagementPage = () => {
     },
     {
       title: 'Delivery Address',
-      dataIndex: ['orderItems', '0', 'deliveryAddress'],
+      dataIndex: 'deliveryAddress',
       key: 'deliveryAddress',
       render: (text) => text || 'N/A',
     },
@@ -81,16 +92,38 @@ const DeliveryManagementPage = () => {
     {
       title: 'Actions',
       key: 'actions',
-      render: (_, record) => (
-        <Select
-          defaultValue={record.status}
-          style={{ width: 150 }}
-          onChange={(value) => handleUpdateStatus(record.id, value)}
-        >
-          <Option value="IN_TRANSIT">In Transit</Option>
-          <Option value="DELIVERED">Delivered</Option>
-        </Select>
-      ),
+      render: (_, record) => {
+        let availableStatuses = [];
+
+        // Determine available statuses based on the current status
+        switch (record.status) {
+          case 'PURCHASED':
+            availableStatuses = ['SHIPPED', 'DELIVERED'];
+            break;
+          case 'SHIPPED':
+            availableStatuses = ['DELIVERED'];
+            break;
+          case 'DELIVERED':
+            availableStatuses = ['DELIVERED'];
+            break;
+          default:
+            return null;
+        }
+
+        return (
+          <Select
+            defaultValue={record.status}
+            style={{ width: 150 }}
+            onChange={(value) => handleUpdateStatus(record.id, value)}
+          >
+            {availableStatuses.map((status) => (
+              <Option key={status} value={status}>
+                {status}
+              </Option>
+            ))}
+          </Select>
+        );
+      },
     },
   ];
 
@@ -119,7 +152,7 @@ const DeliveryManagementPage = () => {
       </Header>
       <Content style={{ padding: '20px' }}>
         <Table
-          dataSource={deliveries}
+          dataSource={Array.isArray(deliveries) ? deliveries : []}
           columns={columns}
           rowKey="id"
           pagination={{ pageSize: 10 }}
