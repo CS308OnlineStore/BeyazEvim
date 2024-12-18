@@ -3,6 +3,7 @@ package com.ardakkan.backend.controller;
 import com.ardakkan.backend.dto.OrderDTO;
 import com.ardakkan.backend.dto.OrderItemDTO;
 import com.ardakkan.backend.entity.Order;
+import com.ardakkan.backend.entity.OrderStatus;
 import com.ardakkan.backend.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -13,6 +14,7 @@ import org.springframework.http.HttpHeaders;
 
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/orders")
@@ -112,6 +114,44 @@ public class OrderController {
             return ResponseEntity.ok("Order has been successfully canceled and refund will be processed within 5-10 business days.");
         } catch (IllegalStateException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+    
+    @PutMapping("/{orderId}/status")
+    public ResponseEntity<?> updateOrderStatus(
+            @PathVariable Long orderId,
+            @RequestBody Map<String, String> request) {
+
+        // Request Body'den status bilgisini al
+        String status = request.get("status");
+        if (status == null || status.isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "error", "Status is required"
+            ));
+        }
+
+        try {
+            // Enum'a dönüştür
+            OrderStatus newStatus = OrderStatus.valueOf(status.toUpperCase());
+            Order updatedOrder = orderService.updateOrderStatus(orderId, newStatus);
+
+            return ResponseEntity.ok(Map.of(
+                    "message", "Order status updated successfully",
+                    "orderId", updatedOrder.getId(),
+                    "newStatus", updatedOrder.getStatus().toString()
+            ));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "error", "Invalid status value. Allowed values: CART, PURCHASED, SHIPPED, DELIVERED, RETURNED, CANCELED"
+            ));
+        } catch (IllegalStateException e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "error", e.getMessage()
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+                    "error", "An unexpected error occurred: " + e.getMessage()
+            ));
         }
     }
     

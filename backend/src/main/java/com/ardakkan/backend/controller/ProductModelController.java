@@ -24,8 +24,6 @@ public class ProductModelController {
     }
     
     
-    
-    
     // Toplu ProductModel ekleme
     @PostMapping("/bulk")
     public ResponseEntity<List<ProductModel>> saveAllProductModels(@RequestBody List<ProductModel> productModels) {
@@ -50,9 +48,9 @@ public class ProductModelController {
 
     // Tüm ProductModel'leri getir - Entity döner
     @GetMapping
-    public ResponseEntity<List<ProductModel>> getAllProductModels() {
-        List<ProductModel> productModels = productModelService.getAllProductModels();
-        return new ResponseEntity<>(productModels, HttpStatus.OK);
+    public ResponseEntity<List<ProductModelDTO>> getAllProductModels() {
+        List<ProductModelDTO> productModelsdto = productModelService.getAllProductModelsDTO();
+        return new ResponseEntity<>(productModelsdto, HttpStatus.OK);
     }
 
     // Belirli bir marka ile ProductModel'leri ara - DTO döner
