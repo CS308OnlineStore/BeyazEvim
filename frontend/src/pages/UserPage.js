@@ -18,6 +18,7 @@ const UserPage = () => {
   });
   const [pastOrders, setPastOrders] = useState([]);
   const [currentOrders, setCurrentOrders] = useState([]);
+  const [cargoOrders, setCargoOrders] = useState([]);
   const [isEditingAddress, setIsEditingAddress] = useState(false);
   const [newAddress, setNewAddress] = useState('');
   const [isEditingPhone, setIsEditingPhone] = useState(false);
@@ -50,13 +51,18 @@ const UserPage = () => {
 
         const past = ordersResponse.data.filter(order => 
           order.status === 'DELIVERED' ||
-          order.status === 'RETURNED'
+          order.status === 'RETURNED' ||
+          order.status === 'CANCELLED'
         );
         const current = ordersResponse.data.filter(order => 
-          order.status === 'PURCHASED' || 
+          order.status === 'PURCHASED' 
+        );
+
+        const cargo = ordersResponse.data.filter(order => 
           order.status === 'SHIPPED'
         );
 
+        setCargoOrders(cargo);
         setPastOrders(past);
         setCurrentOrders(current);
       } catch (err) {
@@ -147,6 +153,20 @@ const UserPage = () => {
     }
   };
 
+  const handleCancelOrder = async (orderId) => {
+    try {
+      const response = await axios.put(`/api/orders/orders/${orderId}/cancel`);
+      if (response.status === 200) {
+        alert('Order cancelled successfully.');
+        setCurrentOrders((prevOrders) => prevOrders.filter((order) => order.id !== orderId));
+      }
+    } catch (err) {
+      console.error('Error cancelling order:', err);
+      alert('Failed to cancel the order.');
+    }
+  };
+  
+
   const handleLogoutClick = () => {
     Cookies.remove('authToken');
     Cookies.remove('userId');
@@ -212,7 +232,6 @@ const UserPage = () => {
             </>
           )}
         </p>
-        <p><strong>Role:</strong> {userInfo.role}</p>
 
         <h2 style={sectionTitleStyle}>Active Orders</h2>
         {currentOrders.length > 0 ? (
@@ -229,10 +248,32 @@ const UserPage = () => {
                 ))}
               </ul>
               <p><strong>Total:</strong> ₺{order.totalPrice}</p>
+              <button onClick={() => handleCancelOrder(order.id)} style={cancelButtonStyle}>Cancel Order</button>
             </div>
           ))
         ) : (
           <p>No active orders.</p>
+        )}
+
+        <h2 style={sectionTitleStyle}>In-Transit Orders</h2>
+        {cargoOrders.length > 0 ? (
+          cargoOrders.map((order, index) => (
+            <div key={index} style={orderCardStyle}>
+              <p><strong>Order ID:</strong> {order.id}</p>
+              <p><strong>Status:</strong> {order.status}</p>
+              <p><strong>Items:</strong></p>
+              <ul>
+                {order.orderItems.map((item, idx) => (
+                  <li key={idx}>
+                    <p>{item.productModel.name} - {item.quantity} x ₺{item.unitPrice}</p>
+                  </li>
+                ))}
+              </ul>
+              <p><strong>Total:</strong> ₺{order.totalPrice}</p>
+            </div>
+          ))
+        ) : (
+          <p>No In-Transit orders.</p>
         )}
 
         <h2 style={sectionTitleStyle}>Past Orders</h2>
@@ -346,6 +387,15 @@ const logoTextStyle = {
   fontSize: '24px',
   fontWeight: 'bold',
   color: '#ff0000',
+};
+
+const cancelButtonStyle = {
+  backgroundColor: '#f44336',
+  color: 'white',
+  border: 'none',
+  padding: '10px 20px',
+  cursor: 'pointer',
+  marginTop: '10px',
 };
 
 export default UserPage;
