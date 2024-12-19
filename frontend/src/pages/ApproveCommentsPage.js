@@ -8,7 +8,6 @@ const { Title, Paragraph } = Typography;
 const ApproveCommentsPage = () => {
   const [unapprovedComments, setUnapprovedComments] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
   // Yorumları çek
   const fetchUnapprovedComments = () => {
@@ -30,10 +29,9 @@ const ApproveCommentsPage = () => {
     fetchUnapprovedComments();
   }, []);
 
-  // Yorum Onaylama
   const handleApproveComment = (commentId) => {
     axios
-      .put(`/api/comments/${commentId}`, { approved: true })
+      .patch(`/api/comments/${commentId}/approve`, null, { params:  { isApproved: true } })
       .then(() => {
         message.success('Comment approved successfully!');
         setUnapprovedComments((prev) =>
@@ -66,14 +64,6 @@ const ApproveCommentsPage = () => {
     return (
       <div style={{ textAlign: 'center', padding: '20px' }}>
         <Spin size="large" />
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div style={{ padding: '20px' }}>
-        <Alert message={error} type="error" showIcon />
       </div>
     );
   }

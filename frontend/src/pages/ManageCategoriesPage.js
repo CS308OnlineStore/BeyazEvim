@@ -23,14 +23,12 @@ const ManageCategoriesPage = () => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
-  // Alt kategori isimlerini geçici olarak saklamak için state
   const [subCategoryInputs, setSubCategoryInputs] = useState({});
 
   useEffect(() => {
     // Fetch all categories
     axios
-      .get('/api/categories')
+      .get('/api/categories/root')
       .then((response) => {
         setCategories(response.data);
         setLoading(false);
@@ -48,9 +46,8 @@ const ManageCategoriesPage = () => {
       return;
     }
 
-    // Add new category
     axios
-      .post('/api/categories', { categoryName })
+      .post('/api/categories', { categoryName, parentCategory:null })
       .then((response) => {
         message.success('Category added successfully!');
         setCategories((prevCategories) => [...prevCategories, response.data]);
@@ -63,7 +60,6 @@ const ManageCategoriesPage = () => {
   };
 
   const handleRemoveCategory = (categoryId) => {
-    // Remove category
     axios
       .delete(`/api/categories/${categoryId}`)
       .then(() => {
@@ -78,6 +74,25 @@ const ManageCategoriesPage = () => {
       });
   };
 
+  const handleRemoveSubCategory = (categoryId, subCategoryId) => {
+    axios
+      .delete(`/api/categories/${subCategoryId}`)
+      .then(() => {
+        message.success('SubCategory removed successfully!');
+        setCategories((prevCategories) =>
+          prevCategories.map((category) =>
+            category.id === categoryId
+              ? { ...category, subCategories: category.subCategories.filter(sub => sub.id !== subCategoryId) }
+              : category
+          )
+        );
+      })
+      .catch((error) => {
+        console.error('Error removing subcategory:', error);
+        message.error('Failed to remove subcategory.');
+      });
+  };
+
   const handleAddSubCategory = (categoryId) => {
     const subCategoryName = subCategoryInputs[categoryId];
     if (!subCategoryName || !subCategoryName.trim()) {
@@ -87,13 +102,14 @@ const ManageCategoriesPage = () => {
 
     // Add new subcategory
     axios
-      .post(`/api/categories/${categoryId}/subcategories`, { subcategoryName: subCategoryName })
+      .post('/api/categories', { categoryName: subCategoryName, parentCategory: {id:categoryId} })
       .then((response) => {
         message.success('Subcategory added successfully!');
+        response.data.subCategories = [];
         setCategories((prevCategories) =>
           prevCategories.map((category) =>
             category.id === categoryId
-              ? { ...category, subcategories: [...category.subcategories, response.data] }
+              ? { ...category, subCategories: [...category.subCategories, response.data] }
               : category
           )
         );
@@ -105,30 +121,7 @@ const ManageCategoriesPage = () => {
       });
   };
 
-  const handleRemoveSubCategory = (categoryId, subCategoryId) => {
-    // Remove subcategory
-    axios
-      .delete(`/api/categories/${categoryId}/subcategories/${subCategoryId}`)
-      .then(() => {
-        message.success('Subcategory removed successfully!');
-        setCategories((prevCategories) =>
-          prevCategories.map((category) =>
-            category.id === categoryId
-              ? {
-                  ...category,
-                  subcategories: category.subcategories.filter(
-                    (subcategory) => subcategory.id !== subCategoryId
-                  ),
-                }
-              : category
-          )
-        );
-      })
-      .catch((error) => {
-        console.error('Error removing subcategory:', error);
-        message.error('Failed to remove subcategory.');
-      });
-  };
+  
 
   const handleSubCategoryInputChange = (categoryId, value) => {
     setSubCategoryInputs((prevInputs) => ({ ...prevInputs, [categoryId]: value }));
@@ -194,18 +187,18 @@ const ManageCategoriesPage = () => {
                     </Popconfirm>
                   </Space>
                   {/* Alt Kategorileri Listeleme */}
-                  {category.subcategories && category.subcategories.length > 0 ? (
+                  {category.subCategories && category.subCategories.length > 0 ? (
                     <List
                       size="small"
                       bordered
-                      dataSource={category.subcategories}
-                      renderItem={(subcategory) => (
-                        <List.Item key={subcategory.id}>
+                      dataSource={category.subCategories}
+                      renderItem={(subCategory) => (
+                        <List.Item key={subCategory.id}>
                           <Space style={{ width: '100%', justifyContent: 'space-between' }}>
-                            {subcategory.subcategoryName}
+                            {subCategory.categoryName}
                             <Popconfirm
                               title="Are you sure to delete this subcategory?"
-                              onConfirm={() => handleRemoveSubCategory(category.id, subcategory.id)}
+                              onConfirm={() => handleRemoveSubCategory(category.id, subCategory.id)}
                               okText="Yes"
                               cancelText="No"
                             >

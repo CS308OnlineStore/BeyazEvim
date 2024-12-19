@@ -32,7 +32,7 @@ const ManageProductsPage = () => {
 
   // Kategorileri ve ürünleri çekme
   useEffect(() => {
-    const fetchCategories = axios.get('/api/categories');
+    const fetchCategories = axios.get('/api/categories/root');
     const fetchProducts = axios.get('/api/product-models');
 
     Promise.all([fetchCategories, fetchProducts])
@@ -53,7 +53,8 @@ const ManageProductsPage = () => {
     axios
       .get(`/api/categories`)
       .then((res) => {
-        setSubcategories(res.data);
+        const filteredRes = res.data.filter(item => item.id === value);
+        setSubcategories(filteredRes[0].subCategories);
         form.setFieldsValue({ subcategoryId: undefined });
       })
       .catch(() => {
@@ -68,7 +69,7 @@ const ManageProductsPage = () => {
       name: values.productName,
       description: values.productDescription,
       price: values.productPrice,
-      distributorInformation: 'Distributor info',
+      distributorInformation: values.distributorInformation,
       photoPath: '/images/default.jpg',
       category: { id: values.subcategoryId || values.categoryId },
     };
@@ -190,6 +191,15 @@ const ManageProductsPage = () => {
                 <InputNumber style={{ width: '100%' }} min={0} />
               </Form.Item>
 
+              {/* Ürün Distribütör İsmi */}
+              <Form.Item
+                name="distributorInformation"
+                label="Distributor Information"
+                rules={[{ required: true, message: 'Please enter the distributor' }]}
+              >
+                <Input.TextArea placeholder="Distributor Information" />
+              </Form.Item>
+
               {/* Ürün Stoğu */}
               <Form.Item
                 name="productStock"
@@ -232,7 +242,7 @@ const ManageProductsPage = () => {
                     title={product.name}
                     description={`Description: ${product.description} | Price: ₺${
                       product.discountedPrice || product.price
-                    } | Stock: ${product.stock}`}
+                    } | Stock: ${product.stockCount}`}
                   />
                 </List.Item>
               )}

@@ -283,7 +283,7 @@ const ProductPage = () => {
           comments.map((comment) => (
             <div key={comment.id} style={commentCardStyle}>
               <p>
-                <span style={userNameStyle}>User {comment.userId}:</span> {comment.text}
+                <span style={userNameStyle}>User {comment.user.id}:</span> {comment.text}
               </p>
               <p>Rating: {comment.rating} / 5</p>
               <p style={commentDateStyle}>
