@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Table, message, Layout, Typography, Spin, Alert, Select } from 'antd';
+import { Table, Button, message, Layout, Typography, Spin, Alert, Select } from 'antd';
+import { FileTextOutlined } from '@ant-design/icons';
 
 const { Header, Content } = Layout;
 const { Title } = Typography;
@@ -68,6 +69,22 @@ const DeliveryManagementPage = () => {
       });
   };
 
+  const handleGetInvoice = (orderId) => {
+    axios.get(`/api/invoices/order/${orderId}/pdf`, {
+      responseType: 'blob',
+    })
+         .then((response)=>{
+          message.success('Your invoice is ready!');
+          const fileURL = URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
+          window.open(fileURL, '_blank');
+
+         })
+         .catch((error) => {
+          console.error('Error getting invoice pdf:', error);
+          message.error('Error getting invoice.');
+        });
+  };
+
   const columns = [
     {
       title: 'Order ID',
@@ -118,17 +135,25 @@ const DeliveryManagementPage = () => {
         }
 
         return (
-          <Select
-            defaultValue={record.status}
-            style={{ width: 150 }}
-            onChange={(value) => handleUpdateStatus(record.id, value)}
-          >
-            {availableStatuses.map((status) => (
-              <Option key={status} value={status}>
-                {status}
-              </Option>
-            ))}
-          </Select>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Select
+              defaultValue={record.status}
+              style={{ width: 150 }}
+              onChange={(value) => handleUpdateStatus(record.id, value)}
+            >
+              {availableStatuses.map((status) => (
+                <Option key={status} value={status}>
+                  {status}
+                </Option>
+              ))}
+            </Select>
+            <Button
+              type="primary"
+              icon={<FileTextOutlined />}
+              onClick={() => handleGetInvoice(record.id)}
+            >
+            </Button>
+          </div>
         );
       },
     },

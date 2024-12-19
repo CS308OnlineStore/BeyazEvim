@@ -16,9 +16,10 @@ const UserPage = () => {
     phoneNumber: '',
     role: 'Unknown',
   });
-  const [pastOrders, setPastOrders] = useState([]);
+  const [deliveredOrders, setDeliveredOrders] = useState([]);
   const [currentOrders, setCurrentOrders] = useState([]);
   const [cargoOrders, setCargoOrders] = useState([]);
+  const [returnedOrders, setReturnedOrders] = useState([]);
   const [isEditingAddress, setIsEditingAddress] = useState(false);
   const [newAddress, setNewAddress] = useState('');
   const [isEditingPhone, setIsEditingPhone] = useState(false);
@@ -49,10 +50,8 @@ const UserPage = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
 
-        const past = ordersResponse.data.filter(order => 
-          order.status === 'DELIVERED' ||
-          order.status === 'RETURNED' ||
-          order.status === 'CANCELLED'
+        const delivered = ordersResponse.data.filter(order => 
+          order.status === 'DELIVERED'
         );
         const current = ordersResponse.data.filter(order => 
           order.status === 'PURCHASED' 
@@ -62,8 +61,14 @@ const UserPage = () => {
           order.status === 'SHIPPED'
         );
 
+        const returned = ordersResponse.data.filter(order => 
+          order.status === 'RETURNED' ||
+          order.status === 'CANCELLED'
+        );
+
+        setReturnedOrders(returned);
         setCargoOrders(cargo);
-        setPastOrders(past);
+        setDeliveredOrders(delivered);
         setCurrentOrders(current);
       } catch (err) {
         console.error('API Error:', err);
@@ -165,7 +170,26 @@ const UserPage = () => {
       alert('Failed to cancel the order.');
     }
   };
+
+  const handleGetInvoice = (orderId) => {
+    axios.get(`/api/invoices/order/${orderId}/pdf`, {
+      responseType: 'blob',
+    })
+         .then((response)=>{
+          //alert('Your invoice is ready!');
+          const fileURL = URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
+          window.open(fileURL, '_blank');
+
+         })
+         .catch((error) => {
+          console.error('Error getting invoice pdf:', error);
+          alert('Error getting invoice.');
+        });
+  };
   
+  const handleRefundOrder = (orderId) => {
+    // will be implemented later
+  }
 
   const handleLogoutClick = () => {
     Cookies.remove('authToken');
@@ -249,6 +273,7 @@ const UserPage = () => {
               </ul>
               <p><strong>Total:</strong> ₺{order.totalPrice}</p>
               <button onClick={() => handleCancelOrder(order.id)} style={cancelButtonStyle}>Cancel Order</button>
+              <button onClick={() => handleGetInvoice(order.id)} style={invoiceButtonStyle}>Invoice</button>
             </div>
           ))
         ) : (
@@ -270,15 +295,16 @@ const UserPage = () => {
                 ))}
               </ul>
               <p><strong>Total:</strong> ₺{order.totalPrice}</p>
+              <button onClick={() => handleGetInvoice(order.id)} style={invoiceButtonStyle}>Invoice</button>
             </div>
           ))
         ) : (
           <p>No In-Transit orders.</p>
         )}
 
-        <h2 style={sectionTitleStyle}>Past Orders</h2>
-        {pastOrders.length > 0 ? (
-          pastOrders.map((order, index) => (
+        <h2 style={sectionTitleStyle}>Delivered Orders</h2>
+        {deliveredOrders.length > 0 ? (
+          deliveredOrders.map((order, index) => (
             <div key={index} style={orderCardStyle}>
               <p><strong>Order ID:</strong> {order.id}</p>
               <p><strong>Status:</strong> {order.status}</p>
@@ -291,13 +317,36 @@ const UserPage = () => {
                 ))}
               </ul>
               <p><strong>Total:</strong> ₺{order.totalPrice}</p>
+              <button onClick={() => handleRefundOrder(order.id)} style={cancelButtonStyle}>Refund Order</button>
+              <button onClick={() => handleGetInvoice(order.id)} style={invoiceButtonStyle}>Invoice</button>
             </div>
           ))
         ) : (
           <p>No past orders.</p>
         )}
-      </div>
 
+        <h2 style={sectionTitleStyle}>Returned Orders</h2>
+        {returnedOrders.length > 0 ? (
+          returnedOrders.map((order, index) => (
+            <div key={index} style={orderCardStyle}>
+              <p><strong>Order ID:</strong> {order.id}</p>
+              <p><strong>Status:</strong> {order.status}</p>
+              <p><strong>Items:</strong></p>
+              <ul>
+                {order.orderItems.map((item, idx) => (
+                  <li key={idx}>
+                  <p>{item.productModel.name} - {item.quantity} x ₺{item.unitPrice}</p>
+                </li>
+                ))}
+              </ul>
+              <p><strong>Total:</strong> ₺{order.totalPrice}</p>
+              <button onClick={() => handleGetInvoice(order.id)} style={invoiceButtonStyle}>Invoice</button>
+            </div>
+          ))
+        ) : (
+          <p>No returned orders.</p>
+        )}
+      </div>
       <button onClick={handleLogoutClick} style={logoutButtonStyle}>Logout</button>
     </div>
   );
@@ -396,6 +445,16 @@ const cancelButtonStyle = {
   padding: '10px 20px',
   cursor: 'pointer',
   marginTop: '10px',
+};
+
+const invoiceButtonStyle = {
+  backgroundColor: '#4CAF50',
+  color: 'white',
+  border: 'none',
+  padding: '10px 15px',
+  margin: '10px 0',
+  borderRadius: '5px',
+  cursor: 'pointer',
 };
 
 export default UserPage;
