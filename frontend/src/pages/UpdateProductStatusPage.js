@@ -75,6 +75,30 @@ const UpdateProductStatusPage = () => {
     }
   };
 
+  const handleDecreaseStock = async () => {
+    try {
+      if (!productId) {
+        message.error('Please fetch a product first.');
+        return;
+      }
+
+      const { quantityToAdd } = await form.validateFields(['quantityToAdd']);
+
+      setLoading(true);
+
+      const response = await axios.post(`/api/products/${productId}/decrease-stock`, null, { params: {quantityToRemove: quantityToAdd }})
+
+      setCurrentStock(response.data.updatedStock); 
+      message.success(`Product stock decreased successfully!`);
+      form.resetFields(['quantity']);
+    } catch (error) {
+      console.error(`Error updating stock: `, error);
+      message.error(`Failed to update product stock.`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <Layout>
       <Header>
@@ -133,6 +157,16 @@ const UpdateProductStatusPage = () => {
               style={{ marginRight: '10px' }}
             >
               Increase Stock
+            </Button>
+          </Form.Item>
+          <Form.Item>
+            <Button
+              type="primary"
+              onClick={() => handleDecreaseStock()}
+              loading={loading}
+              style={{ marginRight: '10px' }}
+            >
+              Decrease Stock
             </Button>
           </Form.Item>
         </Form>
