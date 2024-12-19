@@ -145,7 +145,8 @@ const MainPage = () => {
         <Menu mode="inline">
           {categories.map((category) => (
             <Menu.SubMenu key={category.id} title={category.categoryName}>
-              {category.subCategories.map((subcategory) => (
+              {category.subCategories.filter((subcategory) => subcategory.active)
+              .map((subcategory) => (
                 <Menu.Item 
                   key={subcategory.id} 
                   onClick={() => navigate(`/category/${subcategory.id}`)}
