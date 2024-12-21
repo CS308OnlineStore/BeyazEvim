@@ -168,7 +168,13 @@ const MainPage = () => {
             prefix={<SearchOutlined />}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            style={{ width: '40%' }}
+            style={{
+              width: '50%', // Enini kontrol eder
+              height: '40px', // Boyunu kontrol eder
+              marginTop: '5px', // Üstten boşluk
+              marginBottom: '5px', // Alttan boşluk
+              borderRadius: '5px', // Kenar yuvarlatma (isteğe bağlı)
+            }}
             onPressEnter={handleSearchSubmit}
           />
           <div>
