@@ -6,6 +6,7 @@ import com.ardakkan.backend.dto.OrderItemDTO;
 import com.ardakkan.backend.dto.ProductModelDTO;
 import com.ardakkan.backend.entity.*;
 import com.ardakkan.backend.repo.InvoiceRepository;
+import com.ardakkan.backend.repo.OrderItemRepository;
 import com.ardakkan.backend.repo.OrderRepository;
 import com.ardakkan.backend.repo.ProductInstanceRepository;
 import com.ardakkan.backend.repo.UserRepository;
@@ -27,6 +28,7 @@ import java.util.stream.Collectors;
 public class OrderService {
 
     private final OrderRepository orderRepository;
+    private final OrderItemRepository orderItemRepository;
     private final UserRepository userRepository;
     private final InvoiceRepository invoiceRepository;
     private final ProductInstanceRepository productInstanceRepository;
@@ -34,13 +36,15 @@ public class OrderService {
     private final InvoiceService invoiceService;
     private final MailService MailService;
     private final NotificationService notificationService;
+    
     //private final Invoice invoice;
 
     @Autowired
     public OrderService(OrderRepository orderRepository, UserRepository userRepository, 
     		InvoiceRepository invoiceRepository, ProductInstanceRepository productInstanceRepository, 
     		ProductModelService productModelService, InvoiceService invoiceService,
-    		MailService MailService, NotificationService notificationService) {
+    		MailService MailService, NotificationService notificationService,
+    		OrderItemRepository orderItemRepository) {
         this.orderRepository = orderRepository;
         this.userRepository = userRepository;
         this.invoiceRepository = invoiceRepository;
@@ -49,6 +53,7 @@ public class OrderService {
         this.invoiceService = invoiceService;
         this.MailService=MailService;
         this.notificationService=notificationService;
+        this.orderItemRepository=orderItemRepository;
     }
 
     // Sipariş oluşturma
@@ -264,6 +269,59 @@ public class OrderService {
     }
     
     
+    
+    
+    @Transactional
+    public void refundOrderItemProduct(Long orderId, Long productModelId) {
+        // Siparişi al
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new IllegalStateException("Order not found: " + orderId));
+
+        // Sadece "DELIVERED" durumundaki siparişler iade edilebilir
+        if (!order.getStatus().equals(OrderStatus.DELIVERED)) {
+            throw new IllegalStateException("Only delivered orders can be refunded.");
+        }
+
+        // Belirtilen ProductModelId'ye sahip OrderItem'ı bul
+        OrderItem orderItem = orderItemRepository.findByOrderAndProductModelId(order, productModelId)
+                .orElseThrow(() -> new IllegalStateException("OrderItem with productModelId not found in this order: " + productModelId));
+
+        // Satın alınan ProductInstance'lardan iade edilecek bir tanesini seç
+        if (orderItem.getProductInstanceIds().isEmpty()) {
+            throw new IllegalStateException("No products available to refund in this OrderItem.");
+        }
+
+        // İlk ProductInstance'ı purchased listeden çıkar
+        Long productInstanceId = orderItem.getProductInstanceIds().remove(0);
+
+        // ProductInstance'ı IN_STOCK durumuna güncelle
+        ProductInstance productInstance = productInstanceRepository.findById(productInstanceId)
+                .orElseThrow(() -> new IllegalStateException("ProductInstance not found: " + productInstanceId));
+        productInstance.setStatus(ProductInstanceStatus.IN_STOCK);
+        productInstanceRepository.save(productInstance);
+
+        // İade edilen ürün ID'sini returned listesine ekle
+        orderItem.getReturnedProductInstanceIds().add(productInstanceId);
+
+        // OrderItem miktarını azalt
+        orderItem.setQuantity(orderItem.getQuantity() - 1);
+
+        // Siparişin toplam fiyatını güncelle
+        double refundAmount = orderItem.getUnitPrice();
+        order.setTotalPrice(order.getTotalPrice() - refundAmount);
+
+        // Güncellemeleri kaydet
+        orderItemRepository.save(orderItem);
+        orderRepository.save(order);
+
+        // Kullanıcıya bildirim gönder
+        notificationService.notifyRefundProcessed(order.getUser().getEmail(), order.getId(), refundAmount);
+    }
+
+
+    
+    
+    
     public Order updateOrderStatus(Long orderId, OrderStatus newStatus) {
         // Siparişi veritabanından bul
         Order order = orderRepository.findById(orderId)
@@ -294,7 +352,7 @@ public class OrderService {
             case PURCHASED:
                 return newStatus == OrderStatus.SHIPPED || newStatus == OrderStatus.CANCELED;
             case SHIPPED:
-                return newStatus == OrderStatus.DELIVERED || newStatus == OrderStatus.RETURNED;
+                return newStatus == OrderStatus.DELIVERED;
             case DELIVERED:
                 return newStatus == OrderStatus.RETURNED;
             default:

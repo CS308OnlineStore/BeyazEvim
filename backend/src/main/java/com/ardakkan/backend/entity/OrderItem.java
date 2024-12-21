@@ -43,6 +43,12 @@ public class OrderItem {
     @CollectionTable(name = "order_item_product_instance", joinColumns = @JoinColumn(name = "order_item_id"))
     @Column(name = "product_instance_id")
     private List<Long> productInstanceIds = new ArrayList<>(); 
+    
+    
+    @ElementCollection
+    @CollectionTable(name = "order_item_returned_instances", joinColumns = @JoinColumn(name = "order_item_id"))
+    @Column(name = "product_instance_id")
+    private List<Long> returnedProductInstanceIds = new ArrayList<>();
 
     // Getter ve Setter'lar
     public Long getId() {
@@ -92,4 +98,15 @@ public class OrderItem {
     public void setProductInstanceIds(List<Long> productInstanceIds) {
         this.productInstanceIds = productInstanceIds;
     }
+
+	public List<Long> getReturnedProductInstanceIds() {
+		return returnedProductInstanceIds;
+	}
+
+	public void setReturnedProductInstanceIds(List<Long> returnedProductInstanceIds) {
+		this.returnedProductInstanceIds = returnedProductInstanceIds;
+	}
+    
+    
+    
 }

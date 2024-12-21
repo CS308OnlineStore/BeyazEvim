@@ -1,10 +1,16 @@
 package com.ardakkan.backend.controller;
 
 import com.ardakkan.backend.dto.OrderDTO;
+
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
+
 import com.ardakkan.backend.dto.OrderItemDTO;
 import com.ardakkan.backend.entity.Order;
 import com.ardakkan.backend.entity.OrderStatus;
 import com.ardakkan.backend.service.OrderService;
+import com.ardakkan.backend.service.RefundRequestService;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,10 +27,12 @@ import java.util.Map;
 public class OrderController {
 
     private final OrderService orderService;
+    private final RefundRequestService refundRequestService;
 
     @Autowired
-    public OrderController(OrderService orderService) {
+    public OrderController(OrderService orderService, RefundRequestService refundRequestService) {
         this.orderService = orderService;
+        this.refundRequestService=refundRequestService;
     }
 
     // Yeni sipariş oluşturma
@@ -117,6 +125,17 @@ public class OrderController {
         }
     }
     
+    
+    @PutMapping("/{orderId}/refund/{productModelId}")
+    public ResponseEntity<String> refundOrder(@PathVariable Long orderId, @PathVariable Long productModelId) {
+        try {
+            orderService.refundOrderItemProduct(orderId,productModelId);
+            return ResponseEntity.ok("Refund processed successfully.");
+        } catch (IllegalStateException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+    
     @PutMapping("/{orderId}/status")
     public ResponseEntity<?> updateOrderStatus(
             @PathVariable Long orderId,
@@ -155,4 +174,17 @@ public class OrderController {
         }
     }
     
+    
+    @PostMapping("/{orderId}/refund-request")
+    public ResponseEntity<String> createRefundRequest(
+            @PathVariable Long orderId,
+            @RequestParam Long productModelId) {
+
+        refundRequestService.createRefundRequest(orderId, productModelId);
+        return ResponseEntity.ok("Refund request created and awaiting approval.");
+    }
+    
+   
+     
+
 }
