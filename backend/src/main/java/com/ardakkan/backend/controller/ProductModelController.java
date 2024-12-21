@@ -165,4 +165,14 @@ public class ProductModelController {
     }
     
     
+    @PutMapping("/product/{productModelId}/price")
+    public ResponseEntity<String> updateProductPrice(
+            @PathVariable Long productModelId,
+            @RequestParam Double newPrice) {
+        productModelService.updateProductPrice(productModelId, newPrice);
+        return ResponseEntity.ok("Product price updated, and associated cart orders adjusted successfully.");
+    }
+
+    
+    
 }

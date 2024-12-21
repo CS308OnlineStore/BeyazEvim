@@ -100,7 +100,7 @@ public class OrderItemService {
 
     private void addProductInstanceToOrderItem(OrderItem orderItem, ProductInstance productInstance, Order order) {
         Long productInstanceId = productInstance.getId();
-        Double productPrice = productInstance.getProductModel().getPrice();
+        Double productPrice = productInstance.getProductModel().getDiscountedPrice();
 
         orderItem.setQuantity(orderItem.getQuantity() + 1);
         orderItem.getProductInstanceIds().add(productInstanceId);
@@ -113,7 +113,7 @@ public class OrderItemService {
 
     private OrderItem createNewOrderItem(Order order, Long productModelId, ProductInstance productInstance) {
         Long productInstanceId = productInstance.getId();
-        Double productPrice = productInstance.getProductModel().getPrice();
+        Double productPrice = productInstance.getProductModel().getDiscountedPrice();
 
         OrderItem orderItem = new OrderItem();
         orderItem.setOrder(order);
@@ -234,6 +234,32 @@ public class OrderItemService {
 
         return orderItemDTO;
     }
+    
+    
+    @Transactional
+    public void updateOrderAndOrderItemPrices(Long productModelId, Double newPrice) {
+        // Sadece IN_CART durumundaki siparişlere ait OrderItem'ları getir
+        List<OrderItem> orderItems = orderItemRepository.findByProductModelIdAndInCartOrders(productModelId);
+
+        for (OrderItem orderItem : orderItems) {
+            Order order = orderItem.getOrder();
+            Double oldPrice = orderItem.getUnitPrice();
+
+            // Fiyat farkını hesapla ve OrderItem fiyatını güncelle
+            Double priceDifference = newPrice - oldPrice;
+            orderItem.setUnitPrice(newPrice);
+
+            // Order toplam fiyatını güncelle
+            Double totalPrice = newPrice * orderItem.getQuantity();
+            order.setTotalPrice(totalPrice);
+
+            // Değişiklikleri kaydet
+            orderItemRepository.save(orderItem);
+            orderRepository.save(order);
+        }
+    }
+
+
     
     // ProductModel -> ProductModelDTO dönüşümü
     private ProductModelDTO convertToDTO(ProductModel productModel) {

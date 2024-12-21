@@ -21,5 +21,7 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
     @Query("SELECT oi FROM OrderItem oi JOIN oi.productInstanceIds pi WHERE pi = :productInstanceId")
     List<OrderItem> findByProductInstanceId(@Param("productInstanceId") Long productInstanceId);
 
-    
+    @Query("SELECT oi FROM OrderItem oi WHERE oi.productModelId = :productModelId AND oi.order.status = 'IN_CART'")
+    List<OrderItem> findByProductModelIdAndInCartOrders(@Param("productModelId") Long productModelId);
+
    }
