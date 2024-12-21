@@ -141,7 +141,6 @@ const MainPage = () => {
             alt="BeyazEvim Logo" 
             style={{ width: '150px', height: '150px' }} 
           />
-          <Title level={3}>BeyazEvim</Title>
         </div>
         <Menu mode="inline">
           {categories.map((category) => (
