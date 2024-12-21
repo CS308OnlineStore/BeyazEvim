@@ -12,6 +12,7 @@ import SearchPage from './pages/SearchPage';
 import ProductOwner from './pages/ProductOwner.js';
 import ManageProductsPage from './pages/ManageProductsPage';
 import Wishlist from './pages/Whislist.js';
+import SalesManager from './pages/SalesManager.js';
 
 const App = () => {
   return (
@@ -28,6 +29,7 @@ const App = () => {
         <Route path="/product-owner" element={<ProductOwner />} />
         <Route path="/manage-products" element={<ManageProductsPage />} />
         <Route path="/wishlist" element={<Wishlist />} />
+        <Route path="/sales-manager" element={<SalesManager />} />
       </Routes>
     </Router>
   );

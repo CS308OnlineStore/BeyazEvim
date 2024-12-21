@@ -5,15 +5,16 @@ import { Button, Space } from 'antd';
 const SignInSignUp = () => {
   const navigate = useNavigate();
 
-  
-
   const handleNavigate = (path) => {
     path === 'signin' ? navigate('/signin') : navigate('/signup');
   };
 
-
   const handleProductOwnerNavigate = () => {
     navigate('/product-owner');
+  };
+
+  const handleSalesManagerNavigate = () => {
+    navigate('/sales-manager');
   };
 
   return (
@@ -27,6 +28,9 @@ const SignInSignUp = () => {
         </Button>
         <Button type="link" block onClick={handleProductOwnerNavigate}>
           Go to Product Owner Page
+        </Button>
+        <Button type="link" block onClick={handleSalesManagerNavigate}>
+          Go to Sales Manager Page
         </Button>
       </Space>
     </div>
