@@ -98,6 +98,47 @@ const UserPage = () => {
     form.setFieldsValue({ [field]: userInfo[field] });
   };
 
+  const handleCancelOrder = async (orderId) => {
+    Modal.confirm({
+      title: 'Are you sure you want to cancel this order?',
+      icon: <ExclamationCircleOutlined />,
+      onOk: async () => {
+        try {
+          const token = Cookies.get('authToken');
+          const response = await axios.put(`/api/orders/${orderId}/cancel`, {}, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          if (response.status === 200) {
+            message.success('Order cancelled successfully.');
+            setOrders((prevOrders) => ({
+              ...prevOrders,
+              current: prevOrders.current.filter((order) => order.id !== orderId),
+            }));
+          }
+        } catch (err) {
+          console.error('Error cancelling order:', err);
+          message.error('Failed to cancel the order.');
+        }
+      },
+    });
+  };
+  
+  const handleGetInvoice = (orderId) => {
+    axios
+      .get(`/api/invoices/order/${orderId}/pdf`, { responseType: 'blob' })
+      .then((response) => {
+        const fileURL = URL.createObjectURL(
+          new Blob([response.data], { type: 'application/pdf' })
+        );
+        window.open(fileURL, '_blank');
+      })
+      .catch((error) => {
+        console.error('Error getting invoice PDF:', error);
+        message.error('Error getting invoice.');
+      });
+  };
+  
+
   const handleSave = async (field) => {
     try {
       const token = Cookies.get('authToken');
