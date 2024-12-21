@@ -14,7 +14,7 @@ const SignInSignUp = () => {
   };
 
   const handleSalesManagerNavigate = () => {
-    navigate('/sales-manager');
+    navigate('/sales-manager'); // salesmanager page e aktar
   };
 
   return (
