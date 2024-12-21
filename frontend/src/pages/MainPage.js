@@ -168,7 +168,7 @@ const MainPage = () => {
             prefix={<SearchOutlined />}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            style={{ width: '50%' }}
+            style={{ width: '40%' }}
             onPressEnter={handleSearchSubmit}
           />
           <div>
