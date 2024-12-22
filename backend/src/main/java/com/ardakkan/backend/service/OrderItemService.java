@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import com.ardakkan.backend.entity.OrderItem;
@@ -36,7 +37,7 @@ public class OrderItemService {
     public OrderItemService(OrderItemRepository orderItemRepository, 
                             OrderRepository orderRepository, 
                             ProductInstanceRepository productInstanceRepository,
-                            ProductModelRepository productModelRepository, ProductModelService productModelService) {
+                            ProductModelRepository productModelRepository, @Lazy ProductModelService productModelService) {
         this.orderItemRepository = orderItemRepository;
         this.orderRepository = orderRepository;
         this.productInstanceRepository = productInstanceRepository;

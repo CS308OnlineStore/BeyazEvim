@@ -12,6 +12,7 @@ import com.ardakkan.backend.repo.ProductInstanceRepository;
 import com.ardakkan.backend.repo.UserRepository;
 import jakarta.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -42,7 +43,7 @@ public class OrderService {
     @Autowired
     public OrderService(OrderRepository orderRepository, UserRepository userRepository, 
     		InvoiceRepository invoiceRepository, ProductInstanceRepository productInstanceRepository, 
-    		ProductModelService productModelService, InvoiceService invoiceService,
+    		@Lazy ProductModelService productModelService, InvoiceService invoiceService,
     		MailService MailService, NotificationService notificationService,
     		OrderItemRepository orderItemRepository) {
         this.orderRepository = orderRepository;
