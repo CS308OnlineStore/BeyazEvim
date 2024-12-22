@@ -32,16 +32,18 @@ public class ProductModelService {
     private final NotificationService NotificationService;
     private final OrderItemRepository orderItemRepository;
     private final OrderRepository orderRepository;
+    private final OrderItemService orderItemService;
 
     @Autowired
     public ProductModelService(ProductModelRepository productModelRepository,
                                ProductInstanceRepository productInstanceRepository,NotificationService NotificationService,OrderItemRepository orderItemRepository,
-                               OrderRepository orderRepository) {
+                               OrderRepository orderRepository, OrderItemService orderItemService) {
         this.productModelRepository = productModelRepository;
         this.productInstanceRepository = productInstanceRepository;
 		this.NotificationService = NotificationService;
 		this.orderItemRepository= orderItemRepository;
 		this.orderRepository= orderRepository;
+		this.orderItemService=orderItemService;
 		
     }
 
@@ -62,6 +64,8 @@ public class ProductModelService {
             existingProductModel.setCategory(productModelDetails.getCategory());
             existingProductModel.setPopularity(productModelDetails.getPopularity());
             existingProductModel.setRating(productModelDetails.getRating());
+            existingProductModel.setActive(productModelDetails.isActive());
+            existingProductModel.setDiscount(productModelDetails.getDiscount());
             return productModelRepository.save(existingProductModel);
         } else {
             throw new RuntimeException("ProductModel not found with id: " + id);
@@ -302,6 +306,7 @@ public class ProductModelService {
 
         // İndirimi ayarla
         productModel.setDiscount(discountRate);
+        updateProductPrice(productId,productModel.getDiscountedPrice());
 
         // Güncellenmiş ürünü kaydet
         productModelRepository.save(productModel);
@@ -310,6 +315,19 @@ public class ProductModelService {
         NotificationService.notifyUsersAboutDiscount(productId);
         
     }
+    
+    @Transactional
+    public void updateProductPrice(Long productModelId, Double newPrice) {
+        // Ürünü bul ve fiyatını güncelle
+        ProductModel productModel = productModelRepository.findById(productModelId)
+                .orElseThrow(() -> new IllegalStateException("ProductModel bulunamadı: " + productModelId));
+        productModel.setPrice(newPrice);
+        productModelRepository.save(productModel);
+
+        // Sadece IN_CART durumundaki siparişler için fiyatları güncelle
+        orderItemService.updateOrderAndOrderItemPrices(productModelId, newPrice);
+    }
+
 
     public ProductModelDTO convertToDTO(ProductModel productModel) {
         ProductModelDTO dto = new ProductModelDTO();
