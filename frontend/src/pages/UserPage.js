@@ -29,7 +29,7 @@ import newLogo from '../assets/BeyazEvim_new_logo.jpeg';
 const { Header, Content, Sider } = Layout;
 const { Title, Text } = Typography;
 const { confirm } = Modal;
-const { TabPane } = Tabs;  //see in the tab section
+const { TabPane } = Tabs;  
 
 const UserPage = () => {
   const navigate = useNavigate();
