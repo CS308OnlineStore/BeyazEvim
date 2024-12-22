@@ -199,7 +199,7 @@ const UserPage = () => {
       <Layout>
         <Sider width={250} theme="light">
           <div style={{ padding: 20, textAlign: 'center' }}>
-            <Avatar src={newLogo} size={80} />
+            <Avatar src={newLogo} size={70} />
             <Title level={4}>
               {userInfo.firstName} {userInfo.lastName}
             </Title>
