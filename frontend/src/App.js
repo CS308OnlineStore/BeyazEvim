@@ -13,6 +13,11 @@ import ProductOwner from './pages/ProductOwner.js';
 import ManageProductsPage from './pages/ManageProductsPage';
 import Wishlist from './pages/Whislist.js';
 import SalesManager from './pages/SalesManager.js';
+import RefundRequestsPage from './pages/RefundRequestsPage';
+import SetRefundRequestPage from './pages/SetRefundRequestPage';
+import RevenueAnalysisPage from './pages/RevenueAnalysisPage';
+import ViewInvoicesPage from './pages/ViewInvoicesPage';
+import SetDiscountPage from './pages/SetDiscountPage';
 
 const App = () => {
   return (
@@ -30,6 +35,11 @@ const App = () => {
         <Route path="/manage-products" element={<ManageProductsPage />} />
         <Route path="/wishlist" element={<Wishlist />} />
         <Route path="/sales-manager" element={<SalesManager />} />
+        <Route path="/refundrequests" element={<RefundRequestsPage />} />
+        <Route path="/setrefundrequest" element={<SetRefundRequestPage />} />
+        <Route path="/revenueanalysis" element={<RevenueAnalysisPage />} />
+        <Route path="/viewinvoices" element={<ViewInvoicesPage />} />
+        <Route path="/setdiscount" element={<SetDiscountPage />} />
       </Routes>
     </Router>
   );
