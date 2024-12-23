@@ -4,7 +4,11 @@
   "private": true,
   "dependencies": {
     "@ant-design/cssinjs": "^1.22.1",
+<<<<<<< HEAD
     "@ant-design/icons": "^5.5.2",
+=======
+    "@ant-design/plots": "^2.3.2",
+>>>>>>> 2c833e76 (salaes manager fonkdiyonları eklendi)
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
