@@ -210,6 +210,11 @@ const UserPage = () => {
     window.location.reload();
   };
 
+  // Function to handle logo click
+  const handleLogoClick = () => {
+    navigate('/'); // Navigate to the main page
+  };
+
   if (loading) {
     return (
       <Layout style={{ minHeight: '100vh' }}>
@@ -236,7 +241,14 @@ const UserPage = () => {
   return (
     <Layout>
       <Sider width={250} theme="light">
-        <div style={{ padding: 20, textAlign: 'center' }}>
+        <div
+          style={{
+            padding: 20,
+            textAlign: 'center',
+            cursor: 'pointer', // Change cursor to pointer
+          }}
+          onClick={handleLogoClick} // Add onClick handler
+        >
           <Avatar src={newLogo} size={70} />
           <Title level={4}>
             {userInfo.firstName} {userInfo.lastName}
