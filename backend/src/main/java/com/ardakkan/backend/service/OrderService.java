@@ -5,6 +5,14 @@ import com.ardakkan.backend.dto.OrderDTO;
 import com.ardakkan.backend.dto.OrderItemDTO;
 import com.ardakkan.backend.dto.ProductModelDTO;
 import com.ardakkan.backend.entity.*;
+import com.ardakkan.backend.repo.*;
+import jakarta.mail.MessagingException;
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.ChartUtils;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.data.category.CategoryDataset;
+import org.jfree.data.category.DefaultCategoryDataset;
 import com.ardakkan.backend.repo.InvoiceRepository;
 import com.ardakkan.backend.repo.OrderItemRepository;
 import com.ardakkan.backend.repo.OrderRepository;
@@ -18,16 +26,19 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.*;
 
 @Service
 @Transactional
 public class OrderService {
 
+    private final RefundRequestRepository refundRequestRepository;
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
     private final UserRepository userRepository;
@@ -45,7 +56,7 @@ public class OrderService {
     		InvoiceRepository invoiceRepository, ProductInstanceRepository productInstanceRepository, 
     		@Lazy ProductModelService productModelService, InvoiceService invoiceService,
     		MailService MailService, NotificationService notificationService,
-    		OrderItemRepository orderItemRepository) {
+    		OrderItemRepository orderItemRepository, RefundRequestRepository refundRequestRepository) {
         this.orderRepository = orderRepository;
         this.userRepository = userRepository;
         this.invoiceRepository = invoiceRepository;
@@ -55,6 +66,7 @@ public class OrderService {
         this.MailService=MailService;
         this.notificationService=notificationService;
         this.orderItemRepository=orderItemRepository;
+        this.refundRequestRepository = refundRequestRepository;
     }
 
     // Sipariş oluşturma
@@ -67,6 +79,77 @@ public class OrderService {
         }
 
         return orderRepository.save(order);
+    }
+
+    public byte[] generateRevenueChart(Date startDate, Date endDate) {
+        List<Order> orders = orderRepository.findByOrderDateBetween(startDate, endDate);
+
+        Map<Date, Double> dailyPurchased = new TreeMap<>();
+        Map<Date, Double> dailyCanceled = new TreeMap<>();
+        Map<Date, Double> dailyReturned = new TreeMap<>();
+
+        // Calculate daily amounts
+        for (Order order : orders) {
+            Date orderDate = order.getOrderDate();
+
+            if (order.getStatus() == OrderStatus.PURCHASED) {
+                dailyPurchased.put(orderDate, dailyPurchased.getOrDefault(orderDate, 0.0) + order.getTotalPrice());
+            } else if (order.getStatus() == OrderStatus.CANCELED) {
+                dailyCanceled.put(orderDate, dailyCanceled.getOrDefault(orderDate, 0.0) + order.getTotalPrice());
+            } else if (order.getStatus() == OrderStatus.RETURNED) {
+                dailyReturned.put(orderDate, dailyReturned.getOrDefault(orderDate, 0.0) + order.getTotalPrice());
+            }
+        }
+
+        // Create datasets
+        DefaultCategoryDataset dataset = new DefaultCategoryDataset();
+        dailyPurchased.forEach((date, amount) -> dataset.addValue(amount, "Purchased", date.toString()));
+        dailyCanceled.forEach((date, amount) -> dataset.addValue(amount, "Canceled", date.toString()));
+        dailyReturned.forEach((date, amount) -> dataset.addValue(amount, "Returned", date.toString()));
+
+        // Generate the chart
+        JFreeChart chart = ChartFactory.createBarChart(
+                "Revenue Chart",
+                "Date",
+                "Amount",
+                dataset,
+                PlotOrientation.VERTICAL,
+                true,
+                true,
+                false
+        );
+
+        try (ByteArrayOutputStream chartOutputStream = new ByteArrayOutputStream()) {
+            ChartUtils.writeChartAsPNG(chartOutputStream, chart, 800, 600);
+            return chartOutputStream.toByteArray();
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new RuntimeException("Error generating revenue chart", e);
+        }
+    }
+
+    public double calculateRevenueAndProfit(Date startDate, Date endDate) {
+        List<Order> orders = orderRepository.findByOrderDateBetween(startDate, endDate);
+
+        // Calculate revenue
+        double purchasedRevenue = orders.stream()
+                .filter(order -> order.getStatus() == OrderStatus.PURCHASED)
+                .mapToDouble(Order::getTotalPrice)
+                .sum();
+
+        // Subtract canceled and returned amounts
+        double canceledAmount = orders.stream()
+                .filter(order -> order.getStatus() == OrderStatus.CANCELED)
+                .mapToDouble(Order::getTotalPrice)
+                .sum();
+
+        double returnedAmount = orders.stream()
+                .filter(order -> order.getStatus() == OrderStatus.RETURNED)
+                .mapToDouble(Order::getTotalPrice)
+                .sum();
+
+        // Final revenue calculation
+        return purchasedRevenue - (canceledAmount + returnedAmount);
     }
 
     // ID ile siparişi bulma - DTO döndürür
