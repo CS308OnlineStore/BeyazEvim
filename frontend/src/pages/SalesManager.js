@@ -6,6 +6,11 @@ import {
   LineChartOutlined,
   UndoOutlined,
 } from '@ant-design/icons';
+import SetDiscountPage from './SetDiscountPage';
+import ViewInvoicesPage from './ViewInvoicesPage';
+import RevenueAnalysisPage from './RevenueAnalysisPage';
+import RefundRequestPage from './RefundRequestsPage';
+
 
 const { Header, Sider, Content } = Layout;
 const { Title } = Typography;
@@ -19,76 +24,18 @@ const SalesManager = () => {
   const toggleCollapsed = () => setCollapsed(!collapsed);
 
   // Dynamic content rendering based on selected menu
+  // Dynamic content rendering
   const renderContent = () => {
     switch (currentPage) {
       case 'setDiscount':
-        return (
-          <Form form={form} layout="vertical" style={{ maxWidth: '500px', margin: '0 auto' }}>
-            <Title level={3}>Set Discount</Title>
-            <Form.Item
-              name="product"
-              label="Select Product"
-              rules={[{ required: true, message: 'Please select a product!' }]}
-            >
-              <Select placeholder="Select a product">
-                <Option value="product1">Product 1</Option>
-                <Option value="product2">Product 2</Option>
-                <Option value="product3">Product 3</Option>
-              </Select>
-            </Form.Item>
-            <Form.Item
-              name="discount"
-              label="Discount Percentage"
-              rules={[{ required: true, message: 'Please enter a discount percentage!' }]}
-            >
-              <Input type="number" placeholder="Enter discount percentage" />
-            </Form.Item>
-            <Button type="primary" htmlType="submit">
-              Apply Discount
-            </Button>
-          </Form>
-        );
+        return <SetDiscountPage />;
       case 'viewInvoices':
-        return (
-          <>
-            <Title level={3}>View Invoices</Title>
-            <Table
-              dataSource={[
-                { key: 1, invoiceNumber: 'INV001', amount: '$500', status: 'Paid' },
-                { key: 2, invoiceNumber: 'INV002', amount: '$300', status: 'Pending' },
-              ]}
-              columns={[
-                { title: 'Invoice Number', dataIndex: 'invoiceNumber', key: 'invoiceNumber' },
-                { title: 'Amount', dataIndex: 'amount', key: 'amount' },
-                { title: 'Status', dataIndex: 'status', key: 'status' },
-              ]}
-            />
-          </>
-        );
+        return <ViewInvoicesPage />; // Entegre edilen sayfa
       case 'revenueAnalysis':
-        return (
-          <div>
-            <Title level={3}>Revenue Analysis</Title>
-            <p>Graph or analysis data can be added here.</p>
-          </div>
-        );
+        return <RevenueAnalysisPage />;
       case 'refundRequest':
-        return (
-          <div>
-            <Title level={3}>Refund Requests</Title>
-            <Table
-              dataSource={[
-                { key: 1, orderId: 'ORD001', amount: '$100', reason: 'Defective product' },
-                { key: 2, orderId: 'ORD002', amount: '$50', reason: 'Customer request' },
-              ]}
-              columns={[
-                { title: 'Order ID', dataIndex: 'orderId', key: 'orderId' },
-                { title: 'Amount', dataIndex: 'amount', key: 'amount' },
-                { title: 'Reason', dataIndex: 'reason', key: 'reason' },
-              ]}
-            />
-          </div>
-        );
+        return <RefundRequestPage/>;
+      
       default:
         return null;
     }
