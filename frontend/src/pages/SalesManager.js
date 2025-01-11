@@ -10,6 +10,7 @@ import SetDiscountPage from './SetDiscountPage';
 import ViewInvoicesPage from './ViewInvoicesPage';
 import RevenueAnalysisPage from './RevenueAnalysisPage';
 import RefundRequestPage from './RefundRequestsPage';
+import UpdateProductStatusPage from './UpdateProductStatusPage';
 
 
 const { Header, Sider, Content } = Layout;
@@ -35,6 +36,8 @@ const SalesManager = () => {
         return <RevenueAnalysisPage />;
       case 'refundRequest':
         return <RefundRequestPage/>;
+      case 'productStatus':
+        return <UpdateProductStatusPage/>;
       
       default:
         return null;
@@ -65,6 +68,9 @@ const SalesManager = () => {
           </Menu.Item>
           <Menu.Item key="refundRequest" icon={<UndoOutlined />}>
             Refund Requests
+          </Menu.Item>
+          <Menu.Item key="productStatus" icon={<SettingOutlined />}>
+            Update Product Stock
           </Menu.Item>
         </Menu>
       </Sider>
