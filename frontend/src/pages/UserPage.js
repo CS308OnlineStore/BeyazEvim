@@ -1,5 +1,3 @@
-// UserPage.jsx
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Cookies from 'js-cookie';
@@ -10,18 +8,15 @@ import {
   Avatar,
   Typography,
   Button,
-  Form,
-  Input,
   List,
   Card,
   Modal,
   message,
   Tabs,
-  Space,
+  Select,
   Spin,
 } from 'antd';
 import {
-  EditOutlined,
   LogoutOutlined,
   FileTextOutlined,
   ExclamationCircleOutlined,
@@ -32,6 +27,7 @@ const { Header, Content, Sider } = Layout;
 const { Title, Text } = Typography;
 const { confirm } = Modal;
 const { TabPane } = Tabs;
+const { Option } = Select;
 
 const UserPage = () => {
   const navigate = useNavigate();
@@ -42,17 +38,12 @@ const UserPage = () => {
     address: '',
     phoneNumber: '',
   });
-  const [orders, setOrders] = useState({
-    delivered: [],
-    current: [],
-    inTransit: [],
-    returned: [],
-  });
-  const [isEditing, setIsEditing] = useState({
-    address: false,
-    phone: false,
-  });
-  const [form] = Form.useForm();
+  const [orders, setOrders] = useState([]);
+  const [returns, setReturns] = useState([]);
+  const [filteredOrders, setFilteredOrders] = useState([]);
+  const [filteredReturns, setFilteredReturns] = useState([]);
+  const [selectedOrderStatus, setSelectedOrderStatus] = useState('ALL');
+  const [selectedReturnStatus, setSelectedReturnStatus] = useState('ALL');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -62,7 +53,7 @@ const UserPage = () => {
 
     if (!token || !userId) {
       message.error('Authentication token or user ID is missing. Please log in again.');
-      navigate('/login'); // Giriş sayfasına yönlendirme
+      navigate('/login'); // Redirect to login page
       return;
     }
 
@@ -77,19 +68,17 @@ const UserPage = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
 
-        const delivered = ordersResponse.data.filter((order) => order.status === 'DELIVERED');
-        const current = ordersResponse.data.filter((order) => order.status === 'PURCHASED');
-        const inTransit = ordersResponse.data.filter((order) => order.status === 'SHIPPED');
-        const returned = ordersResponse.data.filter(
-          (order) => order.status === 'RETURNED' || order.status === 'CANCELLED'
-        );
+        const allOrders = ordersResponse.data;
+        setOrders(allOrders);
+        setFilteredOrders(allOrders);
 
-        setOrders({
-          delivered,
-          current,
-          inTransit,
-          returned,
+        // Fetch return requests
+        const returnsResponse = await axios.get('/api/refund-requests', {
+          headers: { Authorization: `Bearer ${token}` },
         });
+
+        setReturns(returnsResponse.data);
+        setFilteredReturns(returnsResponse.data);
       } catch (err) {
         console.error('API Error:', err);
         if (err.response && err.response.data && err.response.data.message) {
@@ -105,9 +94,18 @@ const UserPage = () => {
     fetchUserData();
   }, [navigate]);
 
-  const handleEdit = (field) => {
-    setIsEditing((prev) => ({ ...prev, [field]: true }));
-    form.setFieldsValue({ [field]: userInfo[field] });
+  const handleFilterOrders = (status) => {
+    setSelectedOrderStatus(status);
+    setFilteredOrders(
+      status === 'ALL' ? orders : orders.filter((order) => order.status === status)
+    );
+  };
+
+  const handleFilterReturns = (status) => {
+    setSelectedReturnStatus(status);
+    setFilteredReturns(
+      status === 'ALL' ? returns : returns.filter((request) => request.status === status)
+    );
   };
 
   const handleCancelOrder = (orderId) => {
@@ -129,24 +127,11 @@ const UserPage = () => {
 
           if (response.status === 200) {
             message.success('Order cancelled successfully.');
-            setOrders((prevOrders) => ({
-              ...prevOrders,
-              current: prevOrders.current.filter((order) => order.id !== orderId),
-            }));
-
-            // Redirect to Set Refund Request Page after successful cancellation
-            navigate('/setrefundrequest', { state: { orderId } });
-          } else {
-            // Display message for unsuccessful status codes
-            message.error(`Order could not be cancelled. Status Code: ${response.status}`);
+            navigate('/refund-requests'); // Redirect to refund requests page
           }
         } catch (err) {
           console.error('Error cancelling order:', err);
-          if (err.response && err.response.data && err.response.data.message) {
-            message.error(`Failed to cancel the order: ${err.response.data.message}`);
-          } else {
-            message.error('Failed to cancel the order.');
-          }
+          message.error('Failed to cancel the order.');
         }
       },
     });
@@ -165,54 +150,6 @@ const UserPage = () => {
         console.error('Error getting invoice PDF:', error);
         message.error('Error getting invoice.');
       });
-  };
-
-  const handleSave = async (field) => {
-    try {
-      const token = Cookies.get('authToken');
-      const userId = Cookies.get('userId');
-      const value = form.getFieldValue(field);
-
-      if (!token || !userId) {
-        message.error('Authentication token or user ID is missing. Please log in again.');
-        navigate('/login');
-        return;
-      }
-
-      const endpoint = field === 'address'
-        ? `/api/users/${userId}/address`
-        : `/api/users/${userId}/phone`;
-
-      const response = await axios.put(endpoint, { value }, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      setUserInfo((prev) => ({
-        ...prev,
-        [field]: response.data[field],
-      }));
-      setIsEditing((prev) => ({ ...prev, [field]: false }));
-      message.success(`${field === 'address' ? 'Address' : 'Phone number'} updated successfully.`);
-    } catch (err) {
-      console.error(`Error updating ${field}:`, err);
-      if (err.response && err.response.data && err.response.data.message) {
-        message.error(`Failed to update ${field}: ${err.response.data.message}`);
-      } else {
-        message.error(`Failed to update ${field}.`);
-      }
-    }
-  };
-
-  const handleLogout = () => {
-    Cookies.remove('authToken');
-    Cookies.remove('userId');
-    navigate('/');
-    window.location.reload();
-  };
-
-  // Function to handle logo click
-  const handleLogoClick = () => {
-    navigate('/'); // Navigate to the main page
   };
 
   if (loading) {
@@ -245,9 +182,9 @@ const UserPage = () => {
           style={{
             padding: 20,
             textAlign: 'center',
-            cursor: 'pointer', // Change cursor to pointer
+            cursor: 'pointer',
           }}
-          onClick={handleLogoClick} // Add onClick handler
+          onClick={() => navigate('/')} // Navigate to the main page
         >
           <Avatar src={newLogo} size={70} />
           <Title level={4}>
@@ -256,7 +193,7 @@ const UserPage = () => {
           <Text type="secondary">{userInfo.email}</Text>
         </div>
         <Menu>
-          <Menu.Item icon={<LogoutOutlined />} onClick={handleLogout}>
+          <Menu.Item icon={<LogoutOutlined />} onClick={() => navigate('/logout')}>
             Logout
           </Menu.Item>
         </Menu>
@@ -269,78 +206,20 @@ const UserPage = () => {
         </Header>
         <Content style={{ padding: 20 }}>
           <Tabs defaultActiveKey="1">
-            <TabPane tab="User Information" key="1">
-              <Card title="User Information" bordered={false}>
-                <List>
-                  <List.Item>
-                    <Text strong>First Name:</Text> <Text>{userInfo.firstName}</Text>
-                  </List.Item>
-                  <List.Item>
-                    <Text strong>Last Name:</Text> <Text>{userInfo.lastName}</Text>
-                  </List.Item>
-                  <List.Item>
-                    <Text strong>Email:</Text> <Text>{userInfo.email}</Text>
-                  </List.Item>
-                  <List.Item>
-                    <Text strong>Address:</Text>
-                    {isEditing.address ? (
-                      <Space>
-                        <Form form={form} onFinish={() => handleSave('address')}>
-                          <Form.Item name="address" style={{ margin: 0 }}>
-                            <Input style={{ width: '300px' }} />
-                          </Form.Item>
-                          <Button type="primary" htmlType="submit">
-                            Save
-                          </Button>
-                        </Form>
-                      </Space>
-                    ) : (
-                      <Space>
-                        <Text>{userInfo.address || 'No address available'}</Text>
-                        <Button
-                          type="link"
-                          icon={<EditOutlined />}
-                          onClick={() => handleEdit('address')}
-                        >
-                          Edit
-                        </Button>
-                      </Space>
-                    )}
-                  </List.Item>
-                  <List.Item>
-                    <Text strong>Phone Number:</Text>
-                    {isEditing.phone ? (
-                      <Space>
-                        <Form form={form} onFinish={() => handleSave('phoneNumber')}>
-                          <Form.Item name="phoneNumber" style={{ margin: 0 }}>
-                            <Input style={{ width: '300px' }} />
-                          </Form.Item>
-                          <Button type="primary" htmlType="submit">
-                            Save
-                          </Button>
-                        </Form>
-                      </Space>
-                    ) : (
-                      <Space>
-                        <Text>{userInfo.phoneNumber || 'No phone number available'}</Text>
-                        <Button
-                          type="link"
-                          icon={<EditOutlined />}
-                          onClick={() => handleEdit('phoneNumber')}
-                        >
-                          Edit
-                        </Button>
-                      </Space>
-                    )}
-                  </List.Item>
-                </List>
-              </Card>
-            </TabPane>
-
-            <TabPane tab="Active Orders" key="2">
+            <TabPane tab="Orders" key="1">
+              <Select
+                value={selectedOrderStatus}
+                onChange={handleFilterOrders}
+                style={{ marginBottom: 16 }}
+              >
+                <Option value="ALL">All Orders</Option>
+                <Option value="PURCHASED">Purchased</Option>
+                <Option value="SHIPPED">Shipped</Option>
+                <Option value="DELIVERED">Delivered</Option>
+              </Select>
               <List
                 grid={{ gutter: 16, column: 2 }}
-                dataSource={orders.current}
+                dataSource={filteredOrders.filter((order) => order.status !== 'CART')} // Exclude CART status
                 renderItem={(order) => (
                   <List.Item>
                     <Card
@@ -356,14 +235,6 @@ const UserPage = () => {
                       }
                     >
                       <p>Status: {order.status}</p>
-                      <List
-                        dataSource={order.orderItems}
-                        renderItem={(item) => (
-                          <List.Item>
-                            {item.productModel.name} - {item.quantity} x ₺{item.unitPrice}
-                          </List.Item>
-                        )}
-                      />
                       <p>Total: ₺{order.totalPrice}</p>
                       <Button
                         type="default"
@@ -378,101 +249,25 @@ const UserPage = () => {
               />
             </TabPane>
 
-            <TabPane tab="In-Transit Orders" key="3">
+            <TabPane tab="Returns" key="2">
+              <Select
+                value={selectedReturnStatus}
+                onChange={handleFilterReturns}
+                style={{ marginBottom: 16 }}
+              >
+                <Option value="ALL">All Returns</Option>
+                <Option value="PENDING">Pending</Option>
+                <Option value="APPROVED">Approved</Option>
+                <Option value="REJECTED">Rejected</Option>
+              </Select>
               <List
                 grid={{ gutter: 16, column: 2 }}
-                dataSource={orders.inTransit}
-                renderItem={(order) => (
+                dataSource={filteredReturns}
+                renderItem={(request) => (
                   <List.Item>
-                    <Card title={`Order ID: ${order.id}`}>
-                      <p>Status: {order.status}</p>
-                      <List
-                        dataSource={order.orderItems}
-                        renderItem={(item) => (
-                          <List.Item>
-                            {item.productModel.name} - {item.quantity} x ₺{item.unitPrice}
-                          </List.Item>
-                        )}
-                      />
-                      <p>Total: ₺{order.totalPrice}</p>
-                      <Button
-                        type="default"
-                        icon={<FileTextOutlined />}
-                        onClick={() => handleGetInvoice(order.id)}
-                      >
-                        Get Invoice
-                      </Button>
-                    </Card>
-                  </List.Item>
-                )}
-              />
-            </TabPane>
-
-            <TabPane tab="Delivered Orders" key="4">
-              <List
-                grid={{ gutter: 16, column: 2 }}
-                dataSource={orders.delivered}
-                renderItem={(order) => (
-                  <List.Item>
-                    <Card
-                      title={`Order ID: ${order.id}`}
-                      extra={
-                        <Button
-                          type="primary"
-                          danger
-                          onClick={() => handleCancelOrder(order.id)}
-                        >
-                          Cancel
-                        </Button>
-                      }
-                    >
-                      <p>Status: {order.status}</p>
-                      <List
-                        dataSource={order.orderItems}
-                        renderItem={(item) => (
-                          <List.Item>
-                            {item.productModel.name} - {item.quantity} x ₺{item.unitPrice}
-                          </List.Item>
-                        )}
-                      />
-                      <p>Total: ₺{order.totalPrice}</p>
-                      <Button
-                        type="default"
-                        icon={<FileTextOutlined />}
-                        onClick={() => handleGetInvoice(order.id)}
-                      >
-                        Get Invoice
-                      </Button>
-                    </Card>
-                  </List.Item>
-                )}
-              />
-            </TabPane>
-
-            <TabPane tab="Returned Orders" key="5">
-              <List
-                grid={{ gutter: 16, column: 2 }}
-                dataSource={orders.returned}
-                renderItem={(order) => (
-                  <List.Item>
-                    <Card title={`Order ID: ${order.id}`}>
-                      <p>Status: {order.status}</p>
-                      <List
-                        dataSource={order.orderItems}
-                        renderItem={(item) => (
-                          <List.Item>
-                            {item.productModel.name} - {item.quantity} x ₺{item.unitPrice}
-                          </List.Item>
-                        )}
-                      />
-                      <p>Total: ₺{order.totalPrice}</p>
-                      <Button
-                        type="default"
-                        icon={<FileTextOutlined />}
-                        onClick={() => handleGetInvoice(order.id)}
-                      >
-                        Get Invoice
-                      </Button>
+                    <Card title={`Refund ID: ${request.id}`}>
+                      <p>Status: {request.status}</p>
+                      <p>Total: ₺{request.amount}</p>
                     </Card>
                   </List.Item>
                 )}
@@ -483,8 +278,6 @@ const UserPage = () => {
       </Layout>
     </Layout>
   );
-
-  // No longer needed: Refund request function has been removed
 };
 
 export default UserPage;
