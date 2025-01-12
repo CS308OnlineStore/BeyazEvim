@@ -3,6 +3,7 @@ import { Layout, Menu, Typography, Button, Table, Form, Input, Select } from 'an
 import {
   PercentageOutlined,
   FileTextOutlined,
+  SettingOutlined,
   LineChartOutlined,
   UndoOutlined,
 } from '@ant-design/icons';
