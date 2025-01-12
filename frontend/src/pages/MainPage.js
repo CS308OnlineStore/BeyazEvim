@@ -133,76 +133,96 @@ const MainPage = () => {
 
   return (
     <Layout>
-      {/* Sidebar */}
-      <Sider width={250} style={{ background: '#fff' }}>
-        <div style={{ textAlign: 'center', padding: '20px' }}>
-          <img 
-            src={newLogo} 
-            alt="BeyazEvim Logo" 
-            style={{ width: '150px', height: '150px' }} 
-          />
-        </div>
-        <Menu mode="inline">
-          {categories.map((category) => (
-            <Menu.SubMenu key={category.id} title={category.categoryName}>
-              {category.subCategories.filter((subcategory) => subcategory.active)
-              .map((subcategory) => (
-                <Menu.Item 
-                  key={subcategory.id} 
-                  onClick={() => navigate(`/category/${subcategory.id}`)}
-                >
-                  {subcategory.categoryName}
-                </Menu.Item>
-              ))}
-            </Menu.SubMenu>
-          ))}
-        </Menu>
-      </Sider>
+      
+      
 
       {/* Main Layout */}
       <Layout>
         {/* Header */}
-        <Header style={{ background: '#001529', display: 'flex', justifyContent: 'space-between' }}>
-          <Input
-            placeholder="What are you looking for?"
-            prefix={<SearchOutlined />}
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            style={{
-              width: '50%', // Enini kontrol eder
-              height: '40px', // Boyunu kontrol eder
-              marginTop: '5px', // Üstten boşluk
-              marginBottom: '5px', // Alttan boşluk
-              borderRadius: '5px', // Kenar yuvarlatma (isteğe bağlı)
-            }}
-            onPressEnter={handleSearchSubmit}
-          />
-          <div>
-            {userName ? (
-              <Button type="link" icon={<UserOutlined />} onClick={() => navigate('/userpage')}>
-                {userName}
-              </Button>
-            ) : (
-              <Button type="primary" onClick={() => navigate('/signinsignup')}>
-                Login
-              </Button>
-            )}
-            {/* Heart Icon for Wishlist */}
-            <span
-              onMouseEnter={() => setIsHeartHovered(true)}
-              onMouseLeave={() => setIsHeartHovered(false)}
-              onClick={handeWishlistClick}
-              style={{ marginLeft: '20px', cursor: 'pointer', fontSize: '24px', color: 'white' }}
-            >
-              {isHeartHovered ? <HeartFilled /> : <HeartOutlined />}
-            </span>
-            <Badge count={cartNum}>
-              <ShoppingCartOutlined
-                onClick={() => setIsCartVisible(true)}
-                style={{ fontSize: '24px', cursor: 'pointer', color: 'white', marginLeft: '20px' }}
+        <Header style={{ background: '#001529', display: 'flex', flexDirection: 'column', padding: '0' }}>
+          {/* Top Section: Search and User Actions */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 20px' }}>
+            
+            {/* Logo */}
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+              <img
+                src={newLogo}
+                alt="BeyazEvim Logo"
+                style={{
+
+                  width: '50px', // Set a fixed width
+                  height: '50px', // Set the same height to make it square
+                  cursor: 'pointer',
+                  objectFit: 'contain',
+                  marginBottom: '5px', // Adjust spacing
+
+
+                }}
+                onClick={() => navigate('/')}
               />
-            </Badge>
+            </div>
+            
+            <Input
+              placeholder="What are you looking for?"
+              prefix={<SearchOutlined />}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={{
+                width: '50%',
+                height: '40px',
+                borderRadius: '5px',
+                marginBottom: '5px', // Adjust spacing
+
+              }}
+              onPressEnter={handleSearchSubmit}
+            />
+            <div>
+              {userName ? (
+                <Button type="link" icon={<UserOutlined />} onClick={() => navigate('/userpage')}>
+                  {userName}
+                </Button>
+              ) : (
+                <Button type="primary" onClick={() => navigate('/signinsignup')}>
+                  Login
+                </Button>
+              )}
+              {/* Heart Icon for Wishlist */}
+              <span
+                onMouseEnter={() => setIsHeartHovered(true)}
+                onMouseLeave={() => setIsHeartHovered(false)}
+                onClick={handeWishlistClick}
+                style={{ marginLeft: '20px', cursor: 'pointer', fontSize: '24px', color: 'white' }}
+              >
+                {isHeartHovered ? <HeartFilled /> : <HeartOutlined />}
+              </span>
+              <Badge count={cartNum}>
+                <ShoppingCartOutlined
+                  onClick={() => setIsCartVisible(true)}
+                  style={{ fontSize: '24px', cursor: 'pointer', color: 'white', marginLeft: '20px' }}
+                />
+              </Badge>
+            </div>
           </div>
+
+          {/* Bottom Section: Horizontal Categories */}
+          <Menu
+            mode="horizontal"
+            theme="dark"
+            style={{ justifyContent: 'center' }}
+            onClick={({ key }) => navigate(`/category/${key}`)}
+          >
+            {categories.map((category) => (
+              <Menu.SubMenu key={category.id} title={category.categoryName}>
+                {category.subCategories
+                  .filter((subcategory) => subcategory.active)
+                  .map((subcategory) => (
+                    <Menu.Item key={subcategory.id}>
+                      {subcategory.categoryName}
+                    </Menu.Item>
+                  ))}
+              </Menu.SubMenu>
+            ))}
+          </Menu>
         </Header>
 
         {/* Carousel */}
