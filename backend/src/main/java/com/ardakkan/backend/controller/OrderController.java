@@ -2,7 +2,6 @@ package com.ardakkan.backend.controller;
 
 import com.ardakkan.backend.dto.OrderDTO;
 
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -19,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.http.MediaType;
 import org.springframework.http.HttpHeaders;
 
-import java.util.Date;
+
 import java.util.List;
 import java.util.Map;
 
@@ -184,36 +183,7 @@ public class OrderController {
         refundRequestService.createRefundRequest(orderId, productModelId);
         return ResponseEntity.ok("Refund request created and awaiting approval.");
     }
-
-    @GetMapping("/revenue")
-    public ResponseEntity<Map<String, Object>> getRevenueBetweenDates(
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date startDate,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date endDate) {
-
-        double revenue = orderService.calculateRevenueAndProfit(startDate, endDate);
-
-        return ResponseEntity.ok(Map.of(
-                "startDate", startDate,
-                "endDate", endDate,
-                "revenue", revenue
-        ));
-    }
-
-    @GetMapping("/revenue-chart")
-    public ResponseEntity<byte[]> getRevenueChart(
-            @RequestParam("startDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date startDate,
-            @RequestParam("endDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date endDate) {
-        try {
-            byte[] chart = orderService.generateRevenueChart(startDate, endDate);
-
-            return ResponseEntity.ok()
-                    .contentType(MediaType.IMAGE_PNG)
-                    .body(chart);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-    }
+    
    
      
 

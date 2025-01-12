@@ -165,7 +165,7 @@ public class ProductModelController {
     }
     
     
-    @PutMapping("/product/{productModelId}/price")
+    @PutMapping("/{productModelId}/price")
     public ResponseEntity<String> updateProductPrice(
             @PathVariable Long productModelId,
             @RequestParam Double newPrice) {

@@ -19,6 +19,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -77,7 +78,7 @@ public class RefundRequestService {
         refundRequest.setProductModelId(productModelId);
         refundRequest.setProductInstanceId(productInstanceId);
         refundRequest.setStatus(RefundStatus.PENDING);
-        refundRequest.setRequestedAt(new Date());
+        refundRequest.setRequestedAt(LocalDateTime.now());
 
         refundRequestRepository.save(refundRequest);
         
@@ -89,7 +90,7 @@ public class RefundRequestService {
                 .orElseThrow(() -> new IllegalStateException("RefundRequest not found: " + refundRequestId));
 
         refundRequest.setStatus(approved ? RefundStatus.APPROVED : RefundStatus.REJECTED);
-        refundRequest.setApprovedOrRejectedAt(new Date());
+        refundRequest.setApprovedOrRejectedAt(LocalDateTime.now());
         refundRequest.setApprovedBy(userRepository.findByEmail(userDetails.getUsername())
                 .orElseThrow(() -> new IllegalStateException("Approver not found.")));
 
@@ -115,13 +116,12 @@ public class RefundRequestService {
         // OrderItem'dan ürün çıkar
         OrderItem orderItem = refundRequest.getOrderItem();
         orderItem.getProductInstanceIds().remove(refundRequest.getProductInstanceId());
+        // İade edilen ürün ID'sini returned listesine ekle
+        orderItem.getReturnedProductInstanceIds().add(refundRequest.getProductInstanceId());
         orderItem.setQuantity(orderItem.getQuantity() - 1);
 
-        if (orderItem.getQuantity() <= 0) {
-            orderItemRepository.delete(orderItem);
-        } else {
-            orderItemRepository.save(orderItem);
-        }
+        orderItemRepository.save(orderItem);
+        
 
         // Siparişin toplam fiyatını güncelle
         Order order = refundRequest.getOrder();

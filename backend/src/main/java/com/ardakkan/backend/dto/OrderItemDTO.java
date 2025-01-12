@@ -6,6 +6,7 @@ public class OrderItemDTO {
     private ProductModelDTO productModel;
     private int quantity;
     private double unitPrice;
+    private int returned_quantity;
     
     // Getter ve Setter metotları
     public Long getOrderItemId() {
@@ -40,6 +41,15 @@ public class OrderItemDTO {
 	public void setUnitPrice(double unitPrice) {
 		this.unitPrice = unitPrice;
 	}
+
+	public int getReturned_quantity() {
+		return returned_quantity;
+	}
+
+	public void setReturned_quantity(int returned_quantity) {
+		this.returned_quantity = returned_quantity;
+	}
+	
     
     
 }

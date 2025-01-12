@@ -12,6 +12,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 import jakarta.persistence.Enumerated;
@@ -43,10 +44,10 @@ public class RefundRequest {
     private RefundStatus status; // PENDING, APPROVED, REJECTED
 
     @Column(name = "requested_at", nullable = false)
-    private Date requestedAt;
+    private LocalDateTime requestedAt;
 
     @Column(name = "approved_or_rejected_at")
-    private Date approvedOrRejectedAt;
+    private LocalDateTime approvedOrRejectedAt;
 
     @ManyToOne
     @JoinColumn(name = "approved_by")
@@ -100,19 +101,19 @@ public class RefundRequest {
 		this.status = status;
 	}
 
-	public Date getRequestedAt() {
+	public LocalDateTime getRequestedAt() {
 		return requestedAt;
 	}
 
-	public void setRequestedAt(Date requestedAt) {
+	public void setRequestedAt(LocalDateTime requestedAt) {
 		this.requestedAt = requestedAt;
 	}
 
-	public Date getApprovedOrRejectedAt() {
+	public LocalDateTime getApprovedOrRejectedAt() {
 		return approvedOrRejectedAt;
 	}
 
-	public void setApprovedOrRejectedAt(Date approvedOrRejectedAt) {
+	public void setApprovedOrRejectedAt(LocalDateTime approvedOrRejectedAt) {
 		this.approvedOrRejectedAt = approvedOrRejectedAt;
 	}
 
