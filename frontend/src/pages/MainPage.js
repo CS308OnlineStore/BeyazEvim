@@ -155,8 +155,6 @@ const MainPage = () => {
                   cursor: 'pointer',
                   objectFit: 'contain',
                   marginBottom: '5px', // Adjust spacing
-
-
                 }}
                 onClick={() => navigate('/')}
               />
@@ -208,20 +206,32 @@ const MainPage = () => {
           <Menu
             mode="horizontal"
             theme="dark"
-            style={{ justifyContent: 'center' }}
+            style={{ 
+              justifyContent: 'center',
+              background: '#001529',
+              borderBottom: '1px solid #333',
+              padding: '0 10px',
+
+            
+      
+            }}
             onClick={({ key }) => navigate(`/category/${key}`)}
           >
-            {categories.map((category) => (
-              <Menu.SubMenu key={category.id} title={category.categoryName}>
-                {category.subCategories
-                  .filter((subcategory) => subcategory.active)
-                  .map((subcategory) => (
-                    <Menu.Item key={subcategory.id}>
-                      {subcategory.categoryName}
-                    </Menu.Item>
-                  ))}
-              </Menu.SubMenu>
-            ))}
+            {categories.length > 0 ? (
+              categories.map((category) => (
+                <Menu.SubMenu key={category.id} title={category.categoryName}>
+                  {category.subCategories
+                    .filter((subcategory) => subcategory.active)
+                    .map((subcategory) => (
+                      <Menu.Item key={subcategory.id}>
+                        {subcategory.categoryName}
+                      </Menu.Item>
+                    ))}
+                </Menu.SubMenu>
+              ))
+            ) : (
+              <Menu.Item disabled>No Categories Available</Menu.Item>
+            )}
           </Menu>
         </Header>
 
