@@ -32,7 +32,9 @@ const SetPricePage = () => {
     setLoading(true);
     try {
       const { productId, newPrice } = values;
-      await axios.put(`/api/product/${productId}/price`, { price: newPrice });
+      await axios.put(`/api/product-models/${productId}/price`, null, {
+        params: { newPrice: newPrice },
+      })
       notification.success({
         message: 'Price Updated', 
         description:  `New price of the product ID: ${productId} is ${newPrice}.`,
