@@ -4,12 +4,13 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Cookies from 'js-cookie';
 import PaymentForm from './MockPaymentForm';
+import Modal from './Modal';
 
 const ShoppingCart = ({onClose}) => {
   const [cartItems, setCartItems] = useState([]);
   const [totalPrice, setTotalPrice] = useState(0);
   const [cartUpdated, setCartUpdated] = useState(false);
-  const [showPayment, setShowPayment] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
 
   const navigate = useNavigate();
   const userId = Cookies.get('userId');
@@ -78,9 +79,8 @@ const ShoppingCart = ({onClose}) => {
     } else {
       axios.get(`/api/users/${userId}/address`)
         .then(response => {
-          console.log(response.data.newAddress);
           if (response.data.newAddress) {
-            setShowPayment(true);
+            setShowPaymentModal(true);
           } else {
             alert("Add address to complete order!");
             navigate('/userpage');
@@ -151,31 +151,24 @@ const ShoppingCart = ({onClose}) => {
           </div>
           {/* Buttons */}
           <div style={{ marginTop: '20px', textAlign: 'center' }}>
-            {showPayment ? (
-                <PaymentForm
-                  onPaymentSuccess={() => {
-                    setShowPayment(false);
-                    onClose();
-                  }}
-                />
-              ) : (
-                <button
-                  style={{
-                    backgroundColor: '#28a745',
-                    color: 'white',
-                    border: 'none',
-                    padding: '10px 20px',
-                    cursor: 'pointer',
-                    width: '100%',
-                    marginBottom: '10px',
-                    borderRadius: '5px',
-                    fontSize: '16px',
-                  }}
-                  onClick={handleCompleteOrder}
-                >
-                  Complete Order
-                </button>
-              )}
+            {
+              <button
+                style={{
+                  backgroundColor: '#28a745',
+                  color: 'white',
+                  border: 'none',
+                  padding: '10px 20px',
+                  cursor: 'pointer',
+                  width: '100%',
+                  marginBottom: '10px',
+                  borderRadius: '5px',
+                  fontSize: '16px',
+                }}
+                onClick={handleCompleteOrder}
+              >
+                Complete Order
+              </button>
+            }
             <br />
             <button
               style={{
@@ -194,6 +187,16 @@ const ShoppingCart = ({onClose}) => {
             </button>
           </div>
         </div>
+      )}
+      {showPaymentModal && (
+        <Modal onClose={() => setShowPaymentModal(false)}>
+          <PaymentForm
+            onPaymentSuccess={() => {
+              setShowPaymentModal(false);
+              onClose();
+            }}
+          />
+        </Modal>
       )}
     </div>
   );
