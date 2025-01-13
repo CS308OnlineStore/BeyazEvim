@@ -4,14 +4,35 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Cookies from 'js-cookie';
+import {
+  Form,
+  Input,
+  Button,
+  Card,
+  Typography,
+  Row,
+  Col,
+  notification,
+} from 'antd';
+import { LockOutlined, UserOutlined } from '@ant-design/icons';
 
-function SignIn() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+const { Title } = Typography;
+
+const SignIn = () => {
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
+  const openNotificationWithIcon = (type, message, description) => {
+    notification[type]({
+      message,
+      description,
+      placement: 'topRight',
+    });
+  };
+
+  const handleLogin = async (values) => {
+    const { email, password } = values;
+    setLoading(true);
 
     const userData = {
       email,
@@ -20,119 +41,162 @@ function SignIn() {
 
     let userID = 0;
     try {
-      const response = await fetch('http://localhost:8080/login', {  // Adjust URL as per your backend
-        method: 'POST',
+      const response = await axios.post('http://localhost:8080/login', userData, {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(userData),
       });
 
-      if (response.ok) {
-        const result = await response.json();
-        const { token, firstName, lastName, userId } = result;
+      if (response.status === 200) {
+        const { token, firstName, lastName, userId } = response.data;
 
-        Cookies.set('authToken', token, { expires: 7 }); 
+        Cookies.set('authToken', token, { expires: 7 });
         Cookies.set('userName', `${firstName} ${lastName}`, { expires: 7 });
-        Cookies.set('userId', userId, { expires: 7 })
+        Cookies.set('userId', userId, { expires: 7 });
 
         userID = userId;
-        
-        alert('Giriş başarılı!');
-      } 
-      else {
-        // Handle specific status codes with error messages based on API documentation
-        switch (response.status) {
-          case 400:
-            alert('Invalid request. Please check your information.');
-            break;
-          case 401:
-            alert('Unauthorized access. Email or password is incorrect.');
-            break;
-          case 404:
-            alert('User not found. Please check your email.');
-            break;
-          case 500:
-            alert('Server error. Please try again later.');
-            break;
-          default:
-            alert('An unknown error occurred.');
-        }
+
+        openNotificationWithIcon('success', 'Login Successful', 'You have successfully logged in!');
+      } else {
+        handleErrorResponse(response.status);
       }
     } catch (error) {
-      console.error('An error occurred during login:', error);
-      alert('An error occurred. Please try again.');
+      if (error.response) {
+        handleErrorResponse(error.response.status);
+      } else {
+        console.error('An error occurred during login:', error);
+        openNotificationWithIcon('error', 'Error', 'An error occurred. Please try again.');
+      }
+    } finally {
+      setLoading(false);
     }
 
-    const nonUserCart = JSON.parse(localStorage.getItem('cart'))
-    if ( nonUserCart && nonUserCart.items.length !== 0 ) {
-      console.log(userID);
+    // Handle cart merging for non-authenticated users
+    const nonUserCart = JSON.parse(localStorage.getItem('cart'));
+    if (nonUserCart && nonUserCart.items.length !== 0) {
+      try {
+        const cartResponse = await axios.get(`/api/orders/${userID}/cart`);
+        const { id: cartID } = cartResponse.data;
+        localStorage.setItem('cartID', cartID);
 
-      await axios.get(`/api/orders/${userID}/cart`)
-      .then((response) => {
-        const { id } = response.data;
-        localStorage.setItem('cartID', id)
-      })
-      .catch((error) => {
-        console.error('Error requesting cart ID!:', error);
-      });
-
-      const cartID = localStorage.getItem('cartID')
-      for ( let i = 0; i <  nonUserCart.items.length; i++ ) {
-        for ( let j=0; j < nonUserCart.items[i].quantity; j++ ) {
-          try {     
-            const response = await axios.post(`/api/order-items/add?orderId=${cartID}&productModelId=${nonUserCart.items[i].productModel.id}`);
-            if (response.status === 200 && j ===  nonUserCart.items[i].quantity-1 ) { 
-              //alert('Successfully added to cart!');
-            } 
-          } catch (error) {
-            console.error("There was an error fetching the product details!", error);
-            //if ( j === 0 ) { alert(`Failed to add ${ nonUserCart.items[i].quantity-j} items to cart!`); }
-            //else { alert(`Only ${j} items added to cart!`); }
-            break; 
+        for (let item of nonUserCart.items) {
+          for (let j = 0; j < item.quantity; j++) {
+            try {
+              const addItemResponse = await axios.post(
+                `/api/order-items/add?orderId=${cartID}&productModelId=${item.productModel.id}`
+              );
+              if (addItemResponse.status !== 200) {
+                throw new Error('Failed to add item to cart');
+              }
+            } catch (error) {
+              console.error('Error adding item to cart:', error);
+              // Optionally, notify the user about the failure
+              break;
+            }
           }
-        };
-      };
+        }
 
-      localStorage.removeItem('cartID');
-      localStorage.removeItem('UserID')
-      localStorage.removeItem('cart');
+        // Clean up localStorage after merging
+        localStorage.removeItem('cartID');
+        localStorage.removeItem('cart');
+      } catch (error) {
+        console.error('Error requesting cart ID:', error);
+      }
     }
-    navigate('/')
+
+    navigate('/');
+  };
+
+  const handleErrorResponse = (status) => {
+    switch (status) {
+      case 400:
+        openNotificationWithIcon('error', 'Invalid Request', 'Please check your information.');
+        break;
+      case 401:
+        openNotificationWithIcon('error', 'Unauthorized', 'Email or password is incorrect.');
+        break;
+      case 404:
+        openNotificationWithIcon('error', 'User Not Found', 'Please check your email.');
+        break;
+      case 500:
+        openNotificationWithIcon('error', 'Server Error', 'Please try again later.');
+        break;
+      default:
+        openNotificationWithIcon('error', 'Error', 'An unknown error occurred.');
+    }
   };
 
   return (
-    <div style={{ maxWidth: '400px', margin: '0 auto', padding: '20px', marginTop: '150px' }}>
-      <h2 style={{ textAlign: 'center' }}>Sign In</h2>
-      <form onSubmit={handleLogin}>
-        <div style={{ marginBottom: '10px' }}>
-          <label htmlFor="email">Email</label>
-          <input
-            type="email"
-            id="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            style={{ width: '100%', padding: '8px', marginTop: '5px' }}
-          />
-        </div>
-        <div style={{ marginBottom: '10px' }}>
-          <label htmlFor="password">Password</label>
-          <input
-            type="password"
-            id="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            style={{ width: '100%', padding: '8px', marginTop: '5px' }}
-          />
-        </div>
-        <button type="submit" style={{ padding: '10px', width: '100%' }}>
-          Giriş Yap
-        </button>
-      </form>
-    </div>
+    <Row justify="center" align="middle" style={{ minHeight: '100vh', padding: '20px' }}>
+      <Col xs={24} sm={18} md={12} lg={8}>
+        <Card
+          bordered={false}
+          style={{
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+            padding: '40px 30px',
+          }}
+        >
+          <Title level={2} style={{ textAlign: 'center', marginBottom: '30px' }}>
+            Sign In
+          </Title>
+          <Form
+            name="signin"
+            layout="vertical"
+            onFinish={handleLogin}
+            autoComplete="off"
+          >
+            <Form.Item
+              label="Email"
+              name="email"
+              rules={[
+                { required: true, message: 'Please input your Email!' },
+                { type: 'email', message: 'Please enter a valid Email!' },
+              ]}
+            >
+              <Input
+                prefix={<UserOutlined />}
+                placeholder="Email"
+                size="large"
+              />
+            </Form.Item>
+
+            <Form.Item
+              label="Password"
+              name="password"
+              rules={[{ required: true, message: 'Please input your Password!' }]}
+            >
+              <Input.Password
+                prefix={<LockOutlined />}
+                placeholder="Password"
+                size="large"
+              />
+            </Form.Item>
+
+            <Form.Item>
+              <Button
+                type="primary"
+                htmlType="submit"
+                block
+                loading={loading}
+                size="large"
+              >
+                Sign In
+              </Button>
+            </Form.Item>
+          </Form>
+          <div style={{ textAlign: 'center', marginTop: '20px' }}>
+            <Button
+              type="link"
+              onClick={() => navigate('/signup')}
+              style={{ padding: 0 }}
+            >
+              Don't have an account? Sign Up
+            </Button>
+          </div>
+        </Card>
+      </Col>
+    </Row>
   );
-}
+};
 
 export default SignIn;
