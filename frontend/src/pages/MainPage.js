@@ -239,7 +239,7 @@ const MainPage = () => {
               <Col key={product.id} xs={24} sm={12} md={8} lg={6}>
                 <Card
                   hoverable
-                  cover={<img alt={product.name} src={product.image || 'https://via.placeholder.com/150'} />}
+                  cover={<img alt={product.name} src={product.image_path} />}
                   onClick={() => navigate(`/product/${product.id}`)}
                 >
                   <Card.Meta title={product.name} description={product.description} />
