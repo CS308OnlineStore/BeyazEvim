@@ -173,6 +173,10 @@ const ProductPage = () => {
     navigate('/'); // Navigate to MainPage
   };
 
+  const handleWishlistClick = () => {
+    navigate('/wishlist');
+  }
+
   const handleAddToWishlist = () => {
     const userId = Cookies.get('userId');
     if (userId) {
@@ -181,7 +185,11 @@ const ProductPage = () => {
         .then((response) => {
           if (response.status === 200) {
             openNotification('success', 'Success', 'Successfully added to wishlist!');
-          } else {
+          } 
+          else if (response.status === 400) {
+            openNotification('error', 'Error', 'Item is already in wishlist!');
+          }
+          else {
             openNotification('error', 'Error', 'Failed to add item to wishlist!');
           }
         })
@@ -346,7 +354,7 @@ const ProductPage = () => {
             <Tooltip title="Wishlist">
               <HeartOutlined
                 style={{ color: '#fff', fontSize: '20px', cursor: 'pointer' }}
-                onClick={handleAddToWishlist}
+                onClick={handleWishlistClick}
               />
             </Tooltip>
             <Tooltip title="Cart">
