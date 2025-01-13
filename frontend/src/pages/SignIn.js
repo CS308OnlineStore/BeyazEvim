@@ -41,7 +41,6 @@ const SignIn = () => {
       password,
     };
 
-    let userID = 0;
     try {
       const response = await axios.post('http://localhost:8080/login', userData, {
         headers: {
@@ -50,15 +49,28 @@ const SignIn = () => {
       });
 
       if (response.status === 200) {
-        const { token, firstName, lastName, userId } = response.data;
+        const { token, firstName, lastName, userId, role } = response.data;
 
         Cookies.set('authToken', token, { expires: 7 });
         Cookies.set('userName', `${firstName} ${lastName}`, { expires: 7 });
         Cookies.set('userId', userId, { expires: 7 });
-
-        userID = userId;
+        Cookies.set('userRole', role, { expires: 7 }); // Rolü cookie'ye ekleyin
 
         openNotificationWithIcon('success', 'Login Successful', 'You have successfully logged in!');
+
+        // Rol bazlı yönlendirme
+        switch (role) {
+          case 'PRODUCT_MANAGER':
+            navigate('/product-owner');
+            break;
+          case 'SALES_MANAGER':
+            navigate('/sales-manager');
+            break;
+          case 'CUSTOMER':
+          default:
+            navigate('/'); // Müşteri ve varsayılan olarak ana sayfa
+            break;
+        }
       } else {
         handleErrorResponse(response.status);
       }
@@ -72,10 +84,6 @@ const SignIn = () => {
     } finally {
       setLoading(false);
     }
-
-    // Additional logic for cart merging can go here...
-
-    navigate('/');
   };
 
   const handleErrorResponse = (status) => {

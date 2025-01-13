@@ -4,8 +4,6 @@ import { Button, Space, Row, Col, Card, Typography } from 'antd';
 import {
   LoginOutlined,
   UserAddOutlined,
-  ProfileOutlined,
-  TeamOutlined,
 } from '@ant-design/icons';
 
 // Import the background image
@@ -18,14 +16,6 @@ const SignInSignUp = () => {
 
   const handleNavigate = (path) => {
     path === 'signin' ? navigate('/signin') : navigate('/signup');
-  };
-
-  const handleProductOwnerNavigate = () => {
-    navigate('/product-owner');
-  };
-
-  const handleSalesManagerNavigate = () => {
-    navigate('/sales-manager'); // Navigate to Sales Manager page
   };
 
   return (
@@ -74,24 +64,6 @@ const SignInSignUp = () => {
                 style={{ height: '50px', fontSize: '16px' }}
               >
                 Sign Up
-              </Button>
-              <Button
-                type="dashed"
-                block
-                icon={<ProfileOutlined />}
-                onClick={handleProductOwnerNavigate}
-                style={{ height: '50px', fontSize: '16px' }}
-              >
-                Go to Product Owner Page
-              </Button>
-              <Button
-                type="dashed"
-                block
-                icon={<TeamOutlined />}
-                onClick={handleSalesManagerNavigate}
-                style={{ height: '50px', fontSize: '16px' }}
-              >
-                Go to Sales Manager Page
               </Button>
             </Space>
           </Card>

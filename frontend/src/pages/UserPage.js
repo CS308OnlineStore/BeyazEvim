@@ -24,7 +24,8 @@ import {
   UserOutlined,
   ShoppingCartOutlined,
   SwapOutlined,
-  CloseOutlined, // Daha uygun bir ikon ekledik
+  CloseOutlined,
+  DollarOutlined,
 } from '@ant-design/icons';
 import newLogo from '../assets/BeyazEvim_new_logo.jpeg';
 
@@ -123,6 +124,28 @@ const UserPage = () => {
     navigate('/');
   };
 
+  const handleRequestRefund = async (orderId) => {
+    const token = Cookies.get('authToken');
+    try {
+      const response = await axios.post(
+        '/api/refund-requests',
+        { orderId },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      message.success('Refund request submitted successfully.');
+      // Optionally, refresh the refunds list
+      setReturns([...returns, response.data]);
+      setFilteredReturns(selectedReturnStatus === 'ALL' ? [...returns, response.data] : filteredReturns);
+    } catch (error) {
+      console.error('Refund Request Error:', error);
+      if (error.response && error.response.data && error.response.data.message) {
+        message.error(`Refund Request Failed: ${error.response.data.message}`);
+      } else {
+        message.error('Failed to submit refund request. Please try again.');
+      }
+    }
+  };
+
   if (loading) {
     return (
       <Layout style={{ minHeight: '100vh', backgroundColor: '#f0f2f5' }}>
@@ -177,7 +200,6 @@ const UserPage = () => {
                       onClick={() => {
                         setIsEditing({ ...isEditing, address: false });
                         message.success('Address updated!');
-                        // Burada güncellenen adresi kaydetmek için bir API çağrısı yapmalısınız
                       }}
                     >
                       Save
@@ -212,7 +234,6 @@ const UserPage = () => {
                       onClick={() => {
                         setIsEditing({ ...isEditing, phone: false });
                         message.success('Phone number updated!');
-                        // Burada güncellenen telefon numarasını kaydetmek için bir API çağrısı yapmalısınız
                       }}
                     >
                       Save
@@ -243,9 +264,6 @@ const UserPage = () => {
               style={{
                 backgroundColor: '#ff4d4f',
                 borderColor: '#ff4d4f',
-                padding: '8px 16px', // İç boşlukları azaltarak butonu küçülttük
-                fontSize: '14px', // Font boyutunu küçülttük
-                borderRadius: '4px', // Köşe yuvarlatmalarını ekleyerek daha dengeli bir görünüm sağladık
               }}
             >
               Logout
@@ -282,19 +300,41 @@ const UserPage = () => {
                   <Card
                     title={`Order ID: ${order.id}`}
                     extra={
-                      <Button
-                        type="primary"
-                        danger
-                        onClick={() => message.info('Cancel feature not yet implemented.')}
-                        icon={<CloseOutlined />} // Daha uygun bir ikon kullanıldı
-                        style={{
-                          padding: '4px 8px', // İç boşlukları azaltarak butonu küçülttük
-                          fontSize: '12px', // Font boyutunu küçülttük
-                          borderRadius: '4px', // Köşe yuvarlatmalarını ekleyerek daha dengeli bir görünüm sağladık
-                        }}
-                      >
-                        Cancel
-                      </Button>
+                      order.status === 'PURCHASED' ? (
+                        <Button
+                          type="primary"
+                          danger
+                          onClick={async () => {
+                            try {
+                              await axios.delete(`/api/orders/${order.id}`, {
+                                headers: { Authorization: `Bearer ${Cookies.get('authToken')}` },
+                              });
+                              message.success('Order has been cancelled and deleted. Refund will be processed.');
+                              const updatedOrders = orders.filter((o) => o.id !== order.id);
+                              setOrders(updatedOrders);
+                              setFilteredOrders(
+                                selectedOrderStatus === 'ALL'
+                                  ? updatedOrders
+                                  : updatedOrders.filter((o) => o.status === selectedOrderStatus)
+                              );
+                            } catch (error) {
+                              console.error('Error deleting order:', error);
+                              message.error('Failed to cancel the order. Please try again.');
+                            }
+                          }}
+                          icon={<CloseOutlined />}
+                        >
+                          Cancel
+                        </Button>
+                      ) : order.status === 'SHIPPED' || order.status === 'DELIVERED' ? (
+                        <Button
+                          type="primary"
+                          onClick={() => handleRequestRefund(order.id)}
+                          icon={<DollarOutlined />}
+                        >
+                          Request Refund
+                        </Button>
+                      ) : null
                     }
                     style={{
                       backgroundColor: '#fafafa',
@@ -382,12 +422,10 @@ const UserPage = () => {
           }}
           onClick={() => navigate('/')}
         >
-          <Avatar src={newLogo} size={70} shape="square" /> {/* Avatar'ı kare yaptık */}
+          <Avatar src={newLogo} size={70} shape="square" />
           <Title level={4} style={{ color: '#ffffff', marginTop: 10 }}>
             {userInfo.firstName} {userInfo.lastName}
           </Title>
-          {/* E-posta satırı kaldırıldı */}
-          {/* <Text type="secondary">{userInfo.email}</Text> */}
         </div>
         <Menu
           mode="inline"
