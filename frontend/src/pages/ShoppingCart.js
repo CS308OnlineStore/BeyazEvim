@@ -4,12 +4,13 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Cookies from 'js-cookie';
 import PaymentForm from './MockPaymentForm';
+import Modal from './Modal';
 
 const ShoppingCart = ({onClose}) => {
   const [cartItems, setCartItems] = useState([]);
   const [totalPrice, setTotalPrice] = useState(0);
   const [cartUpdated, setCartUpdated] = useState(false);
-  const [showPayment, setShowPayment] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
 
   const navigate = useNavigate();
   const userId = Cookies.get('userId');
@@ -78,9 +79,8 @@ const ShoppingCart = ({onClose}) => {
     } else {
       axios.get(`/api/users/${userId}/address`)
         .then(response => {
-          console.log(response.data.newAddress);
           if (response.data.newAddress) {
-            setShowPayment(true);
+            setShowPaymentModal(true);
           } else {
             alert("Add address to complete order!");
             navigate('/userpage');
@@ -125,9 +125,22 @@ const ShoppingCart = ({onClose}) => {
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div>
-                    <strong>{ item.productModel.name }</strong>
-                    <p style={{ margin: '5px 0', fontSize: '14px', color: '#666' }}>{item.quantity} x {item.productModel.price}₺</p>
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <img
+                      src={item.productModel.image_path}
+                      alt={item.productModel.name}
+                      style={{
+                        width: '50px',
+                        height: '50px',
+                        objectFit: 'cover',
+                        marginRight: '15px',
+                        borderRadius: '8px',
+                      }}
+                    />
+                    <div>
+                      <strong>{ item.productModel.name }</strong>
+                      <p style={{ margin: '5px 0', fontSize: '14px', color: '#666' }}>{item.quantity} x {item.productModel.price}₺</p>
+                    </div>
                   </div>
                   <button
                     onClick={() => handleRemoveItem(item.productModel.id)}
@@ -151,31 +164,24 @@ const ShoppingCart = ({onClose}) => {
           </div>
           {/* Buttons */}
           <div style={{ marginTop: '20px', textAlign: 'center' }}>
-            {showPayment ? (
-                <PaymentForm
-                  onPaymentSuccess={() => {
-                    setShowPayment(false);
-                    onClose();
-                  }}
-                />
-              ) : (
-                <button
-                  style={{
-                    backgroundColor: '#28a745',
-                    color: 'white',
-                    border: 'none',
-                    padding: '10px 20px',
-                    cursor: 'pointer',
-                    width: '100%',
-                    marginBottom: '10px',
-                    borderRadius: '5px',
-                    fontSize: '16px',
-                  }}
-                  onClick={handleCompleteOrder}
-                >
-                  Complete Order
-                </button>
-              )}
+            {
+              <button
+                style={{
+                  backgroundColor: '#28a745',
+                  color: 'white',
+                  border: 'none',
+                  padding: '10px 20px',
+                  cursor: 'pointer',
+                  width: '100%',
+                  marginBottom: '10px',
+                  borderRadius: '5px',
+                  fontSize: '16px',
+                }}
+                onClick={handleCompleteOrder}
+              >
+                Complete Order
+              </button>
+            }
             <br />
             <button
               style={{
@@ -194,6 +200,16 @@ const ShoppingCart = ({onClose}) => {
             </button>
           </div>
         </div>
+      )}
+      {showPaymentModal && (
+        <Modal onClose={() => setShowPaymentModal(false)}>
+          <PaymentForm
+            onPaymentSuccess={() => {
+              setShowPaymentModal(false);
+              onClose();
+            }}
+          />
+        </Modal>
       )}
     </div>
   );

@@ -3,9 +3,11 @@ import { usePaymentInputs } from 'react-payment-inputs';
 import images from 'react-payment-inputs/images';
 import Cookies from 'js-cookie';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 const PaymentForm = ({ onPaymentSuccess }) => {
   const cartId = Cookies.get('cartId');
+  const navigate = useNavigate();
 
   const { getCardNumberProps, getExpiryDateProps, getCVCProps, wrapperProps, getCardImageProps } =
     usePaymentInputs();
@@ -15,6 +17,8 @@ const PaymentForm = ({ onPaymentSuccess }) => {
     cvc: '',
   });
 
+  const [loading, setLoading] = useState(false);
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
@@ -22,37 +26,50 @@ const PaymentForm = ({ onPaymentSuccess }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    setLoading(true);
 
-    const newTab = window.open('', '_blank');
-
-    setTimeout(() => {
-      axios.post(`/api/orders/purchase/${cartId}`, null, { responseType: 'blob' }) // Set responseType to 'blob'
-        .then(response => {
-          if (response.status === 200) {
-            alert('Payment Successful!');
-
-            const blobUrl = URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
-      
-            if (newTab) {
-              newTab.location.href = blobUrl;
-            } else {
-              alert('Unable to open a new tab. Please check your browser settings.');
-            }
-
-            if (onPaymentSuccess) onPaymentSuccess();
-            
-          } else {
-            alert('Failed to process the order.');
-          }
-        })
-        .catch(error => {
-          console.error('Error posting order:', error);
-          alert('Error processing order. Please try again.');
-
-          if (newTab) newTab.close();
+    setTimeout(async () => {
+      try {
+        const response = await axios.post(`/api/orders/purchase/${cartId}`, null, {
+          responseType: 'blob', 
         });
-    }, 1000);
+    
+        if (response.status === 200) {
+          alert('Payment Successful!');
+    
+          const fileURL = URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
+          window.open(fileURL, '_blank'); 
+    
+          window.location.reload();
+    
+          if (onPaymentSuccess) {
+            onPaymentSuccess();
+          }
+        } else {
+          alert('Failed to process the order.');
+        }
+      } catch (error) {
+        setLoading(false);
+        console.error('Error posting order:', error);
+        alert('Error processing order. Please try again.');
+      }
+    }, 500);
+    
   };
+
+  if (loading) {
+    // Show loading screen while waiting
+    return (
+      <div style={loadingStyle}>
+        <img
+          src="/assets/loadingGif.gif"
+          alt="Loading..."
+          style={loadingImageStyle}
+        />
+        <p>Waiting for approval from your bank...</p>
+      </div>
+    );
+  }
 
   return (
     <div style={formStyle}>
@@ -135,6 +152,26 @@ const buttonStyle = {
   border: 'none',
   borderRadius: '4px',
   cursor: 'pointer',
+};
+
+const loadingStyle = {
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  justifyContent: 'center',
+  padding: '20px',
+  margin: '20px auto',
+  border: '1px solid #ccc',
+  borderRadius: '8px',
+  boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+  backgroundColor: '#fff',
+  width: 'fit-content',
+};
+
+const loadingImageStyle = {
+  width: '100px',
+  height: '100px',
+  marginBottom: '20px',
 };
 
 export default PaymentForm;

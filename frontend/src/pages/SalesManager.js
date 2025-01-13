@@ -8,10 +8,10 @@ import {
   UndoOutlined,
 } from '@ant-design/icons';
 import SetDiscountPage from './SetDiscountPage';
+import SetPricePage from './SetPricePage';
 import ViewInvoicesPage from './ViewInvoicesPage';
 import RevenueAnalysisPage from './RevenueAnalysisPage';
 import RefundRequestPage from './RefundRequestsPage';
-import UpdateProductStatusPage from './UpdateProductStatusPage';
 
 
 const { Header, Sider, Content } = Layout;
@@ -31,15 +31,14 @@ const SalesManager = () => {
     switch (currentPage) {
       case 'setDiscount':
         return <SetDiscountPage />;
+      case 'setPrice':
+        return <SetPricePage/>;
       case 'viewInvoices':
         return <ViewInvoicesPage />; // Entegre edilen sayfa
       case 'revenueAnalysis':
         return <RevenueAnalysisPage />;
       case 'refundRequest':
         return <RefundRequestPage/>;
-      case 'productStatus':
-        return <UpdateProductStatusPage/>;
-      
       default:
         return null;
     }
@@ -61,6 +60,9 @@ const SalesManager = () => {
           <Menu.Item key="setDiscount" icon={<PercentageOutlined />}>
             Set Discount
           </Menu.Item>
+          <Menu.Item key="setPrice" icon={<SettingOutlined />}>
+            Update Product Price
+          </Menu.Item>
           <Menu.Item key="viewInvoices" icon={<FileTextOutlined />}>
             View Invoices
           </Menu.Item>
@@ -69,9 +71,6 @@ const SalesManager = () => {
           </Menu.Item>
           <Menu.Item key="refundRequest" icon={<UndoOutlined />}>
             Refund Requests
-          </Menu.Item>
-          <Menu.Item key="productStatus" icon={<SettingOutlined />}>
-            Update Product Stock
           </Menu.Item>
         </Menu>
       </Sider>

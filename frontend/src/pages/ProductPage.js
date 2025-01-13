@@ -368,7 +368,7 @@ const ProductPage = () => {
           cover={
             <img
               alt={productDetails.name}
-              src={productDetails.image || 'https://via.placeholder.com/300'}
+              src={productDetails.image_path}
               style={{ objectFit: 'cover', height: '400px' }}
             />
           }
