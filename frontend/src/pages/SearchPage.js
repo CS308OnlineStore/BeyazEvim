@@ -2,24 +2,67 @@ import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Cookies from 'js-cookie';
 import axios from 'axios';
+import {
+  Layout,
+  Menu,
+  Input,
+  Button,
+  Badge,
+  Drawer,
+  Card,
+  Typography,
+  Row,
+  Col,
+  Divider,
+  Select,
+} from 'antd';
+import {
+  ShoppingCartOutlined,
+  UserOutlined,
+  SearchOutlined,
+  HeartOutlined,
+  HeartFilled,
+} from '@ant-design/icons';
+import ShoppingCart from './ShoppingCart'; // Bu bileşenin mevcut olduğundan emin olun
 import newLogo from '../assets/BeyazEvim_new_logo.jpeg';
 
+const { Header, Sider, Content } = Layout;
+const { Title, Text } = Typography;
+const { Option } = Select;
 
 const SearchPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Durum Değişkenleri
   const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [isCartVisible, setIsCartVisible] = useState(false);
+  const [cartNum, setCartNum] = useState(parseInt(Cookies.get('cartNum')) || 0);
+  const [userName, setUserName] = useState(Cookies.get('userName') || '');
+  const [sortOption, setSortOption] = useState('default');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isHeartHovered, setIsHeartHovered] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [sortOption, setSortOption] = useState('default'); // Sıralama için state
 
-  const location = useLocation();
   const searchString = new URLSearchParams(location.search).get('searchString') || '';
 
-  const userName = Cookies.get('userName');
-  const cartNum = Cookies.get('cartNum') || 0;
-  const totalPrice = Cookies.get('totalPrice') || 0;
+  // Bileşen Yüklendiğinde Çalışacak Etkiler
+  useEffect(() => {
+    const token = Cookies.get('authToken');
+    const userId = Cookies.get('userId');
+    const userName = Cookies.get('userName');
 
+    if (token && userId) {
+      setUserName(userName);
+      fetchCart(userId);
+    }
+
+    fetchCategories();
+  }, []);
+
+  // Arama Sorgusuna ve Sıralamaya Göre Ürünleri Çek
   useEffect(() => {
     setSearchQuery(searchString);
     if (searchString.trim()) {
@@ -28,15 +71,20 @@ const SearchPage = () => {
 
       axios
         .get(`/api/product-models/search/${encodeURIComponent(searchString.trim())}`)
-        .then((response) => setProducts(response.data))
+        .then((response) => {
+          setProducts(response.data);
+        })
         .catch((error) => {
-          console.error('Error fetching search results:', error);
-          setError('Failed to fetch search results.');
+          console.error('Arama sonuçları alınırken hata oluştu:', error);
+          setError('Arama sonuçları alınamadı.');
         })
         .finally(() => setLoading(false));
+    } else {
+      setProducts([]);
     }
   }, [searchString]);
 
+  // Sıralama Seçeneğine Göre Ürünleri Sırala
   useEffect(() => {
     if (products.length > 0) {
       let sortedProducts = [...products];
@@ -53,295 +101,286 @@ const SearchPage = () => {
           sortedProducts.sort((a, b) => a.price - b.price);
           break;
         default:
-          sortedProducts = products;
           break;
       }
       setProducts(sortedProducts);
     }
   }, [sortOption, products]);
 
+  // Sepeti Çek
+  const fetchCart = (userId) => {
+    axios
+      .get(`/api/orders/${userId}/cart`)
+      .then((response) => {
+        const { id, orderItems, totalPrice } = response.data;
+        Cookies.set('cartId', id, { expires: 7 });
+        setCartNum(orderItems.length);
+        Cookies.set('cartNum', orderItems.length, { expires: 7 });
+        Cookies.set('totalPrice', totalPrice, { expires: 7 });
+      })
+      .catch((error) => console.error('Sepet alınırken hata oluştu:', error));
+  };
+
+  // Kategorileri Çek
+  const fetchCategories = () => {
+    axios
+      .get('/api/categories/root')
+      .then((response) => setCategories(response.data))
+      .catch((error) => console.error('Kategoriler alınırken hata oluştu:', error));
+  };
+
+  // Arama Formu Gönderme
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     if (!searchQuery.trim()) {
-      alert('Please enter a search term.');
+      // Ant Design'ın message bileşenini kullanarak daha iyi bir kullanıcı deneyimi sağlayabilirsiniz
+      alert('Lütfen bir arama terimi girin.');
       return;
     }
     navigate(`/search?searchString=${encodeURIComponent(searchQuery.trim())}`);
   };
 
+  // Favorilere Ekleme (Wishlist) Tıklaması
+  const handleWishlistClick = () => {
+    if (userName) {
+      navigate('/wishlist');
+    } else {
+      alert('Favorilere eklemeden önce giriş yapmalısınız!');
+      navigate('/signinsignup');
+    }
+  };
+
+  // Kullanıcı Sayfasına Gitme
+  const handleUserPageClick = () => {
+    navigate('/userpage');
+  };
+
+  // Giriş Yapma
   const handleLoginClick = () => {
     navigate('/signinsignup');
   };
 
-  const handleUserPageClick = () => {
-    navigate('/UserPage');
-  };
-
+  // Sepeti Gösterme
   const handleCartClick = () => {
-    navigate('/cart');
+    setIsCartVisible(true);
   };
 
+  // Ürüne Gitme
   const handleProductClick = (productId) => {
     navigate(`/product/${productId}`);
   };
 
   return (
-    <div style={{ fontFamily: 'Arial, sans-serif', display: 'flex' }}>
-      {/* Sidebar Categories Section */}
-      <div style={{ width: '250px' }}>
-        <div style={logoContainerStyle} onClick={() => navigate('/')}>
-          <img src={newLogo} alt="BeyazEvim Logo" style={logoStyle} />
-          <h3 style={logoTextStyle}>BeyazEvim</h3>
+    <Layout>
+      {/* Yan Menü (Sidebar) */}
+      <Sider width={250} style={{ background: '#fff' }}>
+        <div style={{ textAlign: 'center', padding: '20px' }}>
+          <img
+            src={newLogo}
+            alt="BeyazEvim Logo"
+            style={{ width: '150px', height: '150px', cursor: 'pointer' }}
+            onClick={() => navigate('/')}
+          />
         </div>
-      </div>
+        <Menu mode="inline" defaultSelectedKeys={[]}>
+          {categories.map((category) => (
+            <Menu.SubMenu key={category.id} title={category.categoryName}>
+              {category.subCategories
+                .filter((subcategory) => subcategory.active)
+                .map((subcategory) => (
+                  <Menu.Item
+                    key={subcategory.id}
+                    onClick={() => navigate(`/category/${subcategory.id}`)}
+                  >
+                    {subcategory.categoryName}
+                  </Menu.Item>
+                ))}
+            </Menu.SubMenu>
+          ))}
+        </Menu>
+      </Sider>
 
-      {/* Main Content Area */}
-      <div style={{ flex: 1 }}>
-        {/* Header Section */}
-        <header style={headerStyle}>
-          <form onSubmit={handleSearchSubmit} style={{ display: 'flex', width: '100%' }}>
-            <input
-              type="text"
-              placeholder="What are you looking for?"
-              style={searchBarStyle}
+      {/* Ana Düzen */}
+      <Layout>
+        {/* Üst Kısım (Header) */}
+        <Header
+          style={{
+            background: '#001529',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+          }}
+        >
+          {/* Arama Formu */}
+          <form onSubmit={handleSearchSubmit} style={{ display: 'flex', width: '50%' }}>
+            <Input
+              placeholder="Ne arıyorsunuz?"
+              prefix={<SearchOutlined />}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
+              style={{
+                width: '100%',
+                height: '40px',
+                marginTop: '5px',
+                marginBottom: '5px',
+                borderRadius: '5px',
+              }}
+              onPressEnter={handleSearchSubmit}
             />
-            <button type="submit" style={searchButtonStyle}>
-              Search
-            </button>
+            {/* Arama Butonu Kaldırıldı */}
           </form>
-          <div style={navIconsStyle}>
+
+          {/* Kullanıcı ve Sepet İkonları */}
+          <div>
             {userName ? (
-              <button onClick={handleUserPageClick} style={navButtonStyle}>
+              <Button
+                type="link"
+                icon={<UserOutlined />}
+                onClick={handleUserPageClick}
+                style={{ color: 'white' }}
+              >
                 {userName}
-              </button>
+              </Button>
             ) : (
-              <button onClick={handleLoginClick} style={navButtonStyle}>
-                Login
-              </button>
+              <Button type="primary" onClick={handleLoginClick}>
+                Giriş Yap
+              </Button>
             )}
-            <div style={cartContainerStyle}>
-              <div style={cartIconStyle} onClick={handleCartClick}>
-                <span role="img" aria-label="cart">
-                  🛒
-                </span>
-              </div>
-              <div style={cartTextStyle}>
-                <span style={cartPriceStyle}>Sepetim ({cartNum})</span>
-                <br />
-                <span style={cartItemCountStyle}>{totalPrice} TL</span>
-              </div>
-            </div>
+            {/* Favori İkonu */}
+            <span
+              onMouseEnter={() => setIsHeartHovered(true)}
+              onMouseLeave={() => setIsHeartHovered(false)}
+              onClick={handleWishlistClick}
+              style={{ marginLeft: '20px', cursor: 'pointer', fontSize: '24px', color: 'white' }}
+            >
+              {isHeartHovered ? <HeartFilled /> : <HeartOutlined />}
+            </span>
+            {/* Sepet İkonu */}
+            <Badge count={cartNum}>
+              <ShoppingCartOutlined
+                onClick={handleCartClick}
+                style={{
+                  fontSize: '24px',
+                  cursor: 'pointer',
+                  color: 'white',
+                  marginLeft: '20px',
+                }}
+              />
+            </Badge>
           </div>
-        </header>
+        </Header>
 
-        {/* Sort Dropdown */}
-        <div style={sortDropdownContainerStyle}>
-          <label htmlFor="sortDropdown" style={sortDropdownLabelStyle}>
-            Sort by:
-          </label>
-          <select
-            id="sortDropdown"
-            style={sortDropdownStyle}
-            value={sortOption}
-            onChange={(e) => setSortOption(e.target.value)}
-          >
-            <option value="default">Default</option>
-            <option value="popularity">Popularity</option>
-            <option value="alphabetical">Alphabetical</option>
-            <option value="price">Price</option>
-          </select>
-        </div>
+        {/* İçerik Bölümü */}
+        <Content style={{ padding: '20px' }}>
+          {/* Sıralama Seçeneği */}
+          <Row justify="space-between" align="middle" style={{ marginBottom: '20px' }}>
+            <Title level={4}>Sırala:</Title>
+            <Select
+              value={sortOption}
+              onChange={(value) => setSortOption(value)}
+              style={{ width: 200 }}
+            >
+              <Option value="default">Varsayılan</Option>
+              <Option value="popularity">Popülerlik</Option>
+              <Option value="alphabetical">Alfabetik</Option>
+              <Option value="price">Fiyat</Option>
+            </Select>
+          </Row>
 
-        {/* Search Results Section */}
-        <div style={{ padding: '20px' }}>
+          {/* Arama Sonuçları */}
           {searchString.trim() ? (
             <>
-              <h1>Search Results for "{searchString}"</h1>
-              {loading && <p>Loading...</p>}
-              {error && <p style={{ color: 'red' }}>{error}</p>}
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '20px', marginTop: '20px' }}>
+              <Title level={3} style={{ marginBottom: '20px' }}>
+                "{searchString}" için Arama Sonuçları
+              </Title>
+              {loading && <Text>Yükleniyor...</Text>}
+              {error && <Text type="danger">{error}</Text>}
+              <Row gutter={[16, 16]}>
                 {products.length > 0 ? (
-                  products
-                  .filter((product) => product.price > 0)
-                  .map((product) => (
-                    <div
-                      key={product.id}
-                      style={productCardStyle}
-                      onClick={() => handleProductClick(product.id)}
-                    >
-                      <img
-                        src={product.image_path}
-                        alt={product.name}
-                        style={{ width: '100%', borderRadius: '10px' }}
-                      />
-                      <h3>{product.name}</h3>
-                      <p>{product.description}</p>
-                      <hr />
-                      <p
+                  products.map((product) => (
+                    <Col key={product.id} xs={24} sm={12} md={8} lg={6}>
+                      <Card
+                        hoverable
                         style={{
-                          fontWeight: 'bold',
-                          color: product.stockCount > 0 ? 'inherit' : 'red',
+                          height: '350px',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          justifyContent: 'space-between',
                         }}
+                        cover={
+                          <div
+                            style={{
+                              overflow: 'hidden',
+                              display: 'flex',
+                              justifyContent: 'center',
+                              alignItems: 'center',
+                              height: '150px',
+                            }}
+                          >
+                            <img
+                              alt={product.name}
+                              src={product.image_path || 'https://via.placeholder.com/150'}
+                              style={{
+                                width: '150px',
+                                height: '150px',
+                                objectFit: 'cover',
+                                borderRadius: '8px',
+                                transition: 'transform 0.3s ease',
+                              }}
+                              onMouseEnter={(e) => (e.currentTarget.style.transform = 'scale(1.2)')}
+                              onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+                            />
+                          </div>
+                        }
+                        onClick={() => handleProductClick(product.id)}
                       >
-                        {product.stockCount > 0 ? `₺${product.price}` : 'OUT OF STOCK'}
-                      </p>
-                    </div>
+                        <Card.Meta
+                          title={product.name}
+                          description={
+                            <div
+                              style={{
+                                height: '50px',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                display: '-webkit-box',
+                                WebkitLineClamp: 2,
+                                WebkitBoxOrient: 'vertical',
+                              }}
+                            >
+                              {product.description}
+                            </div>
+                          }
+                        />
+                        <Divider />
+                        <Text strong>
+                          {product.stockCount > 0 ? `₺${product.price}` : 'STOKTA YOK'}
+                        </Text>
+                      </Card>
+                    </Col>
                   ))
                 ) : (
-                  !loading && <p>No products found for your search.</p>
+                  !loading && <Text>Aramanız için hiçbir ürün bulunamadı.</Text>
                 )}
-              </div>
+              </Row>
             </>
           ) : (
-            <h1>Please enter a search term to see results.</h1>
+            <Title level={3}>Arama sonuçlarını görmek için bir arama terimi girin.</Title>
           )}
-        </div>
-      </div>
-    </div>
+        </Content>
+
+        {/* Altta Olabilir: Sepet Çekmecesi */}
+        <Drawer
+          title="Sepetiniz"
+          placement="right"
+          onClose={() => setIsCartVisible(false)}
+          visible={isCartVisible}
+          width={400}
+        >
+          <ShoppingCart onClose={() => setIsCartVisible(false)} />
+        </Drawer>
+      </Layout>
+    </Layout>
   );
-};
-
-const productCardStyle = {
-  border: '1px solid #ddd',
-  borderRadius: '10px',
-  padding: '10px',
-  width: '200px',
-  textAlign: 'center',
-  cursor: 'pointer',
-};
-
-// CSS Styles as JavaScript objects
-const logoContainerStyle = {
-  display: 'flex',
-  alignItems: 'center',
-  padding: '20px',
-  borderBottom: '1px solid #ddd',
-  justifyContent: 'center',
-  cursor: 'pointer', // Logoya tıklanabilirlik eklendi
-};
-
-const logoStyle = {
-  width: '50px',
-  height: '50px',
-  marginRight: '10px',
-};
-
-const logoTextStyle = {
-  fontSize: '24px',
-  fontWeight: 'bold',
-  color: '#ff0000',
-};
-
-const headerStyle = {
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  padding: '10px 20px',
-  backgroundColor: '#333',
-  color: 'white',
-};
-
-const searchBarStyle = {
-  width: '50%',
-  padding: '10px',
-  borderRadius: '5px',
-  border: '1px solid #ddd',
-};
-
-const searchButtonStyle = {
-  padding: '10px',
-  marginLeft: '10px',
-  backgroundColor: '#007bff',
-  color: 'white',
-  border: 'none',
-  borderRadius: '5px',
-  cursor: 'pointer',
-  transition: 'background-color 0.3s ease',
-};
-
-const navIconsStyle = {
-  display: 'flex',
-  alignItems: 'center',
-};
-
-const navButtonStyle = {
-  backgroundColor: '#007bff',
-  color: 'white',
-  border: 'none',
-  padding: '10px 20px',
-  borderRadius: '5px',
-  cursor: 'pointer',
-  transition: 'background-color 0.3s ease, color 0.3s ease',
-  minWidth: '100px',
-  display: 'inline-flex',
-  justifyContent: 'center',
-  alignItems: 'center',
-  height: '40px',
-};
-
-const cartContainerStyle = {
-  display: 'flex',
-  alignItems: 'center',
-  padding: '10px',
-  color: 'white',
-};
-
-const cartIconStyle = {
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  width: '40px',
-  height: '40px',
-  backgroundColor: '#333',
-  borderRadius: '50%',
-  fontSize: '20px',
-  color: 'white',
-  marginRight: '10px',
-  cursor: 'pointer',
-  transition: 'background-color 0.3s ease',
-};
-
-const cartTextStyle = {
-  display: 'flex',
-  flexDirection: 'column',
-  justifyContent: 'center',
-  fontSize: '14px',
-  cursor: 'default',
-};
-
-const cartItemCountStyle = {
-  color: 'white',
-  fontWeight: 'bold',
-};
-
-const cartPriceStyle = {
-  fontSize: '12px',
-  color: 'white',
-};
-
-const sortDropdownContainerStyle = {
-  marginBottom: '20px',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'flex-start',
-};
-
-const sortDropdownLabelStyle = {
-  fontSize: '16px',
-  fontWeight: 'bold',
-  marginRight: '10px',
-  color: '#333',
-};
-
-const sortDropdownStyle = {
-  padding: '10px',
-  borderRadius: '5px',
-  border: '1px solid #ccc',
-  fontSize: '16px',
-  cursor: 'pointer',
-  backgroundColor: '#fff',
 };
 
 export default SearchPage;
