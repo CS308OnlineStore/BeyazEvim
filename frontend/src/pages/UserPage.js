@@ -68,11 +68,30 @@ const UserPage = () => {
 
     const fetchUserData = async () => {
       try {
+        // Fetch basic user information
         const userResponse = await axios.get(`/api/users/${userId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        setUserInfo(userResponse.data);
 
+        // Fetch user's address separately if it's not included in the basic info
+        let address = userResponse.data.address || '';
+        if (!userResponse.data.address) {
+          const addressResponse = await axios.get(`/api/users/${userId}/address`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          address = addressResponse.data.address;
+        }
+
+        // Update userInfo state with fetched data
+        setUserInfo({
+          firstName: userResponse.data.firstName || 'Unknown',
+          lastName: userResponse.data.lastName || 'Unknown',
+          email: userResponse.data.email || 'Unknown',
+          address: address,
+          phoneNumber: userResponse.data.phoneNumber || '',
+        });
+
+        // Fetch orders
         const ordersResponse = await axios.get(`/api/orders/user/${userId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -81,6 +100,7 @@ const UserPage = () => {
         setOrders(allOrders);
         setFilteredOrders(allOrders);
 
+        // Fetch refund requests
         const returnsResponse = await axios.get('/api/refund-requests', {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -133,15 +153,99 @@ const UserPage = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       message.success('Refund request submitted successfully.');
-      // Optionally, refresh the refunds list
-      setReturns([...returns, response.data]);
-      setFilteredReturns(selectedReturnStatus === 'ALL' ? [...returns, response.data] : filteredReturns);
+      // Update refunds list
+      setReturns((prevReturns) => [...prevReturns, response.data]);
+      setFilteredReturns((prevFilteredReturns) =>
+        selectedReturnStatus === 'ALL'
+          ? [...prevFilteredReturns, response.data]
+          : prevFilteredReturns
+      );
     } catch (error) {
       console.error('Refund Request Error:', error);
       if (error.response && error.response.data && error.response.data.message) {
         message.error(`Refund Request Failed: ${error.response.data.message}`);
       } else {
         message.error('Failed to submit refund request. Please try again.');
+      }
+    }
+  };
+
+  const handleSaveAddress = async () => {
+    const token = Cookies.get('authToken');
+    const userId = Cookies.get('userId');
+    try {
+      const response = await axios.put(
+        `/api/users/${userId}/address`,
+        { newAddress: userInfo.address }, // Ensure this is a plain string
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      // Handle the response appropriately
+      // Check if response.data.address is a JSON string
+      let updatedAddress = response.data.address;
+
+      if (typeof updatedAddress === 'string') {
+        try {
+          // Attempt to parse the address string
+          const parsed = JSON.parse(updatedAddress);
+          if (parsed.newAddress) {
+            updatedAddress = parsed.newAddress;
+          }
+        } catch (e) {
+          // If parsing fails, assume it's a plain string
+          // No action needed
+        }
+      }
+
+      setUserInfo((prev) => ({ ...prev, address: updatedAddress }));
+      setIsEditing((prev) => ({ ...prev, address: false }));
+      message.success('Address updated successfully.');
+    } catch (error) {
+      console.error('Update Address Error:', error);
+      if (error.response && error.response.data && error.response.data.message) {
+        message.error(`Failed to update address: ${error.response.data.message}`);
+      } else {
+        message.error('Failed to update address. Please try again.');
+      }
+    }
+  };
+
+  const handleSavePhone = async () => {
+    const token = Cookies.get('authToken');
+    const userId = Cookies.get('userId');
+    try {
+      const response = await axios.put(
+        `/api/users/${userId}/phone`,
+        { newPhoneNumber: userInfo.phoneNumber }, // Ensure this is a plain string
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      // Handle the response appropriately
+      // Check if response.data.phoneNumber is a JSON string
+      let updatedPhoneNumber = response.data.phoneNumber;
+
+      if (typeof updatedPhoneNumber === 'string') {
+        try {
+          // Attempt to parse the phone number string
+          const parsed = JSON.parse(updatedPhoneNumber);
+          if (parsed.newPhoneNumber) {
+            updatedPhoneNumber = parsed.newPhoneNumber;
+          }
+        } catch (e) {
+          // If parsing fails, assume it's a plain string
+          // No action needed
+        }
+      }
+
+      setUserInfo((prev) => ({ ...prev, phoneNumber: updatedPhoneNumber }));
+      setIsEditing((prev) => ({ ...prev, phone: false }));
+      message.success('Phone number updated successfully.');
+    } catch (error) {
+      console.error('Update Phone Number Error:', error);
+      if (error.response && error.response.data && error.response.data.message) {
+        message.error(`Failed to update phone number: ${error.response.data.message}`);
+      } else {
+        message.error('Failed to update phone number. Please try again.');
       }
     }
   };
@@ -192,19 +296,15 @@ const UserPage = () => {
                   <Space>
                     <Input
                       style={{ width: '300px' }}
-                      defaultValue={userInfo.address}
-                      onChange={(e) => setUserInfo({ ...userInfo, address: e.target.value })}
+                      value={userInfo.address}
+                      onChange={(e) =>
+                        setUserInfo((prev) => ({ ...prev, address: e.target.value }))
+                      }
                     />
-                    <Button
-                      type="primary"
-                      onClick={() => {
-                        setIsEditing({ ...isEditing, address: false });
-                        message.success('Address updated!');
-                      }}
-                    >
+                    <Button type="primary" onClick={handleSaveAddress}>
                       Save
                     </Button>
-                    <Button onClick={() => setIsEditing({ ...isEditing, address: false })}>
+                    <Button onClick={() => setIsEditing((prev) => ({ ...prev, address: false }))}>
                       Cancel
                     </Button>
                   </Space>
@@ -214,7 +314,7 @@ const UserPage = () => {
                     <Button
                       type="link"
                       icon={<EditOutlined />}
-                      onClick={() => setIsEditing({ ...isEditing, address: true })}
+                      onClick={() => setIsEditing((prev) => ({ ...prev, address: true }))}
                     >
                       Edit
                     </Button>
@@ -226,19 +326,15 @@ const UserPage = () => {
                   <Space>
                     <Input
                       style={{ width: '300px' }}
-                      defaultValue={userInfo.phoneNumber}
-                      onChange={(e) => setUserInfo({ ...userInfo, phoneNumber: e.target.value })}
+                      value={userInfo.phoneNumber}
+                      onChange={(e) =>
+                        setUserInfo((prev) => ({ ...prev, phoneNumber: e.target.value }))
+                      }
                     />
-                    <Button
-                      type="primary"
-                      onClick={() => {
-                        setIsEditing({ ...isEditing, phone: false });
-                        message.success('Phone number updated!');
-                      }}
-                    >
+                    <Button type="primary" onClick={handleSavePhone}>
                       Save
                     </Button>
-                    <Button onClick={() => setIsEditing({ ...isEditing, phone: false })}>
+                    <Button onClick={() => setIsEditing((prev) => ({ ...prev, phone: false }))}>
                       Cancel
                     </Button>
                   </Space>
@@ -248,7 +344,7 @@ const UserPage = () => {
                     <Button
                       type="link"
                       icon={<EditOutlined />}
-                      onClick={() => setIsEditing({ ...isEditing, phone: true })}
+                      onClick={() => setIsEditing((prev) => ({ ...prev, phone: true }))}
                     >
                       Edit
                     </Button>
