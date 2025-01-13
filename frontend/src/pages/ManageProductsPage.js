@@ -68,7 +68,7 @@ const ManageProductsPage = () => {
     const payload = {
       name: values.productName,
       description: values.productDescription,
-      price: values.productPrice,
+      price: 0,
       distributorInformation: values.distributorInformation,
       photoPath: '/images/default.jpg',
       category: { id: values.subcategoryId || values.categoryId },
@@ -87,11 +87,7 @@ const ManageProductsPage = () => {
           })
           .catch(() => message.error('Failed to update stock'))
       })
-      .catch(() => message.error('Failed to create item'));
-    
-    
-
-    
+      .catch(() => message.error('Failed to create item')); 
   };
 
   // Ürün silme işlemi
@@ -180,15 +176,6 @@ const ManageProductsPage = () => {
                 rules={[{ required: true, message: 'Please enter the product description' }]}
               >
                 <Input.TextArea placeholder="Product Description" />
-              </Form.Item>
-
-              {/* Ürün Fiyatı */}
-              <Form.Item
-                name="productPrice"
-                label="Product Price"
-                rules={[{ required: true, message: 'Please enter the product price' }]}
-              >
-                <InputNumber style={{ width: '100%' }} min={0} />
               </Form.Item>
 
               {/* Ürün Distribütör İsmi */}
