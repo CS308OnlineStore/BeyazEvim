@@ -402,7 +402,7 @@ const UserPage = () => {
                           danger
                           onClick={async () => {
                             try {
-                              await axios.delete(`/api/orders/${order.id}`, {
+                              await axios.put(`/api/orders/${order.id}`, {
                                 headers: { Authorization: `Bearer ${Cookies.get('authToken')}` },
                               });
                               message.success('Order has been cancelled and deleted. Refund will be processed.');
