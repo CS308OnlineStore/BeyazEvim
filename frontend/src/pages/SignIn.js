@@ -60,7 +60,7 @@ const SignIn = () => {
 
         // Rol bazlı yönlendirme
         switch (role) {
-          case 'PRODUCT_MANAGER':
+          case 'PRODUCT_OWNER':
             navigate('/product-owner');
             break;
           case 'SALES_MANAGER':
