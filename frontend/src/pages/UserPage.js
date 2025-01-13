@@ -15,11 +15,13 @@ import {
   Tabs,
   Select,
   Spin,
+  Space,
 } from 'antd';
 import {
   LogoutOutlined,
   FileTextOutlined,
   ExclamationCircleOutlined,
+  EditOutlined,
 } from '@ant-design/icons';
 import newLogo from '../assets/BeyazEvim_new_logo.jpeg';
 
@@ -46,6 +48,10 @@ const UserPage = () => {
   const [selectedReturnStatus, setSelectedReturnStatus] = useState('ALL');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isEditing, setIsEditing] = useState({
+    address: false,
+    phone: false,
+  });
 
   useEffect(() => {
     const token = Cookies.get('authToken');
@@ -108,57 +114,14 @@ const UserPage = () => {
     );
   };
 
-  const handleCancelOrder = (orderId) => {
-    confirm({
-      title: 'Are you sure you want to cancel this order?',
-      icon: <ExclamationCircleOutlined />,
-      onOk: async () => {
-        try {
-          const token = Cookies.get('authToken');
-          if (!token) {
-            message.error('Authentication token is missing. Please log in again.');
-            navigate('/login');
-            return;
-          }
-
-          const response = await axios.put(`/api/orders/${orderId}/cancel`, {}, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-
-          if (response.status === 200) {
-            message.success('Order cancelled successfully.');
-            navigate('/refund-requests'); // Redirect to refund requests page
-          }
-        } catch (err) {
-          console.error('Error cancelling order:', err);
-          message.error('Failed to cancel the order.');
-        }
-      },
-    });
-  };
-
-  const handleGetInvoice = (orderId) => {
-    axios
-      .get(`/api/invoices/order/${orderId}/pdf`, { responseType: 'blob' })
-      .then((response) => {
-        const fileURL = URL.createObjectURL(
-          new Blob([response.data], { type: 'application/pdf' })
-        );
-        window.open(fileURL, '_blank');
-      })
-      .catch((error) => {
-        console.error('Error getting invoice PDF:', error);
-        message.error('Error getting invoice.');
-      });
-  };
-
   const handleLogout = () => {
     Cookies.remove('authToken');
     Cookies.remove('userId');
     Cookies.remove('userName');
     Cookies.remove('cartId');
-    navigate('/')
+    navigate('/');
   };
+
   if (loading) {
     return (
       <Layout style={{ minHeight: '100vh' }}>
@@ -213,7 +176,48 @@ const UserPage = () => {
         </Header>
         <Content style={{ padding: 20 }}>
           <Tabs defaultActiveKey="1">
-            <TabPane tab="Orders" key="1">
+            <TabPane tab="User Information" key="1">
+              <Card title="User Information" bordered={false}>
+                <List>
+                  <List.Item>
+                    <Text strong>First Name:</Text> <Text>{userInfo.firstName}</Text>
+                  </List.Item>
+                  <List.Item>
+                    <Text strong>Last Name:</Text> <Text>{userInfo.lastName}</Text>
+                  </List.Item>
+                  <List.Item>
+                    <Text strong>Email:</Text> <Text>{userInfo.email}</Text>
+                  </List.Item>
+                  <List.Item>
+                    <Text strong>Address:</Text>
+                    <Space>
+                      <Text>{userInfo.address || 'No address available'}</Text>
+                      <Button
+                        type="link"
+                        icon={<EditOutlined />}
+                        onClick={() => message.info('Edit feature not yet implemented.')}
+                      >
+                        Edit
+                      </Button>
+                    </Space>
+                  </List.Item>
+                  <List.Item>
+                    <Text strong>Phone Number:</Text>
+                    <Space>
+                      <Text>{userInfo.phoneNumber || 'No phone number available'}</Text>
+                      <Button
+                        type="link"
+                        icon={<EditOutlined />}
+                        onClick={() => message.info('Edit feature not yet implemented.')}
+                      >
+                        Edit
+                      </Button>
+                    </Space>
+                  </List.Item>
+                </List>
+              </Card>
+            </TabPane>
+            <TabPane tab="Orders" key="2">
               <Select
                 value={selectedOrderStatus}
                 onChange={handleFilterOrders}
@@ -235,7 +239,7 @@ const UserPage = () => {
                         <Button
                           type="primary"
                           danger
-                          onClick={() => handleCancelOrder(order.id)}
+                          onClick={() => message.info('Cancel feature not yet implemented.')}
                         >
                           Cancel
                         </Button>
@@ -246,7 +250,7 @@ const UserPage = () => {
                       <Button
                         type="default"
                         icon={<FileTextOutlined />}
-                        onClick={() => handleGetInvoice(order.id)}
+                        onClick={() => message.info('Invoice feature not yet implemented.')}
                       >
                         Get Invoice
                       </Button>
@@ -255,8 +259,7 @@ const UserPage = () => {
                 )}
               />
             </TabPane>
-
-            <TabPane tab="Returns" key="2">
+            <TabPane tab="Returns" key="3">
               <Select
                 value={selectedReturnStatus}
                 onChange={handleFilterReturns}
