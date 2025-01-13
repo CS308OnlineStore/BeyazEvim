@@ -10,24 +10,18 @@ import {
   Button,
   List,
   Card,
-  Modal,
   message,
   Tabs,
   Select,
   Spin,
   Space,
+  Input,
 } from 'antd';
-import {
-  LogoutOutlined,
-  FileTextOutlined,
-  ExclamationCircleOutlined,
-  EditOutlined,
-} from '@ant-design/icons';
+import { LogoutOutlined, EditOutlined } from '@ant-design/icons';
 import newLogo from '../assets/BeyazEvim_new_logo.jpeg';
 
 const { Header, Content, Sider } = Layout;
 const { Title, Text } = Typography;
-const { confirm } = Modal;
 const { TabPane } = Tabs;
 const { Option } = Select;
 
@@ -59,7 +53,7 @@ const UserPage = () => {
 
     if (!token || !userId) {
       message.error('Authentication token or user ID is missing. Please log in again.');
-      navigate('/login'); // Redirect to login page
+      navigate('/login');
       return;
     }
 
@@ -78,7 +72,6 @@ const UserPage = () => {
         setOrders(allOrders);
         setFilteredOrders(allOrders);
 
-        // Fetch return requests
         const returnsResponse = await axios.get('/api/refund-requests', {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -154,7 +147,7 @@ const UserPage = () => {
             textAlign: 'center',
             cursor: 'pointer',
           }}
-          onClick={() => navigate('/')} // Navigate to the main page
+          onClick={() => navigate('/')}
         >
           <Avatar src={newLogo} size={70} />
           <Title level={4}>
@@ -162,11 +155,6 @@ const UserPage = () => {
           </Title>
           <Text type="secondary">{userInfo.email}</Text>
         </div>
-        <Menu>
-          <Menu.Item icon={<LogoutOutlined />} onClick={handleLogout}>
-            Logout
-          </Menu.Item>
-        </Menu>
       </Sider>
       <Layout>
         <Header style={{ background: '#001529', color: 'white', padding: '0 20px' }}>
@@ -189,32 +177,88 @@ const UserPage = () => {
                     <Text strong>Email:</Text> <Text>{userInfo.email}</Text>
                   </List.Item>
                   <List.Item>
-                    <Text strong>Address:</Text>
-                    <Space>
-                      <Text>{userInfo.address || 'No address available'}</Text>
-                      <Button
-                        type="link"
-                        icon={<EditOutlined />}
-                        onClick={() => message.info('Edit feature not yet implemented.')}
-                      >
-                        Edit
-                      </Button>
-                    </Space>
+                    <Text strong>Address:</Text>{' '}
+                    {isEditing.address ? (
+                      <Space>
+                        <Input
+                          style={{ width: '300px' }}
+                          defaultValue={userInfo.address}
+                          onChange={(e) => setUserInfo({ ...userInfo, address: e.target.value })}
+                        />
+                        <Button
+                          type="primary"
+                          onClick={() => {
+                            setIsEditing({ ...isEditing, address: false });
+                            message.success('Address updated!');
+                          }}
+                        >
+                          Save
+                        </Button>
+                        <Button onClick={() => setIsEditing({ ...isEditing, address: false })}>
+                          Cancel
+                        </Button>
+                      </Space>
+                    ) : (
+                      <Space>
+                        <Text>{userInfo.address || 'No address available'}</Text>
+                        <Button
+                          type="link"
+                          icon={<EditOutlined />}
+                          onClick={() => setIsEditing({ ...isEditing, address: true })}
+                        >
+                          Edit
+                        </Button>
+                      </Space>
+                    )}
                   </List.Item>
                   <List.Item>
-                    <Text strong>Phone Number:</Text>
-                    <Space>
-                      <Text>{userInfo.phoneNumber || 'No phone number available'}</Text>
-                      <Button
-                        type="link"
-                        icon={<EditOutlined />}
-                        onClick={() => message.info('Edit feature not yet implemented.')}
-                      >
-                        Edit
-                      </Button>
-                    </Space>
+                    <Text strong>Phone Number:</Text>{' '}
+                    {isEditing.phone ? (
+                      <Space>
+                        <Input
+                          style={{ width: '300px' }}
+                          defaultValue={userInfo.phoneNumber}
+                          onChange={(e) => setUserInfo({ ...userInfo, phoneNumber: e.target.value })}
+                        />
+                        <Button
+                          type="primary"
+                          onClick={() => {
+                            setIsEditing({ ...isEditing, phone: false });
+                            message.success('Phone number updated!');
+                          }}
+                        >
+                          Save
+                        </Button>
+                        <Button onClick={() => setIsEditing({ ...isEditing, phone: false })}>
+                          Cancel
+                        </Button>
+                      </Space>
+                    ) : (
+                      <Space>
+                        <Text>{userInfo.phoneNumber || 'No phone number available'}</Text>
+                        <Button
+                          type="link"
+                          icon={<EditOutlined />}
+                          onClick={() => setIsEditing({ ...isEditing, phone: true })}
+                        >
+                          Edit
+                        </Button>
+                      </Space>
+                    )}
                   </List.Item>
                 </List>
+                <Button
+                  type="primary"
+                  icon={<LogoutOutlined />}
+                  onClick={handleLogout}
+                  style={{
+                    marginTop: 20,
+                    background: '#ff4d4f',
+                    borderColor: '#ff4d4f',
+                  }}
+                >
+                  Logout
+                </Button>
               </Card>
             </TabPane>
             <TabPane tab="Orders" key="2">
@@ -230,7 +274,7 @@ const UserPage = () => {
               </Select>
               <List
                 grid={{ gutter: 16, column: 2 }}
-                dataSource={filteredOrders.filter((order) => order.status !== 'CART')} // Exclude CART status
+                dataSource={filteredOrders.filter((order) => order.status !== 'CART')}
                 renderItem={(order) => (
                   <List.Item>
                     <Card
@@ -247,13 +291,6 @@ const UserPage = () => {
                     >
                       <p>Status: {order.status}</p>
                       <p>Total: ₺{order.totalPrice}</p>
-                      <Button
-                        type="default"
-                        icon={<FileTextOutlined />}
-                        onClick={() => message.info('Invoice feature not yet implemented.')}
-                      >
-                        Get Invoice
-                      </Button>
                     </Card>
                   </List.Item>
                 )}
