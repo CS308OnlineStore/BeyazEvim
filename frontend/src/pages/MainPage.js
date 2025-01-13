@@ -236,55 +236,68 @@ const MainPage = () => {
           </Row>
           <Row gutter={[16, 16]} style={{ marginTop: '20px' }}>
             {products
-            .filter((product) => product.price > 0)
-            .map((product) => (
-              <Col key={product.id} xs={24} sm={12} md={8} lg={6}>
-                <Card
-                  hoverable
-                  style={{
-                    height: '350px', // Set a fixed height for the card
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'space-between',
-                  }}
-                  cover={
-                    <img 
-                      alt={product.name} 
-                      src={product.image_path} 
-                      style={{
-                        width: '150px', // Set your desired width
-                        height: '150px', // Set your desired height
-                        objectFit: 'cover', // Ensures the image is cropped proportionally
-                        borderRadius: '8px', // Optional: Adds rounded corners
-                        margin: 'auto', // Centers the image
-                      }}
-                      />}
-                  onClick={() => navigate(`/product/${product.id}`)}
-                >
-                  <Card.Meta 
-                    title={product.name} 
-                    description={
+              .filter((product) => product.price > 0)
+              .map((product) => (
+                <Col key={product.id} xs={24} sm={12} md={8} lg={6}>
+                  <Card
+                    hoverable
+                    style={{
+                      height: '350px', // Set a fixed height for the card
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                    }}
+                    cover={
                       <div
                         style={{
-                          height: '50px', // Limit description height
-                          overflow: 'hidden', // Hide overflow
-                          textOverflow: 'ellipsis', // Add ellipsis if text overflows
-                          display: '-webkit-box',
-                          WebkitLineClamp: 2, // Limit to 2 lines
-                          WebkitBoxOrient: 'vertical',
+                          overflow: 'hidden', // Ensures image stays within its container
+                          display: 'flex',
+                          justifyContent: 'center',
+                          alignItems: 'center',
+                          height: '150px', // Same as the image height
                         }}
                       >
-                        {product.description}
+                        <img
+                          alt={product.name}
+                          src={product.image_path}
+                          style={{
+                            width: '150px', // Initial width
+                            height: '150px', // Initial height
+                            objectFit: 'cover',
+                            borderRadius: '8px',
+                            transition: 'transform 0.3s ease', // Smooth zoom effect
+                          }}
+                          onMouseEnter={(e) => (e.currentTarget.style.transform = 'scale(1.2)')} // Zoom in
+                          onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')} // Reset zoom
+                        />
                       </div>
                     }
+                    onClick={() => navigate(`/product/${product.id}`)}
+                  >
+                    <Card.Meta
+                      title={product.name}
+                      description={
+                        <div
+                          style={{
+                            height: '50px', // Limit description height
+                            overflow: 'hidden', // Hide overflow
+                            textOverflow: 'ellipsis', // Add ellipsis if text overflows
+                            display: '-webkit-box',
+                            WebkitLineClamp: 2, // Limit to 2 lines
+                            WebkitBoxOrient: 'vertical',
+                          }}
+                        >
+                          {product.description}
+                        </div>
+                      }
                     />
-                  <Divider />
-                  <Text strong>
-                    {product.stockCount > 0 ? `₺${product.price}` : 'OUT OF STOCK'}
-                  </Text>
-                </Card>
-              </Col>
-            ))}
+                    <Divider />
+                    <Text strong>
+                      {product.stockCount > 0 ? `₺${product.price}` : 'OUT OF STOCK'}
+                    </Text>
+                  </Card>
+                </Col>
+              ))}
           </Row>
         </Content>
 
