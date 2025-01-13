@@ -235,7 +235,9 @@ const MainPage = () => {
             </Select>
           </Row>
           <Row gutter={[16, 16]} style={{ marginTop: '20px' }}>
-            {products.map((product) => (
+            {products
+            .filter((product) => product.price > 0)
+            .map((product) => (
               <Col key={product.id} xs={24} sm={12} md={8} lg={6}>
                 <Card
                   hoverable
