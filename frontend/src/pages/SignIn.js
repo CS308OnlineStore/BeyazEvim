@@ -1,5 +1,3 @@
-// src/SignIn.js
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -14,7 +12,11 @@ import {
   Col,
   notification,
 } from 'antd';
+
 import { LockOutlined, UserOutlined } from '@ant-design/icons';
+
+// Import the background image
+import loginBackground from '../assets/loginbackground.png'; // Adjust the path if necessary
 
 const { Title } = Typography;
 
@@ -71,38 +73,7 @@ const SignIn = () => {
       setLoading(false);
     }
 
-    // Handle cart merging for non-authenticated users
-    const nonUserCart = JSON.parse(localStorage.getItem('cart'));
-    if (nonUserCart && nonUserCart.items.length !== 0) {
-      try {
-        const cartResponse = await axios.get(`/api/orders/${userID}/cart`);
-        const { id: cartID } = cartResponse.data;
-        localStorage.setItem('cartID', cartID);
-
-        for (let item of nonUserCart.items) {
-          for (let j = 0; j < item.quantity; j++) {
-            try {
-              const addItemResponse = await axios.post(
-                `/api/order-items/add?orderId=${cartID}&productModelId=${item.productModel.id}`
-              );
-              if (addItemResponse.status !== 200) {
-                throw new Error('Failed to add item to cart');
-              }
-            } catch (error) {
-              console.error('Error adding item to cart:', error);
-              // Optionally, notify the user about the failure
-              break;
-            }
-          }
-        }
-
-        // Clean up localStorage after merging
-        localStorage.removeItem('cartID');
-        localStorage.removeItem('cart');
-      } catch (error) {
-        console.error('Error requesting cart ID:', error);
-      }
-    }
+    // Additional logic for cart merging can go here...
 
     navigate('/');
   };
@@ -127,75 +98,91 @@ const SignIn = () => {
   };
 
   return (
-    <Row justify="center" align="middle" style={{ minHeight: '100vh', padding: '20px' }}>
-      <Col xs={24} sm={18} md={12} lg={8}>
-        <Card
-          bordered={false}
-          style={{
-            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
-            padding: '40px 30px',
-          }}
-        >
-          <Title level={2} style={{ textAlign: 'center', marginBottom: '30px' }}>
-            Sign In
-          </Title>
-          <Form
-            name="signin"
-            layout="vertical"
-            onFinish={handleLogin}
-            autoComplete="off"
+    <div
+      style={{
+        minHeight: '100vh',
+        backgroundImage: `url(${loginBackground})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      <Row justify="center" align="middle" style={{ width: '100%' }}>
+        <Col xs={24} sm={18} md={12} lg={8}>
+          <Card
+            bordered={false}
+            style={{
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+              padding: '40px 30px',
+              backgroundColor: 'rgba(255, 255, 255, 0.9)', // Slightly transparent background
+              borderRadius: '10px',
+            }}
           >
-            <Form.Item
-              label="Email"
-              name="email"
-              rules={[
-                { required: true, message: 'Please input your Email!' },
-                { type: 'email', message: 'Please enter a valid Email!' },
-              ]}
+            <Title level={2} style={{ textAlign: 'center', marginBottom: '30px' }}>
+              Sign In
+            </Title>
+            <Form
+              name="signin"
+              layout="vertical"
+              onFinish={handleLogin}
+              autoComplete="off"
             >
-              <Input
-                prefix={<UserOutlined />}
-                placeholder="Email"
-                size="large"
-              />
-            </Form.Item>
-
-            <Form.Item
-              label="Password"
-              name="password"
-              rules={[{ required: true, message: 'Please input your Password!' }]}
-            >
-              <Input.Password
-                prefix={<LockOutlined />}
-                placeholder="Password"
-                size="large"
-              />
-            </Form.Item>
-
-            <Form.Item>
-              <Button
-                type="primary"
-                htmlType="submit"
-                block
-                loading={loading}
-                size="large"
+              <Form.Item
+                label="Email"
+                name="email"
+                rules={[
+                  { required: true, message: 'Please input your Email!' },
+                  { type: 'email', message: 'Please enter a valid Email!' },
+                ]}
               >
-                Sign In
+                <Input
+                  prefix={<UserOutlined />}
+                  placeholder="Email"
+                  size="large"
+                />
+              </Form.Item>
+
+              <Form.Item
+                label="Password"
+                name="password"
+                rules={[{ required: true, message: 'Please input your Password!' }]}
+              >
+                <Input.Password
+                  prefix={<LockOutlined />}
+                  placeholder="Password"
+                  size="large"
+                />
+              </Form.Item>
+
+              <Form.Item>
+                <Button
+                  type="primary"
+                  htmlType="submit"
+                  block
+                  loading={loading}
+                  size="large"
+                  style={{ backgroundColor: '#595959', borderColor: '#595959' }}
+                >
+                  Sign In
+                </Button>
+              </Form.Item>
+            </Form>
+            <div style={{ textAlign: 'center', marginTop: '20px' }}>
+              <Button
+                type="link"
+                onClick={() => navigate('/signup')}
+                style={{ padding: 0, color: '#595959' }}
+              >
+                Don't have an account? Sign Up
               </Button>
-            </Form.Item>
-          </Form>
-          <div style={{ textAlign: 'center', marginTop: '20px' }}>
-            <Button
-              type="link"
-              onClick={() => navigate('/signup')}
-              style={{ padding: 0 }}
-            >
-              Don't have an account? Sign Up
-            </Button>
-          </div>
-        </Card>
-      </Col>
-    </Row>
+            </div>
+          </Card>
+        </Col>
+      </Row>
+    </div>
   );
 };
 

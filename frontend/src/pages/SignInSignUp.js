@@ -1,4 +1,3 @@
-// src/pages/SignInSignUp.js
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button, Space, Row, Col, Card, Typography } from 'antd';
@@ -8,6 +7,9 @@ import {
   ProfileOutlined,
   TeamOutlined,
 } from '@ant-design/icons';
+
+// Import the background image
+import loginBackground from '../assets/loginbackground.png'; // Adjust the path if necessary
 
 const { Title } = Typography;
 
@@ -27,55 +29,75 @@ const SignInSignUp = () => {
   };
 
   return (
-    <Row justify="center" align="middle" style={{ minHeight: '100vh', padding: '20px' }}>
-      <Col xs={24} sm={16} md={12} lg={8}>
-        <Card
-          bordered={false}
-          style={{
-            textAlign: 'center',
-            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
-          }}
-        >
-          <Title level={2} style={{ marginBottom: '40px' }}>
-            Welcome
-          </Title>
-          <Space direction="vertical" size="large" style={{ width: '100%' }}>
-            <Button
-              type="primary"
-              block
-              icon={<LoginOutlined />}
-              onClick={() => handleNavigate('signin')}
-            >
-              Sign In
-            </Button>
-            <Button
-              type="default"
-              block
-              icon={<UserAddOutlined />}
-              onClick={() => handleNavigate('signup')}
-            >
-              Sign Up
-            </Button>
-            <Button
-              type="dashed"
-              block
-              icon={<ProfileOutlined />}
-              onClick={handleProductOwnerNavigate}
-            >
-              Go to Product Owner Page
-            </Button>
-            <Button
-              type="dashed"
-              block
-              icon={<TeamOutlined />}
-              onClick={handleSalesManagerNavigate}
-            >
-              Go to Sales Manager Page
-            </Button>
-          </Space>
-        </Card>
-      </Col>
-    </Row>
+    <div
+      style={{
+        minHeight: '100vh',
+        backgroundImage: `url(${loginBackground})`, // Use the imported image
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      <Row justify="center" align="middle" style={{ width: '100%' }}>
+        <Col xs={24} sm={16} md={12} lg={8}>
+          <Card
+            bordered={false}
+            style={{
+              textAlign: 'center',
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+              backgroundColor: 'rgba(255, 255, 255, 0.9)', // Slightly transparent white background
+              borderRadius: '10px',
+              padding: '20px',
+            }}
+          >
+            <Title level={2} style={{ marginBottom: '40px' }}>
+              Welcome
+            </Title>
+            <Space direction="vertical" size="large" style={{ width: '100%' }}>
+              <Button
+                type="primary"
+                block
+                icon={<LoginOutlined />}
+                onClick={() => handleNavigate('signin')}
+                style={{ height: '50px', fontSize: '16px' }}
+              >
+                Sign In
+              </Button>
+              <Button
+                type="default"
+                block
+                icon={<UserAddOutlined />}
+                onClick={() => handleNavigate('signup')}
+                style={{ height: '50px', fontSize: '16px' }}
+              >
+                Sign Up
+              </Button>
+              <Button
+                type="dashed"
+                block
+                icon={<ProfileOutlined />}
+                onClick={handleProductOwnerNavigate}
+                style={{ height: '50px', fontSize: '16px' }}
+              >
+                Go to Product Owner Page
+              </Button>
+              <Button
+                type="dashed"
+                block
+                icon={<TeamOutlined />}
+                onClick={handleSalesManagerNavigate}
+                style={{ height: '50px', fontSize: '16px' }}
+              >
+                Go to Sales Manager Page
+              </Button>
+            </Space>
+          </Card>
+        </Col>
+      </Row>
+    </div>
   );
 };
 

@@ -1,5 +1,3 @@
-// src/SignUp.js
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -18,6 +16,9 @@ import {
   MailOutlined,
   LockOutlined,
 } from '@ant-design/icons';
+
+// Import the background image
+import loginBackground from '../assets/loginbackground.png'; // Adjust the path if necessary
 
 const { Title } = Typography;
 
@@ -114,116 +115,128 @@ const SignUp = () => {
   };
 
   return (
-    <Row
-      justify="center"
-      align="middle"
-      style={{ minHeight: '100vh', padding: '20px' }}
+    <div
+      style={{
+        minHeight: '100vh',
+        backgroundImage: `url(${loginBackground})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
     >
-      <Col xs={24} sm={18} md={12} lg={8}>
-        <Card
-          bordered={false}
-          style={{
-            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
-            padding: '40px 30px',
-          }}
-        >
-          <Title level={2} style={{ textAlign: 'center', marginBottom: '30px' }}>
-            Sign Up
-          </Title>
-          <Form
-            name="signup"
-            layout="vertical"
-            onFinish={handleSignUp}
-            autoComplete="off"
+      <Row justify="center" align="middle" style={{ width: '100%' }}>
+        <Col xs={24} sm={18} md={12} lg={8}>
+          <Card
+            bordered={false}
+            style={{
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+              padding: '40px 30px',
+              backgroundColor: 'rgba(255, 255, 255, 0.9)', // Slightly transparent white background
+              borderRadius: '10px',
+            }}
           >
-            <Form.Item
-              label="First Name"
-              name="firstName"
-              rules={[
-                { required: true, message: 'Please input your first name!' },
-                { min: 2, message: 'First name must be at least 2 characters.' },
-              ]}
+            <Title level={2} style={{ textAlign: 'center', marginBottom: '30px' }}>
+              Sign Up
+            </Title>
+            <Form
+              name="signup"
+              layout="vertical"
+              onFinish={handleSignUp}
+              autoComplete="off"
             >
-              <Input
-                prefix={<UserAddOutlined />}
-                placeholder="First Name"
-                size="large"
-              />
-            </Form.Item>
-
-            <Form.Item
-              label="Last Name"
-              name="lastName"
-              rules={[
-                { required: true, message: 'Please input your last name!' },
-                { min: 2, message: 'Last name must be at least 2 characters.' },
-              ]}
-            >
-              <Input
-                prefix={<UserAddOutlined />}
-                placeholder="Last Name"
-                size="large"
-              />
-            </Form.Item>
-
-            <Form.Item
-              label="Email"
-              name="email"
-              rules={[
-                { required: true, message: 'Please input your email!' },
-                { type: 'email', message: 'Please enter a valid email!' },
-              ]}
-            >
-              <Input
-                prefix={<MailOutlined />}
-                placeholder="Email"
-                size="large"
-              />
-            </Form.Item>
-
-            <Form.Item
-              label="Password"
-              name="password"
-              rules={[
-                { required: true, message: 'Please input your password!' },
-                {
-                  pattern: /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{6,}$/,
-                  message:
-                    'Password must be at least 6 characters and include uppercase, lowercase letters, and a number.',
-                },
-              ]}
-            >
-              <Input.Password
-                prefix={<LockOutlined />}
-                placeholder="Password"
-                size="large"
-              />
-            </Form.Item>
-
-            <Form.Item>
-              <Button
-                type="primary"
-                htmlType="submit"
-                block
-                loading={loading}
-                size="large"
+              <Form.Item
+                label="First Name"
+                name="firstName"
+                rules={[
+                  { required: true, message: 'Please input your first name!' },
+                  { min: 2, message: 'First name must be at least 2 characters.' },
+                ]}
               >
-                Sign Up
+                <Input
+                  prefix={<UserAddOutlined />}
+                  placeholder="First Name"
+                  size="large"
+                />
+              </Form.Item>
+
+              <Form.Item
+                label="Last Name"
+                name="lastName"
+                rules={[
+                  { required: true, message: 'Please input your last name!' },
+                  { min: 2, message: 'Last name must be at least 2 characters.' },
+                ]}
+              >
+                <Input
+                  prefix={<UserAddOutlined />}
+                  placeholder="Last Name"
+                  size="large"
+                />
+              </Form.Item>
+
+              <Form.Item
+                label="Email"
+                name="email"
+                rules={[
+                  { required: true, message: 'Please input your email!' },
+                  { type: 'email', message: 'Please enter a valid email!' },
+                ]}
+              >
+                <Input
+                  prefix={<MailOutlined />}
+                  placeholder="Email"
+                  size="large"
+                />
+              </Form.Item>
+
+              <Form.Item
+                label="Password"
+                name="password"
+                rules={[
+                  { required: true, message: 'Please input your password!' },
+                  {
+                    pattern: /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{6,}$/,
+                    message:
+                      'Password must be at least 6 characters and include uppercase, lowercase letters, and a number.',
+                  },
+                ]}
+              >
+                <Input.Password
+                  prefix={<LockOutlined />}
+                  placeholder="Password"
+                  size="large"
+                />
+              </Form.Item>
+
+              <Form.Item>
+                <Button
+                  type="primary"
+                  htmlType="submit"
+                  block
+                  loading={loading}
+                  size="large"
+                  style={{ backgroundColor: '#595959', borderColor: '#595959' }}
+                >
+                  Sign Up
+                </Button>
+              </Form.Item>
+            </Form>
+            <div style={{ textAlign: 'center', marginTop: '20px' }}>
+              <Button
+                type="link"
+                onClick={() => navigate('/signin')}
+                style={{ padding: 0, color: '#595959' }}
+              >
+                Already have an account? Sign In
               </Button>
-            </Form.Item>
-          </Form>
-          <div style={{ textAlign: 'center', marginTop: '20px' }}>
-            <Button
-              type="link"
-              onClick={() => navigate('/signin')}
-              style={{ padding: 0 }}
-            >
-              Already have an account? Sign In
-            </Button>
-          </div>
-        </Card>
-      </Col>
-    </Row>
+            </div>
+          </Card>
+        </Col>
+      </Row>
+    </div>
   );
 };
 
