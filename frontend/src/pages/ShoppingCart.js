@@ -125,9 +125,22 @@ const ShoppingCart = ({onClose}) => {
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div>
-                    <strong>{ item.productModel.name }</strong>
-                    <p style={{ margin: '5px 0', fontSize: '14px', color: '#666' }}>{item.quantity} x {item.productModel.price}₺</p>
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <img
+                      src={item.productModel.image_path}
+                      alt={item.productModel.name}
+                      style={{
+                        width: '50px',
+                        height: '50px',
+                        objectFit: 'cover',
+                        marginRight: '15px',
+                        borderRadius: '8px',
+                      }}
+                    />
+                    <div>
+                      <strong>{ item.productModel.name }</strong>
+                      <p style={{ margin: '5px 0', fontSize: '14px', color: '#666' }}>{item.quantity} x {item.productModel.price}₺</p>
+                    </div>
                   </div>
                   <button
                     onClick={() => handleRemoveItem(item.productModel.id)}

@@ -163,14 +163,16 @@ const SearchPage = () => {
               {error && <p style={{ color: 'red' }}>{error}</p>}
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '20px', marginTop: '20px' }}>
                 {products.length > 0 ? (
-                  products.map((product) => (
+                  products
+                  .filter((product) => product.price > 0)
+                  .map((product) => (
                     <div
                       key={product.id}
                       style={productCardStyle}
                       onClick={() => handleProductClick(product.id)}
                     >
                       <img
-                        src={product.image || 'https://via.placeholder.com/150'}
+                        src={product.image_path}
                         alt={product.name}
                         style={{ width: '100%', borderRadius: '10px' }}
                       />

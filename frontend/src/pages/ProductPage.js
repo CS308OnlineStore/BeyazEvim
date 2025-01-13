@@ -231,7 +231,7 @@ const ProductPage = () => {
       <div style={productDetailsContainerStyle}>
         <div style={productDetailsStyle}>
           <img
-            src={productDetails.image || 'https://via.placeholder.com/150'}
+            src={productDetails.image_path}
             alt={productDetails.name}
             style={{ width: '150px', height: '150px', borderRadius: '10px' }}
           />
