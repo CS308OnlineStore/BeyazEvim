@@ -8,21 +8,28 @@ import {
   Avatar,
   Typography,
   Button,
-  List,
   Card,
   message,
-  Tabs,
   Select,
   Spin,
   Space,
   Input,
+  Descriptions,
+  Divider,
+  List,
 } from 'antd';
-import { LogoutOutlined, EditOutlined } from '@ant-design/icons';
+import {
+  LogoutOutlined,
+  EditOutlined,
+  UserOutlined,
+  ShoppingCartOutlined,
+  SwapOutlined,
+  CloseOutlined, // Daha uygun bir ikon ekledik
+} from '@ant-design/icons';
 import newLogo from '../assets/BeyazEvim_new_logo.jpeg';
 
 const { Header, Content, Sider } = Layout;
 const { Title, Text } = Typography;
-const { TabPane } = Tabs;
 const { Option } = Select;
 
 const UserPage = () => {
@@ -46,6 +53,7 @@ const UserPage = () => {
     address: false,
     phone: false,
   });
+  const [selectedMenu, setSelectedMenu] = useState('userInfo');
 
   useEffect(() => {
     const token = Cookies.get('authToken');
@@ -117,7 +125,7 @@ const UserPage = () => {
 
   if (loading) {
     return (
-      <Layout style={{ minHeight: '100vh' }}>
+      <Layout style={{ minHeight: '100vh', backgroundColor: '#f0f2f5' }}>
         <Content style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
           <Spin size="large" />
         </Content>
@@ -127,9 +135,9 @@ const UserPage = () => {
 
   if (error) {
     return (
-      <Layout>
+      <Layout style={{ minHeight: '100vh', backgroundColor: '#f0f2f5' }}>
         <Content style={{ textAlign: 'center', padding: 20 }}>
-          <Title level={2} style={{ color: 'red' }}>
+          <Title level={2} style={{ color: '#ff4d4f' }}>
             Error
           </Title>
           <Text>{error}</Text>
@@ -138,9 +146,234 @@ const UserPage = () => {
     );
   }
 
+  const renderContent = () => {
+    switch (selectedMenu) {
+      case 'userInfo':
+        return (
+          <Card
+            title="User Information"
+            bordered={false}
+            style={{
+              maxWidth: 800,
+              margin: '0 auto',
+              backgroundColor: '#ffffff',
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
+            }}
+          >
+            <Descriptions column={1} bordered>
+              <Descriptions.Item label="First Name">{userInfo.firstName}</Descriptions.Item>
+              <Descriptions.Item label="Last Name">{userInfo.lastName}</Descriptions.Item>
+              <Descriptions.Item label="Email">{userInfo.email}</Descriptions.Item>
+              <Descriptions.Item label="Address">
+                {isEditing.address ? (
+                  <Space>
+                    <Input
+                      style={{ width: '300px' }}
+                      defaultValue={userInfo.address}
+                      onChange={(e) => setUserInfo({ ...userInfo, address: e.target.value })}
+                    />
+                    <Button
+                      type="primary"
+                      onClick={() => {
+                        setIsEditing({ ...isEditing, address: false });
+                        message.success('Address updated!');
+                        // Burada güncellenen adresi kaydetmek için bir API çağrısı yapmalısınız
+                      }}
+                    >
+                      Save
+                    </Button>
+                    <Button onClick={() => setIsEditing({ ...isEditing, address: false })}>
+                      Cancel
+                    </Button>
+                  </Space>
+                ) : (
+                  <Space>
+                    <Text>{userInfo.address || 'No address available'}</Text>
+                    <Button
+                      type="link"
+                      icon={<EditOutlined />}
+                      onClick={() => setIsEditing({ ...isEditing, address: true })}
+                    >
+                      Edit
+                    </Button>
+                  </Space>
+                )}
+              </Descriptions.Item>
+              <Descriptions.Item label="Phone Number">
+                {isEditing.phone ? (
+                  <Space>
+                    <Input
+                      style={{ width: '300px' }}
+                      defaultValue={userInfo.phoneNumber}
+                      onChange={(e) => setUserInfo({ ...userInfo, phoneNumber: e.target.value })}
+                    />
+                    <Button
+                      type="primary"
+                      onClick={() => {
+                        setIsEditing({ ...isEditing, phone: false });
+                        message.success('Phone number updated!');
+                        // Burada güncellenen telefon numarasını kaydetmek için bir API çağrısı yapmalısınız
+                      }}
+                    >
+                      Save
+                    </Button>
+                    <Button onClick={() => setIsEditing({ ...isEditing, phone: false })}>
+                      Cancel
+                    </Button>
+                  </Space>
+                ) : (
+                  <Space>
+                    <Text>{userInfo.phoneNumber || 'No phone number available'}</Text>
+                    <Button
+                      type="link"
+                      icon={<EditOutlined />}
+                      onClick={() => setIsEditing({ ...isEditing, phone: true })}
+                    >
+                      Edit
+                    </Button>
+                  </Space>
+                )}
+              </Descriptions.Item>
+            </Descriptions>
+            <Divider />
+            <Button
+              type="primary"
+              icon={<LogoutOutlined />}
+              onClick={handleLogout}
+              style={{
+                backgroundColor: '#ff4d4f',
+                borderColor: '#ff4d4f',
+                padding: '8px 16px', // İç boşlukları azaltarak butonu küçülttük
+                fontSize: '14px', // Font boyutunu küçülttük
+                borderRadius: '4px', // Köşe yuvarlatmalarını ekleyerek daha dengeli bir görünüm sağladık
+              }}
+            >
+              Logout
+            </Button>
+          </Card>
+        );
+      case 'orders':
+        return (
+          <Card
+            title="Orders"
+            bordered={false}
+            style={{
+              backgroundColor: '#ffffff',
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
+              marginBottom: 24,
+            }}
+          >
+            <Select
+              value={selectedOrderStatus}
+              onChange={handleFilterOrders}
+              style={{ marginBottom: 16, width: 200 }}
+              placeholder="Filter Orders"
+            >
+              <Option value="ALL">All Orders</Option>
+              <Option value="PURCHASED">Purchased</Option>
+              <Option value="SHIPPED">Shipped</Option>
+              <Option value="DELIVERED">Delivered</Option>
+            </Select>
+            <List
+              grid={{ gutter: 16, column: 2 }}
+              dataSource={filteredOrders.filter((order) => order.status !== 'CART')}
+              renderItem={(order) => (
+                <List.Item>
+                  <Card
+                    title={`Order ID: ${order.id}`}
+                    extra={
+                      <Button
+                        type="primary"
+                        danger
+                        onClick={() => message.info('Cancel feature not yet implemented.')}
+                        icon={<CloseOutlined />} // Daha uygun bir ikon kullanıldı
+                        style={{
+                          padding: '4px 8px', // İç boşlukları azaltarak butonu küçülttük
+                          fontSize: '12px', // Font boyutunu küçülttük
+                          borderRadius: '4px', // Köşe yuvarlatmalarını ekleyerek daha dengeli bir görünüm sağladık
+                        }}
+                      >
+                        Cancel
+                      </Button>
+                    }
+                    style={{
+                      backgroundColor: '#fafafa',
+                      borderRadius: 8,
+                      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
+                    }}
+                  >
+                    <Space direction="vertical">
+                      <Text strong>Status:</Text>
+                      <Text>{order.status}</Text>
+                      <Text strong>Total:</Text>
+                      <Text>₺{order.totalPrice}</Text>
+                    </Space>
+                  </Card>
+                </List.Item>
+              )}
+            />
+          </Card>
+        );
+      case 'returns':
+        return (
+          <Card
+            title="Returns"
+            bordered={false}
+            style={{
+              backgroundColor: '#ffffff',
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
+            }}
+          >
+            <Select
+              value={selectedReturnStatus}
+              onChange={handleFilterReturns}
+              style={{ marginBottom: 16, width: 200 }}
+              placeholder="Filter Returns"
+            >
+              <Option value="ALL">All Returns</Option>
+              <Option value="PENDING">Pending</Option>
+              <Option value="APPROVED">Approved</Option>
+              <Option value="REJECTED">Rejected</Option>
+            </Select>
+            <List
+              grid={{ gutter: 16, column: 2 }}
+              dataSource={filteredReturns}
+              renderItem={(request) => (
+                <List.Item>
+                  <Card
+                    title={`Refund ID: ${request.id}`}
+                    style={{
+                      backgroundColor: '#fafafa',
+                      borderRadius: 8,
+                      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
+                    }}
+                  >
+                    <Space direction="vertical">
+                      <Text strong>Status:</Text>
+                      <Text>{request.status}</Text>
+                      <Text strong>Total:</Text>
+                      <Text>₺{request.amount}</Text>
+                    </Space>
+                  </Card>
+                </List.Item>
+              )}
+            />
+          </Card>
+        );
+      default:
+        return null;
+    }
+  };
+
   return (
-    <Layout>
-      <Sider width={250} theme="light">
+    <Layout style={{ minHeight: '100vh', backgroundColor: '#f0f2f5' }}>
+      <Sider
+        width={250}
+        theme="dark"
+        style={{
+          backgroundColor: '#001529',
+        }}
+      >
         <div
           style={{
             padding: 20,
@@ -149,178 +382,47 @@ const UserPage = () => {
           }}
           onClick={() => navigate('/')}
         >
-          <Avatar src={newLogo} size={70} />
-          <Title level={4}>
+          <Avatar src={newLogo} size={70} shape="square" /> {/* Avatar'ı kare yaptık */}
+          <Title level={4} style={{ color: '#ffffff', marginTop: 10 }}>
             {userInfo.firstName} {userInfo.lastName}
           </Title>
-          <Text type="secondary">{userInfo.email}</Text>
+          {/* E-posta satırı kaldırıldı */}
+          {/* <Text type="secondary">{userInfo.email}</Text> */}
         </div>
+        <Menu
+          mode="inline"
+          selectedKeys={[selectedMenu]}
+          onClick={(e) => setSelectedMenu(e.key)}
+          theme="dark"
+          style={{ height: '100%', borderRight: 0 }}
+        >
+          <Menu.Item key="userInfo" icon={<UserOutlined />}>
+            User Information
+          </Menu.Item>
+          <Menu.Item key="orders" icon={<ShoppingCartOutlined />}>
+            Orders
+          </Menu.Item>
+          <Menu.Item key="returns" icon={<SwapOutlined />}>
+            Returns
+          </Menu.Item>
+        </Menu>
       </Sider>
       <Layout>
-        <Header style={{ background: '#001529', color: 'white', padding: '0 20px' }}>
-          <Title level={3} style={{ color: 'white', margin: 0 }}>
+        <Header
+          style={{
+            backgroundColor: '#001529',
+            color: '#ffffff',
+            padding: '0 20px',
+            display: 'flex',
+            alignItems: 'center',
+          }}
+        >
+          <Title level={3} style={{ color: '#ffffff', margin: 0 }}>
             User Dashboard
           </Title>
         </Header>
-        <Content style={{ padding: 20 }}>
-          <Tabs defaultActiveKey="1">
-            <TabPane tab="User Information" key="1">
-              <Card title="User Information" bordered={false}>
-                <List>
-                  <List.Item>
-                    <Text strong>First Name:</Text> <Text>{userInfo.firstName}</Text>
-                  </List.Item>
-                  <List.Item>
-                    <Text strong>Last Name:</Text> <Text>{userInfo.lastName}</Text>
-                  </List.Item>
-                  <List.Item>
-                    <Text strong>Email:</Text> <Text>{userInfo.email}</Text>
-                  </List.Item>
-                  <List.Item>
-                    <Text strong>Address:</Text>{' '}
-                    {isEditing.address ? (
-                      <Space>
-                        <Input
-                          style={{ width: '300px' }}
-                          defaultValue={userInfo.address}
-                          onChange={(e) => setUserInfo({ ...userInfo, address: e.target.value })}
-                        />
-                        <Button
-                          type="primary"
-                          onClick={() => {
-                            setIsEditing({ ...isEditing, address: false });
-                            message.success('Address updated!');
-                          }}
-                        >
-                          Save
-                        </Button>
-                        <Button onClick={() => setIsEditing({ ...isEditing, address: false })}>
-                          Cancel
-                        </Button>
-                      </Space>
-                    ) : (
-                      <Space>
-                        <Text>{userInfo.address || 'No address available'}</Text>
-                        <Button
-                          type="link"
-                          icon={<EditOutlined />}
-                          onClick={() => setIsEditing({ ...isEditing, address: true })}
-                        >
-                          Edit
-                        </Button>
-                      </Space>
-                    )}
-                  </List.Item>
-                  <List.Item>
-                    <Text strong>Phone Number:</Text>{' '}
-                    {isEditing.phone ? (
-                      <Space>
-                        <Input
-                          style={{ width: '300px' }}
-                          defaultValue={userInfo.phoneNumber}
-                          onChange={(e) => setUserInfo({ ...userInfo, phoneNumber: e.target.value })}
-                        />
-                        <Button
-                          type="primary"
-                          onClick={() => {
-                            setIsEditing({ ...isEditing, phone: false });
-                            message.success('Phone number updated!');
-                          }}
-                        >
-                          Save
-                        </Button>
-                        <Button onClick={() => setIsEditing({ ...isEditing, phone: false })}>
-                          Cancel
-                        </Button>
-                      </Space>
-                    ) : (
-                      <Space>
-                        <Text>{userInfo.phoneNumber || 'No phone number available'}</Text>
-                        <Button
-                          type="link"
-                          icon={<EditOutlined />}
-                          onClick={() => setIsEditing({ ...isEditing, phone: true })}
-                        >
-                          Edit
-                        </Button>
-                      </Space>
-                    )}
-                  </List.Item>
-                </List>
-                <Button
-                  type="primary"
-                  icon={<LogoutOutlined />}
-                  onClick={handleLogout}
-                  style={{
-                    marginTop: 20,
-                    background: '#ff4d4f',
-                    borderColor: '#ff4d4f',
-                  }}
-                >
-                  Logout
-                </Button>
-              </Card>
-            </TabPane>
-            <TabPane tab="Orders" key="2">
-              <Select
-                value={selectedOrderStatus}
-                onChange={handleFilterOrders}
-                style={{ marginBottom: 16 }}
-              >
-                <Option value="ALL">All Orders</Option>
-                <Option value="PURCHASED">Purchased</Option>
-                <Option value="SHIPPED">Shipped</Option>
-                <Option value="DELIVERED">Delivered</Option>
-              </Select>
-              <List
-                grid={{ gutter: 16, column: 2 }}
-                dataSource={filteredOrders.filter((order) => order.status !== 'CART')}
-                renderItem={(order) => (
-                  <List.Item>
-                    <Card
-                      title={`Order ID: ${order.id}`}
-                      extra={
-                        <Button
-                          type="primary"
-                          danger
-                          onClick={() => message.info('Cancel feature not yet implemented.')}
-                        >
-                          Cancel
-                        </Button>
-                      }
-                    >
-                      <p>Status: {order.status}</p>
-                      <p>Total: ₺{order.totalPrice}</p>
-                    </Card>
-                  </List.Item>
-                )}
-              />
-            </TabPane>
-            <TabPane tab="Returns" key="3">
-              <Select
-                value={selectedReturnStatus}
-                onChange={handleFilterReturns}
-                style={{ marginBottom: 16 }}
-              >
-                <Option value="ALL">All Returns</Option>
-                <Option value="PENDING">Pending</Option>
-                <Option value="APPROVED">Approved</Option>
-                <Option value="REJECTED">Rejected</Option>
-              </Select>
-              <List
-                grid={{ gutter: 16, column: 2 }}
-                dataSource={filteredReturns}
-                renderItem={(request) => (
-                  <List.Item>
-                    <Card title={`Refund ID: ${request.id}`}>
-                      <p>Status: {request.status}</p>
-                      <p>Total: ₺{request.amount}</p>
-                    </Card>
-                  </List.Item>
-                )}
-              />
-            </TabPane>
-          </Tabs>
+        <Content style={{ padding: '24px' }}>
+          {renderContent()}
         </Content>
       </Layout>
     </Layout>
