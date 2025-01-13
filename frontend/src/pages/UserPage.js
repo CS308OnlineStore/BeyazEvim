@@ -152,6 +152,13 @@ const UserPage = () => {
       });
   };
 
+  const handleLogout = () => {
+    Cookies.remove('authToken');
+    Cookies.remove('userId');
+    Cookies.remove('userName');
+    Cookies.remove('cartId');
+    navigate('/')
+  };
   if (loading) {
     return (
       <Layout style={{ minHeight: '100vh' }}>
@@ -193,7 +200,7 @@ const UserPage = () => {
           <Text type="secondary">{userInfo.email}</Text>
         </div>
         <Menu>
-          <Menu.Item icon={<LogoutOutlined />} onClick={() => navigate('/logout')}>
+          <Menu.Item icon={<LogoutOutlined />} onClick={handleLogout}>
             Logout
           </Menu.Item>
         </Menu>
