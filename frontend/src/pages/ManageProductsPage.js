@@ -193,7 +193,7 @@ const ManageProductsPage = () => {
                 label="Product Stock"
                 rules={[{ required: true, message: 'Please enter the product stock' }]}
               >
-                <InputNumber style={{ width: '100%' }} min={0} />
+                <InputNumber style={{ width: '100%' }} min={0} placeholder="Product Stock"/>
               </Form.Item>
 
               <Button type="primary" htmlType="submit" icon={<PlusOutlined />}>

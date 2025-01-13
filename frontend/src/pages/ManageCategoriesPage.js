@@ -166,7 +166,7 @@ const ManageCategoriesPage = () => {
         </div>
         <Divider />
         <List
-          header={<div>Existing Categories</div>}
+          header={<div><strong style={{ fontSize: '24px' }}>Existing Categories</strong></div>}
           bordered
           dataSource={categories}
           renderItem={(category) => (

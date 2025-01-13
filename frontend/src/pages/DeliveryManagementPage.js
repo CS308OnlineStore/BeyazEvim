@@ -85,9 +85,45 @@ const DeliveryManagementPage = () => {
         });
   };
 
+  const expandedRowRender = (record) => {
+    return (
+      <div>
+        <h4>Order Items</h4>
+        <Table
+          dataSource={record.orderItems}
+          rowKey="orderItemId"
+          pagination={false}
+          columns={[
+            {
+              title: 'Product ID',
+              dataIndex: ['productModel', 'id'],
+              key: 'productId',
+            },
+            {
+              title: 'Product Name',
+              dataIndex: ['productModel', 'name'],
+              key: 'productName',
+            },
+            {
+              title: 'Quantity',
+              dataIndex: 'quantity',
+              key: 'quantity',
+            },
+            {
+              title: 'Unit Price',
+              dataIndex: 'unitPrice',
+              key: 'unitPrice',
+              render: (text) => `₺${text.toFixed(2)}`,
+            },
+          ]}
+        />
+      </div>
+    );
+  };
+
   const columns = [
     {
-      title: 'Order ID',
+      title: 'Delivery ID',
       dataIndex: 'id',
       key: 'id',
     },
@@ -188,6 +224,7 @@ const DeliveryManagementPage = () => {
           columns={columns}
           rowKey="id"
           pagination={{ pageSize: 10 }}
+          expandedRowRender={expandedRowRender}
         />
       </Content>
     </Layout>
