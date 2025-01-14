@@ -4,6 +4,7 @@ import images from 'react-payment-inputs/images';
 import Cookies from 'js-cookie';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { notification } from 'antd';
 
 const PaymentForm = ({ onPaymentSuccess }) => {
   const cartId = Cookies.get('cartId');
@@ -31,30 +32,41 @@ const PaymentForm = ({ onPaymentSuccess }) => {
     setTimeout(async () => {
       try {
         const response = await axios.post(`/api/orders/purchase/${cartId}`, null, {
-          responseType: 'blob', 
+          responseType: 'blob',
         });
-    
+
         if (response.status === 200) {
-          alert('Payment Successful!');
-    
+          notification.success({
+            message: 'Payment Successful',
+            description: 'Your payment has been successfully processed! The receipt will open in a new tab.',
+            placement: 'topRight'
+          });
+
           const fileURL = URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
-          window.open(fileURL, '_blank'); 
-    
+          window.open(fileURL, '_blank');
+
           window.location.reload();
-    
+
           if (onPaymentSuccess) {
             onPaymentSuccess();
           }
         } else {
-          alert('Failed to process the order.');
+          notification.error({
+            message: 'Payment Failed',
+            description: 'Unable to process your payment. Please try again later.',
+            placement: 'topRight'
+          });
         }
       } catch (error) {
         setLoading(false);
         console.error('Error posting order:', error);
-        alert('Error processing order. Please try again.');
+        notification.error({
+          message: 'Order Error',
+          description: 'An error occurred while processing your order. Please try again.',
+          placement: 'topRight'
+        });
       }
     }, 500);
-    
   };
 
   if (loading) {
