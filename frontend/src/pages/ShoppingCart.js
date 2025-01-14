@@ -167,7 +167,7 @@ const ShoppingCart = ({ onClose }) => {
                       <p
                         style={{ margin: '5px 0', fontSize: '14px', color: '#666' }}
                       >
-                        {item.quantity} x {item.productModel.price}₺
+                        {item.quantity} x {item.productModel.discountedPrice}₺
                       </p>
                     </div>
                   </div>
