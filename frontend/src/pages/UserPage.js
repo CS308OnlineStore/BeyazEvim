@@ -104,9 +104,7 @@ const UserPage = () => {
         setFilteredOrders(allOrders);
 
         // Fetch refund requests
-        const returnsResponse = await axios.get('/api/refund-requests', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const returnsResponse = await axios.get(`/api/refund-requests/user/${userId}`);
 
         setReturns(returnsResponse.data);
         setFilteredReturns(returnsResponse.data);

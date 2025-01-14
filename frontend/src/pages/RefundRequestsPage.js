@@ -12,7 +12,7 @@ const RefundRequestsPage = () => {
   const fetchRefundRequests = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`/api/refund-requests?status=${status}`);
+      const response = await axios.get(`/api/refund-requests`);
       setRefundRequests(response.data);
     } catch (error) {
       notification.error({ message: 'Error', description: 'Failed to fetch refund requests.' });
@@ -55,9 +55,14 @@ const RefundRequestsPage = () => {
         rowKey="id"
         columns={[
           { title: 'Request ID', dataIndex: 'id', key: 'id' },
-          { title: 'Order ID', dataIndex: 'orderId', key: 'orderId' },
-          { title: 'Product ID', dataIndex: 'productModelId', key: 'productModelId' },
-          { title: 'Status', dataIndex: 'status', key: 'status' },
+          { title: 'Order ID', dataIndex: ['order', 'id'], key: 'order.id' },
+          { title: 'Total Price', dataIndex: ['order', 'totalPrice'], key: 'order.totalPrice' },
+          { title: 'Order Status', dataIndex: ['order', 'status'], key: 'order.status' },
+          { title: 'Order Date', dataIndex: ['order', 'orderDate'], key: 'order.orderDate' },
+          { title: 'Customer Name', 
+            render: (_, record) => `${record.order.user.firstName} ${record.order.user.lastName}`, 
+            key: 'customerName' 
+          },
           {
             title: 'Actions',
             render: (_, record) =>
