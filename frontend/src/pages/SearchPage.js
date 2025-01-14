@@ -4,9 +4,7 @@ import Cookies from 'js-cookie';
 import axios from 'axios';
 import {
   Layout,
-  Menu,
   Input,
-  Button,
   Badge,
   Drawer,
   Card,
@@ -18,14 +16,8 @@ import {
   Slider,
   Checkbox,
 } from 'antd';
-import {
-  ShoppingCartOutlined,
-  UserOutlined,
-  SearchOutlined,
-  HeartOutlined,
-  HeartFilled,
-} from '@ant-design/icons';
-import ShoppingCart from './ShoppingCart'; // Ensure this component exists
+import { ShoppingCartOutlined, SearchOutlined } from '@ant-design/icons';
+import ShoppingCart from './ShoppingCart';
 import newLogo from '../assets/BeyazEvim_new_logo.jpeg';
 
 const { Header, Sider, Content } = Layout;
@@ -38,10 +30,10 @@ const SearchPage = () => {
 
   // State Variables
   const [products, setProducts] = useState([]);
-  const [brands, setBrands] = useState([]);
+  const [filteredProducts, setFilteredProducts] = useState([]); // Filtrelenmiş ürünler
+  const [brands, setBrands] = useState([]); // Dinamik olarak ürünlerden çıkarılan markalar
   const [isCartVisible, setIsCartVisible] = useState(false);
   const [cartNum, setCartNum] = useState(parseInt(Cookies.get('cartNum')) || 0);
-  const [userName, setUserName] = useState(Cookies.get('userName') || '');
   const [sortOption, setSortOption] = useState('default');
   const [searchQuery, setSearchQuery] = useState('');
   const [priceRange, setPriceRange] = useState([0, 1000]);
@@ -54,39 +46,16 @@ const SearchPage = () => {
   useEffect(() => {
     const token = Cookies.get('authToken');
     const userId = Cookies.get('userId');
-    const userName = Cookies.get('userName');
 
     if (token && userId) {
-      setUserName(userName);
       fetchCart(userId);
     }
 
-    fetchBrands();
-  }, []);
-
-  useEffect(() => {
-    setSearchQuery(searchString);
-    if (searchString.trim()) {
-      setLoading(true);
-      setError(null);
-
-      axios
-        .get(`/api/product-models/search/${encodeURIComponent(searchString.trim())}`)
-        .then((response) => {
-          setProducts(response.data);
-        })
-        .catch((error) => {
-          console.error('Error fetching search results:', error);
-          setError('Unable to fetch search results.');
-        })
-        .finally(() => setLoading(false));
-    } else {
-      setProducts([]);
-    }
+    fetchProducts(searchString); // Ürünleri getir ve markaları çıkart
   }, [searchString]);
 
   useEffect(() => {
-    applyFilters();
+    applyFilters(); // Fiyat, marka ve sıralamaya göre filtreleme uygula
   }, [priceRange, selectedBrands, sortOption]);
 
   const fetchCart = (userId) => {
@@ -96,51 +65,62 @@ const SearchPage = () => {
         const { id, orderItems, totalPrice } = response.data;
         Cookies.set('cartId', id, { expires: 7 });
         setCartNum(orderItems.length);
-        Cookies.set('cartNum', orderItems.length, { expires: 7 });
-        Cookies.set('totalPrice', totalPrice, { expires: 7 });
       })
       .catch((error) => console.error('Error fetching cart:', error));
   };
 
-  const fetchBrands = () => {
+  const fetchProducts = (query) => {
+    if (!query.trim()) {
+      setProducts([]);
+      setBrands([]);
+      return;
+    }
+
+    setLoading(true);
     axios
-      .get(`/api/categories/${categoryId}/productModels`)
+      .get(`/api/product-models/search/${encodeURIComponent(query.trim())}`)
       .then((response) => {
-        const { brands, productModels } = response.data; // Extract both brands and product models
-        setBrands(brands || []); // Ensure brands array is not null
-        setProducts(productModels || []); // Update products as well
+        const products = response.data;
+
+        // Markaları dinamik olarak ürünlerden çıkar
+        const uniqueBrands = [...new Set(products.map((product) => product.brand))];
+        setBrands(uniqueBrands);
+
+        setProducts(products);
+        setFilteredProducts(products); // Tüm ürünleri başlangıçta filtrelenmiş ürünler olarak ayarla
       })
       .catch((error) => {
-        console.error('Error fetching brands and products:', error);
-      });
+        console.error('Error fetching products:', error);
+        setError('Unable to fetch search results.');
+      })
+      .finally(() => setLoading(false));
   };
-  
 
   const applyFilters = () => {
-    let filteredProducts = products.filter(
+    let filtered = products.filter(
       (product) =>
         product.price >= priceRange[0] &&
         product.price <= priceRange[1] &&
-        (selectedBrands.length === 0 || selectedBrands.includes(product.brand))
+        (selectedBrands.length === 0 || selectedBrands.includes(product.brand)) // Marka filtreleme
     );
 
     switch (sortOption) {
       case 'alphabetical':
-        filteredProducts.sort((a, b) =>
+        filtered.sort((a, b) =>
           a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
         );
         break;
       case 'priceLowToHigh':
-        filteredProducts.sort((a, b) => a.price - b.price);
+        filtered.sort((a, b) => a.price - b.price);
         break;
       case 'priceHighToLow':
-        filteredProducts.sort((a, b) => b.price - a.price);
+        filtered.sort((a, b) => b.price - a.price);
         break;
       default:
         break;
     }
 
-    setProducts(filteredProducts);
+    setFilteredProducts(filtered); // Filtrelenmiş ürünleri güncelle
   };
 
   const handleSearchSubmit = (e) => {
@@ -152,17 +132,12 @@ const SearchPage = () => {
     navigate(`/search?searchString=${encodeURIComponent(searchQuery.trim())}`);
   };
 
-  const handleCartClick = () => {
-    setIsCartVisible(true);
-  };
-
   const handleProductClick = (productId) => {
     navigate(`/product/${productId}`);
   };
 
   return (
     <Layout>
-      {/* Sidebar */}
       <Sider width={250} style={{ background: '#fff' }}>
         <div style={{ textAlign: 'center', padding: '20px' }}>
           <img
@@ -209,17 +184,8 @@ const SearchPage = () => {
         </div>
       </Sider>
 
-      {/* Main Layout */}
       <Layout>
-        <Header
-          style={{
-            background: '#001529',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-          }}
-        >
-          {/* Search Form */}
+        <Header style={{ background: '#001529', display: 'flex', justifyContent: 'space-between' }}>
           <form onSubmit={handleSearchSubmit} style={{ display: 'flex', width: '50%' }}>
             <Input
               placeholder="What are you looking for?"
@@ -233,19 +199,15 @@ const SearchPage = () => {
                 marginBottom: '5px',
                 borderRadius: '5px',
               }}
-              onPressEnter={handleSearchSubmit}
             />
           </form>
 
-          {/* Cart and User */}
-          <div>
-            <Badge count={cartNum}>
-              <ShoppingCartOutlined
-                onClick={handleCartClick}
-                style={{ fontSize: '24px', cursor: 'pointer', color: 'white', marginLeft: '20px' }}
-              />
-            </Badge>
-          </div>
+          <Badge count={cartNum}>
+            <ShoppingCartOutlined
+              onClick={() => setIsCartVisible(true)}
+              style={{ fontSize: '24px', cursor: 'pointer', color: 'white' }}
+            />
+          </Badge>
         </Header>
 
         <Content style={{ padding: '20px' }}>
@@ -253,9 +215,9 @@ const SearchPage = () => {
             <Text>Loading...</Text>
           ) : error ? (
             <Text type="danger">{error}</Text>
-          ) : products.length > 0 ? (
+          ) : filteredProducts.length > 0 ? ( // Filtrelenmiş ürünleri göster
             <Row gutter={[16, 16]}>
-              {products.map((product) => (
+              {filteredProducts.map((product) => (
                 <Col key={product.id} xs={24} sm={12} md={8} lg={6}>
                   <Card
                     hoverable
