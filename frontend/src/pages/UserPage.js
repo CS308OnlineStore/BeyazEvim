@@ -106,8 +106,19 @@ const UserPage = () => {
         // Fetch refund requests
         const returnsResponse = await axios.get(`/api/refund-requests/user/${userId}`);
 
-        setReturns(returnsResponse.data);
-        setFilteredReturns(returnsResponse.data);
+        const returnsData = returnsResponse.data;
+        const enrichedReturns = await Promise.all(
+          returnsData.map(async (returnItem) => {
+            const productResponse = await axios.get(`/api/product-models/${returnItem.productModelId}`);
+            return {
+              ...returnItem,
+              product: productResponse.data, // Add product info here
+            };
+          })
+        );
+
+        setReturns(enrichedReturns);
+        setFilteredReturns(enrichedReturns);
       } catch (err) {
         console.error('API Error:', err);
         if (err.response && err.response.data && err.response.data.message) {
@@ -399,6 +410,7 @@ const UserPage = () => {
               <Option value="PURCHASED">Purchased</Option>
               <Option value="SHIPPED">Shipped</Option>
               <Option value="DELIVERED">Delivered</Option>
+              <Option value="CANCELED">Canceled</Option>
             </Select>
             <List
               grid={{ gutter: 16, column: 2 }}
@@ -515,11 +527,24 @@ const UserPage = () => {
                       boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
                     }}
                   >
-                    <Space direction="vertical">
-                      <Text strong>Status:</Text>
-                      <Text>{request.status}</Text>
-                      <Text strong>Total:</Text>
-                      <Text>₺{request.amount}</Text>
+                    <Space direction="horizontal">
+                      <Space>
+                        <Image
+                          alt={request.product.name}
+                          src={request.product.image_path}
+                          width={200}
+                          height={200}
+                          preview
+                        />
+                      </Space>
+                      <Space direction='vertical'>
+                        <Text strong>Product Name:</Text>
+                        <Text>{request.product.name}</Text>
+                        <Text strong>Price:</Text>
+                        <Text>₺{request.product.price}</Text>
+                        <Text strong>Status:</Text>
+                        <Text>{request.status}</Text>
+                      </Space>
                     </Space>
                   </Card>
                 </List.Item>
