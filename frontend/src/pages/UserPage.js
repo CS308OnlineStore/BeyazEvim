@@ -176,9 +176,8 @@ const UserPage = () => {
     try {
       const response = await axios.put(
         `/api/users/${userId}/address`,
-        { newAddress: userInfo.address }, // Ensure this is a plain string
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+         userInfo.address, 
+        {headers:{'Content-Type':'text/plain',},});
 
       // Handle the response appropriately
       // Check if response.data.address is a JSON string
