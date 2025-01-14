@@ -15,6 +15,8 @@ import {
   Col,
   Divider,
   Select,
+  Slider,
+  Checkbox,
 } from 'antd';
 import {
   ShoppingCartOutlined,
@@ -36,13 +38,14 @@ const SearchPage = () => {
 
   // State Variables
   const [products, setProducts] = useState([]);
-  const [categories, setCategories] = useState([]);
+  const [brands, setBrands] = useState([]);
   const [isCartVisible, setIsCartVisible] = useState(false);
   const [cartNum, setCartNum] = useState(parseInt(Cookies.get('cartNum')) || 0);
   const [userName, setUserName] = useState(Cookies.get('userName') || '');
   const [sortOption, setSortOption] = useState('default');
   const [searchQuery, setSearchQuery] = useState('');
-  const [isHeartHovered, setIsHeartHovered] = useState(false);
+  const [priceRange, setPriceRange] = useState([0, 1000]);
+  const [selectedBrands, setSelectedBrands] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -58,7 +61,7 @@ const SearchPage = () => {
       fetchCart(userId);
     }
 
-    fetchCategories();
+    fetchBrands();
   }, []);
 
   useEffect(() => {
@@ -83,26 +86,8 @@ const SearchPage = () => {
   }, [searchString]);
 
   useEffect(() => {
-    if (products.length > 0) {
-      let sortedProducts = [...products];
-      switch (sortOption) {
-        case 'popularity':
-          sortedProducts.sort((a, b) => b.popularity - a.popularity);
-          break;
-        case 'alphabetical':
-          sortedProducts.sort((a, b) =>
-            a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
-          );
-          break;
-        case 'price':
-          sortedProducts.sort((a, b) => a.price - b.price);
-          break;
-        default:
-          break;
-      }
-      setProducts(sortedProducts);
-    }
-  }, [sortOption, products]);
+    applyFilters();
+  }, [priceRange, selectedBrands, sortOption]);
 
   const fetchCart = (userId) => {
     axios
@@ -117,11 +102,38 @@ const SearchPage = () => {
       .catch((error) => console.error('Error fetching cart:', error));
   };
 
-  const fetchCategories = () => {
+  const fetchBrands = () => {
     axios
-      .get('/api/categories/root')
-      .then((response) => setCategories(response.data))
-      .catch((error) => console.error('Error fetching categories:', error));
+      .get('/api/brands')
+      .then((response) => setBrands(response.data))
+      .catch((error) => console.error('Error fetching brands:', error));
+  };
+
+  const applyFilters = () => {
+    let filteredProducts = products.filter(
+      (product) =>
+        product.price >= priceRange[0] &&
+        product.price <= priceRange[1] &&
+        (selectedBrands.length === 0 || selectedBrands.includes(product.brand))
+    );
+
+    switch (sortOption) {
+      case 'alphabetical':
+        filteredProducts.sort((a, b) =>
+          a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
+        );
+        break;
+      case 'priceLowToHigh':
+        filteredProducts.sort((a, b) => a.price - b.price);
+        break;
+      case 'priceHighToLow':
+        filteredProducts.sort((a, b) => b.price - a.price);
+        break;
+      default:
+        break;
+    }
+
+    setProducts(filteredProducts);
   };
 
   const handleSearchSubmit = (e) => {
@@ -131,23 +143,6 @@ const SearchPage = () => {
       return;
     }
     navigate(`/search?searchString=${encodeURIComponent(searchQuery.trim())}`);
-  };
-
-  const handleWishlistClick = () => {
-    if (userName) {
-      navigate('/wishlist');
-    } else {
-      alert('Please log in to access your wishlist!');
-      navigate('/signinsignup');
-    }
-  };
-
-  const handleUserPageClick = () => {
-    navigate('/userpage');
-  };
-
-  const handleLoginClick = () => {
-    navigate('/signinsignup');
   };
 
   const handleCartClick = () => {
@@ -170,24 +165,41 @@ const SearchPage = () => {
             onClick={() => navigate('/')}
           />
         </div>
-        <Menu mode="inline" defaultSelectedKeys={[]}>
-          <Menu.ItemGroup title="Filtreler">
-            {categories.map((category) => (
-              <Menu.SubMenu key={category.id} title={category.categoryName}>
-                {category.subCategories
-                  .filter((subcategory) => subcategory.active)
-                  .map((subcategory) => (
-                    <Menu.Item
-                      key={subcategory.id}
-                      onClick={() => navigate(`/category/${subcategory.id}`)}
-                    >
-                      {subcategory.categoryName}
-                    </Menu.Item>
-                  ))}
-              </Menu.SubMenu>
-            ))}
-          </Menu.ItemGroup>
-        </Menu>
+        <div style={{ padding: '20px' }}>
+          <Title level={4}>Filter by Price</Title>
+          <Slider
+            range
+            min={0}
+            max={1000}
+            step={10}
+            value={priceRange}
+            onChange={(value) => setPriceRange(value)}
+            marks={{ 0: '₺0', 1000: '₺1000' }}
+          />
+
+          <Divider />
+
+          <Title level={4}>Filter by Brand</Title>
+          <Checkbox.Group
+            options={brands.map((brand) => ({ label: brand.name, value: brand.name }))}
+            value={selectedBrands}
+            onChange={(checkedValues) => setSelectedBrands(checkedValues)}
+          />
+
+          <Divider />
+
+          <Title level={4}>Sort By</Title>
+          <Select
+            value={sortOption}
+            onChange={(value) => setSortOption(value)}
+            style={{ width: '100%' }}
+          >
+            <Option value="default">Default</Option>
+            <Option value="alphabetical">Alphabetical</Option>
+            <Option value="priceLowToHigh">Price: Low to High</Option>
+            <Option value="priceHighToLow">Price: High to Low</Option>
+          </Select>
+        </div>
       </Sider>
 
       {/* Main Layout */}
@@ -218,136 +230,38 @@ const SearchPage = () => {
             />
           </form>
 
-          {/* User and Cart Icons */}
+          {/* Cart and User */}
           <div>
-            {userName ? (
-              <Button
-                type="link"
-                icon={<UserOutlined />}
-                onClick={handleUserPageClick}
-                style={{ color: 'white' }}
-              >
-                {userName}
-              </Button>
-            ) : (
-              <Button type="primary" onClick={handleLoginClick}>
-                Login
-              </Button>
-            )}
-            <span
-              onMouseEnter={() => setIsHeartHovered(true)}
-              onMouseLeave={() => setIsHeartHovered(false)}
-              onClick={handleWishlistClick}
-              style={{ marginLeft: '20px', cursor: 'pointer', fontSize: '24px', color: 'white' }}
-            >
-              {isHeartHovered ? <HeartFilled /> : <HeartOutlined />}
-            </span>
             <Badge count={cartNum}>
               <ShoppingCartOutlined
                 onClick={handleCartClick}
-                style={{
-                  fontSize: '24px',
-                  cursor: 'pointer',
-                  color: 'white',
-                  marginLeft: '20px',
-                }}
+                style={{ fontSize: '24px', cursor: 'pointer', color: 'white', marginLeft: '20px' }}
               />
             </Badge>
           </div>
         </Header>
 
         <Content style={{ padding: '20px' }}>
-          <Row justify="space-between" align="middle" style={{ marginBottom: '20px' }}>
-            <Title level={4}>Sort:</Title>
-            <Select
-              value={sortOption}
-              onChange={(value) => setSortOption(value)}
-              style={{ width: 200 }}
-            >
-              <Option value="default">Default</Option>
-              <Option value="popularity">Popularity</Option>
-              <Option value="alphabetical">Alphabetical</Option>
-              <Option value="price">Price</Option>
-            </Select>
-          </Row>
-
-          {searchString.trim() ? (
-            <>
-              <Title level={3} style={{ marginBottom: '20px' }}>
-                Search results for "{searchString}"
-              </Title>
-              {loading && <Text>Loading...</Text>}
-              {error && <Text type="danger">{error}</Text>}
-              <Row gutter={[16, 16]}>
-                {products.length > 0 ? (
-                  products.map((product) => (
-                    <Col key={product.id} xs={24} sm={12} md={8} lg={6}>
-                      <Card
-                        hoverable
-                        style={{
-                          height: '350px',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          justifyContent: 'space-between',
-                        }}
-                        cover={
-                          <div
-                            style={{
-                              overflow: 'hidden',
-                              display: 'flex',
-                              justifyContent: 'center',
-                              alignItems: 'center',
-                              height: '150px',
-                            }}
-                          >
-                            <img
-                              alt={product.name}
-                              src={product.image_path || 'https://via.placeholder.com/150'}
-                              style={{
-                                width: '150px',
-                                height: '150px',
-                                objectFit: 'cover',
-                                borderRadius: '8px',
-                                transition: 'transform 0.3s ease',
-                              }}
-                              onMouseEnter={(e) => (e.currentTarget.style.transform = 'scale(1.2)')}
-                              onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
-                            />
-                          </div>
-                        }
-                        onClick={() => handleProductClick(product.id)}
-                      >
-                        <Card.Meta
-                          title={product.name}
-                          description={
-                            <div
-                              style={{
-                                height: '50px',
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
-                                display: '-webkit-box',
-                                WebkitLineClamp: 2,
-                                WebkitBoxOrient: 'vertical',
-                              }}
-                            >
-                              {product.description}
-                            </div>
-                          }
-                        />
-                        <Divider />
-                        <Text strong>
-                          {product.stockCount > 0 ? `₺${product.price}` : 'OUT OF STOCK'}
-                        </Text>
-                      </Card>
-                    </Col>
-                  ))
-                ) : (
-                  !loading && <Text>No products found for your search.</Text>
-                )}
-              </Row>
-            </>
+          {loading ? (
+            <Text>Loading...</Text>
+          ) : error ? (
+            <Text type="danger">{error}</Text>
+          ) : products.length > 0 ? (
+            <Row gutter={[16, 16]}>
+              {products.map((product) => (
+                <Col key={product.id} xs={24} sm={12} md={8} lg={6}>
+                  <Card
+                    hoverable
+                    onClick={() => handleProductClick(product.id)}
+                    cover={<img alt={product.name} src={product.image_path || 'https://via.placeholder.com/150'} />}
+                  >
+                    <Card.Meta title={product.name} description={`₺${product.price}`} />
+                  </Card>
+                </Col>
+              ))}
+            </Row>
           ) : (
-            <Title level={3}>Enter a search term to see results.</Title>
+            <Text>No products found.</Text>
           )}
         </Content>
 
