@@ -104,10 +104,17 @@ const SearchPage = () => {
 
   const fetchBrands = () => {
     axios
-      .get('/api/brands')
-      .then((response) => setBrands(response.data))
-      .catch((error) => console.error('Error fetching brands:', error));
+      .get(`/api/categories/${categoryId}/productModels`)
+      .then((response) => {
+        const { brands, productModels } = response.data; // Extract both brands and product models
+        setBrands(brands || []); // Ensure brands array is not null
+        setProducts(productModels || []); // Update products as well
+      })
+      .catch((error) => {
+        console.error('Error fetching brands and products:', error);
+      });
   };
+  
 
   const applyFilters = () => {
     let filteredProducts = products.filter(
@@ -181,7 +188,7 @@ const SearchPage = () => {
 
           <Title level={4}>Filter by Brand</Title>
           <Checkbox.Group
-            options={brands.map((brand) => ({ label: brand.name, value: brand.name }))}
+            options={brands.map((brand) => ({ label: brand, value: brand }))}
             value={selectedBrands}
             onChange={(checkedValues) => setSelectedBrands(checkedValues)}
           />
