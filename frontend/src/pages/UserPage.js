@@ -165,9 +165,13 @@ const UserPage = () => {
       message.success('Refund request submitted successfully.');
       
     } catch (error) {
-      console.error('Refund Request Error:', error);
       if (error.response && error.response.data && error.response.data.message) {
-        message.error(`Refund Request Failed: ${error.response.data.message}`);
+        // Check for the specific error message from the backend related to the 30-day rule
+        if (error.response.data.message.includes("30")) {
+          message.error('You cannot refund an item purchased more than 30 days ago.');
+        } else {
+          message.error(`Refund Request Failed: ${error.response.data.message}`);
+        }
       } else {
         message.error('Failed to submit refund request. Please try again.');
       }
