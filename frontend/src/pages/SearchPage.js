@@ -219,7 +219,7 @@ const SearchPage = () => {
             alignItems: 'center',
           }}
         >
-          {/* Search Form */}
+          
           <form onSubmit={handleSearchSubmit} style={{ display: 'flex', width: '50%' }}>
             <Input
               placeholder="What are you looking for?"
