@@ -50,7 +50,6 @@ const SearchPage = () => {
   const [error, setError] = useState(null);
 
   const searchString = new URLSearchParams(location.search).get('searchString') || '';
-  const categoryId = new URLSearchParams(location.search).get('categoryId') || null;
 
   useEffect(() => {
     const token = Cookies.get('authToken');
@@ -62,22 +61,19 @@ const SearchPage = () => {
       fetchCart(userId);
     }
 
-    if (categoryId) {
-      fetchProductsAndBrands(categoryId);
-    }
-  }, [categoryId]);
+    fetchBrands();
+  }, []);
 
   useEffect(() => {
     setSearchQuery(searchString);
-    if (searchString.trim() && categoryId) {
+    if (searchString.trim()) {
       setLoading(true);
       setError(null);
 
       axios
-        .get(`/api/categories/${categoryId}/productModels?searchString=${encodeURIComponent(searchString.trim())}`)
+        .get(`/api/product-models/search/${encodeURIComponent(searchString.trim())}`)
         .then((response) => {
-          setProducts(response.data.productModels);
-          setBrands(response.data.brands || []);
+          setProducts(response.data);
         })
         .catch((error) => {
           console.error('Error fetching search results:', error);
@@ -87,7 +83,7 @@ const SearchPage = () => {
     } else {
       setProducts([]);
     }
-  }, [searchString, categoryId]);
+  }, [searchString]);
 
   useEffect(() => {
     applyFilters();
@@ -106,14 +102,11 @@ const SearchPage = () => {
       .catch((error) => console.error('Error fetching cart:', error));
   };
 
-  const fetchProductsAndBrands = (categoryId) => {
+  const fetchBrands = () => {
     axios
-      .get(`/api/categories/${categoryId}/productModels`)
-      .then((response) => {
-        setProducts(response.data.productModels);
-        setBrands(response.data.brands || []);
-      })
-      .catch((error) => console.error('Error fetching products and brands:', error));
+      .get('/api/brands')
+      .then((response) => setBrands(response.data))
+      .catch((error) => console.error('Error fetching brands:', error));
   };
 
   const applyFilters = () => {
@@ -149,7 +142,7 @@ const SearchPage = () => {
       alert('Please enter a search term.');
       return;
     }
-    navigate(`/search?categoryId=${categoryId}&searchString=${encodeURIComponent(searchQuery.trim())}`);
+    navigate(`/search?searchString=${encodeURIComponent(searchQuery.trim())}`);
   };
 
   const handleCartClick = () => {
@@ -219,7 +212,7 @@ const SearchPage = () => {
             alignItems: 'center',
           }}
         >
-          
+          {/* Search Form */}
           <form onSubmit={handleSearchSubmit} style={{ display: 'flex', width: '50%' }}>
             <Input
               placeholder="What are you looking for?"
