@@ -53,7 +53,7 @@ const Wishlist = () => {
       render: (name, record) => (
         <div style={{ display: 'flex', alignItems: 'center' }}>
           <Image
-            src={record.image_path}
+            src={record.image_path === '/images/default.jpg' ? '/assets/Image_placeholder.jpg' : record.image_path} 
             alt={name}
             width={50}
             height={50}

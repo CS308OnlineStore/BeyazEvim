@@ -259,7 +259,7 @@ const MainPage = () => {
                       >
                         <img
                           alt={product.name}
-                          src={product.image_path}
+                          src={product.image_path === '/images/default.jpg' ? '/assets/Image_placeholder.jpg' : product.image_path} 
                           style={{
                             width: '150px', // Initial width
                             height: '150px', // Initial height

@@ -152,7 +152,7 @@ const ShoppingCart = ({ onClose }) => {
                 >
                   <div style={{ display: 'flex', alignItems: 'center' }}>
                     <img
-                      src={item.productModel.image_path}
+                      src={item.productModel.image_path === '/images/default.jpg' ? '/assets/Image_placeholder.jpg' : item.productModel.image_path} 
                       alt={item.productModel.name}
                       style={{
                         width: '50px',
