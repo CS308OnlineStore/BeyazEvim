@@ -386,7 +386,18 @@ const ProductPage = () => {
           <span style={{ marginLeft: '10px' }}>
             {productDetails.rating ? `${productDetails.rating}/5` : 'No rating yet'}
           </span>
-          <h2 style={{ color: '#1890ff' }}>₺{productDetails.price}</h2>
+          <h2 style={{ color: '#1890ff' }}>
+            {productDetails.discount > 0 ? (
+              <>
+                <span style={{ textDecoration: 'line-through', marginRight: '8px' }}>
+                  ₺{productDetails.price}
+                </span>
+                <span>₺{productDetails.discountedPrice}</span>
+              </>
+            ) : (
+              `₺${productDetails.price}`
+            )}
+          </h2>
           {productDetails.stockCount > 0 ? (
             <p style={{ color: 'green' }}>In Stock: {productDetails.stockCount}</p>
           ) : (
