@@ -45,23 +45,40 @@ const RefundRequestsPage = () => {
         onChange={(value) => setStatus(value)}
         style={{ width: 200, marginBottom: 16 }}
       >
+        <Option value="ALL">All</Option>
         <Option value="PENDING">Pending</Option>
         <Option value="APPROVED">Approved</Option>
         <Option value="REJECTED">Rejected</Option>
       </Select>
       <Table
-        dataSource={refundRequests}
+        dataSource={
+          status === "ALL"
+            ? refundRequests
+            : refundRequests.filter((request) => request.status === status)
+        }
         loading={loading}
         rowKey="id"
         columns={[
           { title: 'Request ID', dataIndex: 'id', key: 'id' },
-          { title: 'Order ID', dataIndex: ['order', 'id'], key: 'order.id' },
-          { title: 'Total Price', dataIndex: ['order', 'totalPrice'], key: 'order.totalPrice' },
-          { title: 'Order Status', dataIndex: ['order', 'status'], key: 'order.status' },
-          { title: 'Order Date', dataIndex: ['order', 'orderDate'], key: 'order.orderDate' },
-          { title: 'Customer Name', 
-            render: (_, record) => `${record.order.user.firstName} ${record.order.user.lastName}`, 
-            key: 'customerName' 
+          { title: 'Order ID', dataIndex: 'orderId', key: 'orderId' },
+          { title: 'Product ID', dataIndex: 'productModelId', key: 'productModelId' },
+          { title: 'Order Status', dataIndex: 'status', key: 'status' },
+          {
+            title: "Order Date",
+            dataIndex: "requestedAt",
+            key: "requestedAt",
+            render: (text) => {
+              const date = new Date(text);
+              return new Intl.DateTimeFormat("en-GB", {
+                year: "numeric",
+                month: "2-digit",
+                day: "2-digit",
+                hour: "2-digit",
+                minute: "2-digit",
+                second: "2-digit",
+                hour12: false,
+              }).format(date);
+            },
           },
           {
             title: 'Actions',
