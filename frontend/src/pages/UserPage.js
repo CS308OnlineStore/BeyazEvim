@@ -149,18 +149,12 @@ const UserPage = () => {
 
   const handleRefundOrderItem = async (orderId, productModelId) => {
     try {
-      const response = await axios.post(
+      await axios.post(
         `/api/orders/${orderId}/refund-request`, null, {
           params: {productModelId,},
       });
       message.success('Refund request submitted successfully.');
-      // Update refunds list
-      setReturns((prevReturns) => [...prevReturns, response.data]);
-      setFilteredReturns((prevFilteredReturns) =>
-        selectedReturnStatus === 'ALL'
-          ? [...prevFilteredReturns, response.data]
-          : prevFilteredReturns
-      );
+      
     } catch (error) {
       console.error('Refund Request Error:', error);
       if (error.response && error.response.data && error.response.data.message) {

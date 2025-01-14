@@ -12,7 +12,7 @@ const ViewInvoicesPage = () => {
     setLoading(true);
     try {
       const [startDate, endDate] = dates;
-      const response = await axios.get(`/api/invoices?start=${startDate}&end=${endDate}`);
+      const response = await axios.get(`/api/invoices/invoices-by-date?startDate=${startDate}&endDate=${endDate}`);
       setData(response.data);
     } catch (error) {
       notification.error({ message: 'Error', description: 'Failed to fetch invoices.' });
@@ -43,7 +43,7 @@ const ViewInvoicesPage = () => {
         loading={loading}
         columns={[
           { title: 'Order ID', dataIndex: 'orderId', key: 'orderId' },
-          { title: 'Total Amount', dataIndex: 'totalAmount', key: 'totalAmount' },
+          { title: 'Total Amount', dataIndex: 'totalPrice', key: 'totalPrice' },
           {
             title: 'Action',
             render: (_, record) => (
