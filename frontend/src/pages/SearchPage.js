@@ -23,7 +23,7 @@ import {
   HeartOutlined,
   HeartFilled,
 } from '@ant-design/icons';
-import ShoppingCart from './ShoppingCart'; // Bu bileşenin mevcut olduğundan emin olun
+import ShoppingCart from './ShoppingCart'; // Ensure this component exists
 import newLogo from '../assets/BeyazEvim_new_logo.jpeg';
 
 const { Header, Sider, Content } = Layout;
@@ -34,7 +34,7 @@ const SearchPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Durum Değişkenleri
+  // State Variables
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [isCartVisible, setIsCartVisible] = useState(false);
@@ -48,7 +48,6 @@ const SearchPage = () => {
 
   const searchString = new URLSearchParams(location.search).get('searchString') || '';
 
-  // Bileşen Yüklendiğinde Çalışacak Etkiler
   useEffect(() => {
     const token = Cookies.get('authToken');
     const userId = Cookies.get('userId');
@@ -62,7 +61,6 @@ const SearchPage = () => {
     fetchCategories();
   }, []);
 
-  // Arama Sorgusuna ve Sıralamaya Göre Ürünleri Çek
   useEffect(() => {
     setSearchQuery(searchString);
     if (searchString.trim()) {
@@ -75,8 +73,8 @@ const SearchPage = () => {
           setProducts(response.data);
         })
         .catch((error) => {
-          console.error('Arama sonuçları alınırken hata oluştu:', error);
-          setError('Arama sonuçları alınamadı.');
+          console.error('Error fetching search results:', error);
+          setError('Unable to fetch search results.');
         })
         .finally(() => setLoading(false));
     } else {
@@ -84,7 +82,6 @@ const SearchPage = () => {
     }
   }, [searchString]);
 
-  // Sıralama Seçeneğine Göre Ürünleri Sırala
   useEffect(() => {
     if (products.length > 0) {
       let sortedProducts = [...products];
@@ -107,7 +104,6 @@ const SearchPage = () => {
     }
   }, [sortOption, products]);
 
-  // Sepeti Çek
   const fetchCart = (userId) => {
     axios
       .get(`/api/orders/${userId}/cart`)
@@ -118,61 +114,53 @@ const SearchPage = () => {
         Cookies.set('cartNum', orderItems.length, { expires: 7 });
         Cookies.set('totalPrice', totalPrice, { expires: 7 });
       })
-      .catch((error) => console.error('Sepet alınırken hata oluştu:', error));
+      .catch((error) => console.error('Error fetching cart:', error));
   };
 
-  // Kategorileri Çek
   const fetchCategories = () => {
     axios
       .get('/api/categories/root')
       .then((response) => setCategories(response.data))
-      .catch((error) => console.error('Kategoriler alınırken hata oluştu:', error));
+      .catch((error) => console.error('Error fetching categories:', error));
   };
 
-  // Arama Formu Gönderme
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     if (!searchQuery.trim()) {
-      // Ant Design'ın message bileşenini kullanarak daha iyi bir kullanıcı deneyimi sağlayabilirsiniz
-      alert('Lütfen bir arama terimi girin.');
+      alert('Please enter a search term.');
       return;
     }
     navigate(`/search?searchString=${encodeURIComponent(searchQuery.trim())}`);
   };
 
-  // Favorilere Ekleme (Wishlist) Tıklaması
   const handleWishlistClick = () => {
     if (userName) {
       navigate('/wishlist');
     } else {
-      alert('Favorilere eklemeden önce giriş yapmalısınız!');
+      alert('Please log in to access your wishlist!');
       navigate('/signinsignup');
     }
   };
 
-  // Kullanıcı Sayfasına Gitme
   const handleUserPageClick = () => {
     navigate('/userpage');
   };
 
-  // Giriş Yapma
   const handleLoginClick = () => {
     navigate('/signinsignup');
   };
 
-  // Sepeti Gösterme
   const handleCartClick = () => {
     setIsCartVisible(true);
   };
 
-  // Ürüne Gitme
   const handleProductClick = (productId) => {
     navigate(`/product/${productId}`);
   };
 
   return (
     <Layout>
-      {/* Yan Menü (Sidebar) */}
+      {/* Sidebar */}
       <Sider width={250} style={{ background: '#fff' }}>
         <div style={{ textAlign: 'center', padding: '20px' }}>
           <img
@@ -183,26 +171,27 @@ const SearchPage = () => {
           />
         </div>
         <Menu mode="inline" defaultSelectedKeys={[]}>
-          {categories.map((category) => (
-            <Menu.SubMenu key={category.id} title={category.categoryName}>
-              {category.subCategories
-                .filter((subcategory) => subcategory.active)
-                .map((subcategory) => (
-                  <Menu.Item
-                    key={subcategory.id}
-                    onClick={() => navigate(`/category/${subcategory.id}`)}
-                  >
-                    {subcategory.categoryName}
-                  </Menu.Item>
-                ))}
-            </Menu.SubMenu>
-          ))}
+          <Menu.ItemGroup title="Filtreler">
+            {categories.map((category) => (
+              <Menu.SubMenu key={category.id} title={category.categoryName}>
+                {category.subCategories
+                  .filter((subcategory) => subcategory.active)
+                  .map((subcategory) => (
+                    <Menu.Item
+                      key={subcategory.id}
+                      onClick={() => navigate(`/category/${subcategory.id}`)}
+                    >
+                      {subcategory.categoryName}
+                    </Menu.Item>
+                  ))}
+              </Menu.SubMenu>
+            ))}
+          </Menu.ItemGroup>
         </Menu>
       </Sider>
 
-      {/* Ana Düzen */}
+      {/* Main Layout */}
       <Layout>
-        {/* Üst Kısım (Header) */}
         <Header
           style={{
             background: '#001529',
@@ -211,10 +200,10 @@ const SearchPage = () => {
             alignItems: 'center',
           }}
         >
-          {/* Arama Formu */}
+          {/* Search Form */}
           <form onSubmit={handleSearchSubmit} style={{ display: 'flex', width: '50%' }}>
             <Input
-              placeholder="Ne arıyorsunuz?"
+              placeholder="What are you looking for?"
               prefix={<SearchOutlined />}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -227,10 +216,9 @@ const SearchPage = () => {
               }}
               onPressEnter={handleSearchSubmit}
             />
-            {/* Arama Butonu Kaldırıldı */}
           </form>
 
-          {/* Kullanıcı ve Sepet İkonları */}
+          {/* User and Cart Icons */}
           <div>
             {userName ? (
               <Button
@@ -243,10 +231,9 @@ const SearchPage = () => {
               </Button>
             ) : (
               <Button type="primary" onClick={handleLoginClick}>
-                Giriş Yap
+                Login
               </Button>
             )}
-            {/* Favori İkonu */}
             <span
               onMouseEnter={() => setIsHeartHovered(true)}
               onMouseLeave={() => setIsHeartHovered(false)}
@@ -255,7 +242,6 @@ const SearchPage = () => {
             >
               {isHeartHovered ? <HeartFilled /> : <HeartOutlined />}
             </span>
-            {/* Sepet İkonu */}
             <Badge count={cartNum}>
               <ShoppingCartOutlined
                 onClick={handleCartClick}
@@ -270,30 +256,27 @@ const SearchPage = () => {
           </div>
         </Header>
 
-        {/* İçerik Bölümü */}
         <Content style={{ padding: '20px' }}>
-          {/* Sıralama Seçeneği */}
           <Row justify="space-between" align="middle" style={{ marginBottom: '20px' }}>
-            <Title level={4}>Sırala:</Title>
+            <Title level={4}>Sort:</Title>
             <Select
               value={sortOption}
               onChange={(value) => setSortOption(value)}
               style={{ width: 200 }}
             >
-              <Option value="default">Varsayılan</Option>
-              <Option value="popularity">Popülerlik</Option>
-              <Option value="alphabetical">Alfabetik</Option>
-              <Option value="price">Fiyat</Option>
+              <Option value="default">Default</Option>
+              <Option value="popularity">Popularity</Option>
+              <Option value="alphabetical">Alphabetical</Option>
+              <Option value="price">Price</Option>
             </Select>
           </Row>
 
-          {/* Arama Sonuçları */}
           {searchString.trim() ? (
             <>
               <Title level={3} style={{ marginBottom: '20px' }}>
-                "{searchString}" için Arama Sonuçları
+                Search results for "{searchString}"
               </Title>
-              {loading && <Text>Yükleniyor...</Text>}
+              {loading && <Text>Loading...</Text>}
               {error && <Text type="danger">{error}</Text>}
               <Row gutter={[16, 16]}>
                 {products.length > 0 ? (
@@ -353,24 +336,23 @@ const SearchPage = () => {
                         />
                         <Divider />
                         <Text strong>
-                          {product.stockCount > 0 ? `₺${product.price}` : 'STOKTA YOK'}
+                          {product.stockCount > 0 ? `₺${product.price}` : 'OUT OF STOCK'}
                         </Text>
                       </Card>
                     </Col>
                   ))
                 ) : (
-                  !loading && <Text>Aramanız için hiçbir ürün bulunamadı.</Text>
+                  !loading && <Text>No products found for your search.</Text>
                 )}
               </Row>
             </>
           ) : (
-            <Title level={3}>Arama sonuçlarını görmek için bir arama terimi girin.</Title>
+            <Title level={3}>Enter a search term to see results.</Title>
           )}
         </Content>
 
-        {/* Altta Olabilir: Sepet Çekmecesi */}
         <Drawer
-          title="Sepetiniz"
+          title="Your Cart"
           placement="right"
           onClose={() => setIsCartVisible(false)}
           visible={isCartVisible}
