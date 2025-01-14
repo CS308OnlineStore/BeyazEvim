@@ -13,6 +13,7 @@ import {
   Form,
   Select,
   notification,
+  Image,
   Badge,
   Tooltip,
 } from 'antd';
@@ -370,23 +371,21 @@ const ProductPage = () => {
 
       {/* Main Content */}
       <Content style={{ padding: '100px 50px' }}>
-        <Card
-          hoverable
-          style={{ width: '100%', maxWidth: '800px', margin: '0 auto' }}
-          cover={
-            <img
-              alt={productDetails.name}
-              src={productDetails.image_path}
-              style={{ objectFit: 'cover', height: '400px' }}
-            />
-          }
-        >
+        <Card style={{ width: '100%', maxWidth: '800px', margin: '0 auto' ,textAlign: 'center'}}>
+          
+          <Image
+            alt={productDetails.name}
+            src={productDetails.image_path}
+            style={{ width: '100%', height: '400px', objectFit: 'cover'}}
+            preview
+          />
+          
+        
           <h1>{productDetails.name}</h1>
           <Rate disabled value={productDetails.rating || 0} />
           <span style={{ marginLeft: '10px' }}>
             {productDetails.rating ? `${productDetails.rating}/5` : 'No rating yet'}
           </span>
-          <p style={{ marginTop: '20px' }}>{productDetails.description}</p>
           <h2 style={{ color: '#1890ff' }}>₺{productDetails.price}</h2>
           {productDetails.stockCount > 0 ? (
             <p style={{ color: 'green' }}>In Stock: {productDetails.stockCount}</p>
@@ -402,9 +401,15 @@ const ProductPage = () => {
                 alignItems: 'center',
                 marginTop: '20px',
                 gap: '10px',
+                justifyContent: 'center',
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center' }}>
+              <div style={{  
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center', // Centers the buttons and input within this div
+                gap: '5px',
+              }}>
                 <Button onClick={handleDecrease} disabled={count <= 1}>
                   -
                 </Button>
@@ -412,7 +417,6 @@ const ProductPage = () => {
                   style={{
                     width: '60px',
                     textAlign: 'center',
-                    margin: '0 5px',
                   }}
                   value={count}
                   readOnly
@@ -456,34 +460,36 @@ const ProductPage = () => {
           )}
         </Card>
 
+        {/* Additional Information Section */}
+        <Card title="Additional Information" style={{ marginTop: '20px' }}>
+          <p>{productDetails.description || 'Not specified'}</p>
+          <p><strong>Brand:</strong> {productDetails.brand || 'Not specified'}</p>
+          <p><strong>Color:</strong> {productDetails.color || 'Not specified'}</p>
+          <p><strong>Warranty:</strong> {productDetails.warranty || 'Not specified'}</p>
+        </Card>
+
         {/* Comments Section */}
         <div style={{ marginTop: '50px' }}>
-          <h2>
-            Total Rating:{' '}
-            {productDetails.rating ? `${productDetails.rating}/5` : 'No rating yet'}
-          </h2>
-
-          <List
-            header={<div>Comments</div>}
-            bordered
-            dataSource={comments}
-            locale={{ emptyText: 'No comments yet. Be the first to leave one!' }}
-            renderItem={(comment) => (
-              <List.Item>
-                <List.Item.Meta
-                  title={
-                    <div>
-                      <strong>User {comment.user.id}</strong>{' '}
-                      <Rate disabled defaultValue={comment.rating} style={{ fontSize: '14px' }} />
-                    </div>
-                  }
-                  description={comment.text}
-                />
-                <div>{new Date(comment.createdDate).toLocaleString()}</div>
-              </List.Item>
-            )}
-          />
-
+          <Card title="Comments" style={{ marginTop: '20px' }}>
+            <List 
+              dataSource={comments}
+              locale={{ emptyText: 'No comments yet. Be the first to leave one!' }}
+              renderItem={(comment) => (
+                <List.Item>
+                  <List.Item.Meta
+                    title={
+                      <div>
+                        <strong>User {comment.user.id}</strong>{' '}
+                        <Rate disabled defaultValue={comment.rating} style={{ fontSize: '14px' }} />
+                      </div>
+                    }
+                    description={comment.text}
+                  />
+                  <div>{new Date(comment.createdDate).toLocaleString()}</div>
+                </List.Item>
+              )}
+            />
+          </Card>
           {/* Add Comment Form */}
           <Card title="Leave a Comment" style={{ marginTop: '20px' }}>
             <Form layout="vertical">
