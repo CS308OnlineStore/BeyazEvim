@@ -293,7 +293,20 @@ const MainPage = () => {
                     />
                     <Divider />
                     <Text strong>
-                      {product.stockCount > 0 ? `₺${product.price}` : 'OUT OF STOCK'}
+                      {product.stockCount > 0 ? (
+                        product.discount > 0 ? (
+                          <>
+                            <span style={{ textDecoration: 'line-through', marginRight: '8px' }}>
+                              ₺{product.price}
+                            </span>
+                            <span>₺{product.discountedPrice}</span>
+                          </>
+                        ) : (
+                          `₺${product.price}`
+                        )
+                      ) : (
+                        'OUT OF STOCK'
+                      )}
                     </Text>
                   </Card>
                 </Col>
