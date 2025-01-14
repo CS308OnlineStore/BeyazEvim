@@ -9,6 +9,7 @@ import {
   Typography,
   Button,
   Card,
+  Image,
   message,
   Select,
   Spin,
@@ -26,6 +27,7 @@ import {
   SwapOutlined,
   CloseOutlined,
   DollarOutlined,
+  ExpandOutlined,
 } from '@ant-design/icons';
 import newLogo from '../assets/BeyazEvim_new_logo.jpeg';
 
@@ -55,6 +57,7 @@ const UserPage = () => {
     phone: false,
   });
   const [selectedMenu, setSelectedMenu] = useState('userInfo');
+  const [expandedOrder, setExpandedOrder] = useState(null);
 
   useEffect(() => {
     const token = Cookies.get('authToken');
@@ -144,14 +147,12 @@ const UserPage = () => {
     navigate('/');
   };
 
-  const handleRequestRefund = async (orderId) => {
-    const token = Cookies.get('authToken');
+  const handleRefundOrderItem = async (orderId, productModelId) => {
     try {
       const response = await axios.post(
-        '/api/refund-requests',
-        { orderId },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+        `/api/orders/${orderId}/refund-request`, null, {
+          params: {productModelId,},
+      });
       message.success('Refund request submitted successfully.');
       // Update refunds list
       setReturns((prevReturns) => [...prevReturns, response.data]);
@@ -168,6 +169,26 @@ const UserPage = () => {
         message.error('Failed to submit refund request. Please try again.');
       }
     }
+  };
+
+  const handleCancelOrder = async (orderId) => {
+    try {
+      await axios.put(`/api/orders/${orderId}/cancel`, {
+        headers: { Authorization: `Bearer ${Cookies.get('authToken')}` },
+      });
+      message.success('Order has been cancelled and deleted. Refund will be processed.');
+      const updatedOrders = orders.filter((o) => o.id !== orderId);
+      setOrders(updatedOrders);
+      setFilteredOrders(
+        selectedOrderStatus === 'ALL'
+          ? updatedOrders
+          : updatedOrders.filter((o) => o.status === selectedOrderStatus)
+      );
+    } catch (error) {
+      console.error('Error deleting order:', error);
+      message.error('Failed to cancel the order. Please try again.');
+    }
+
   };
 
   const handleSaveAddress = async () => {
@@ -395,41 +416,13 @@ const UserPage = () => {
                   <Card
                     title={`Order ID: ${order.id}`}
                     extra={
-                      order.status === 'PURCHASED' ? (
-                        <Button
-                          type="primary"
-                          danger
-                          onClick={async () => {
-                            try {
-                              await axios.put(`/api/orders/${order.id}`, {
-                                headers: { Authorization: `Bearer ${Cookies.get('authToken')}` },
-                              });
-                              message.success('Order has been cancelled and deleted. Refund will be processed.');
-                              const updatedOrders = orders.filter((o) => o.id !== order.id);
-                              setOrders(updatedOrders);
-                              setFilteredOrders(
-                                selectedOrderStatus === 'ALL'
-                                  ? updatedOrders
-                                  : updatedOrders.filter((o) => o.status === selectedOrderStatus)
-                              );
-                            } catch (error) {
-                              console.error('Error deleting order:', error);
-                              message.error('Failed to cancel the order. Please try again.');
-                            }
-                          }}
-                          icon={<CloseOutlined />}
-                        >
-                          Cancel
-                        </Button>
-                      ) : order.status === 'SHIPPED' || order.status === 'DELIVERED' ? (
-                        <Button
-                          type="primary"
-                          onClick={() => handleRequestRefund(order.id)}
-                          icon={<DollarOutlined />}
-                        >
-                          Request Refund
-                        </Button>
-                      ) : null
+                      <Button
+                        type="primary"
+                        onClick={() => setExpandedOrder((prev) => (prev === order.id ? null : order.id))}
+                        icon={<ExpandOutlined />}
+                      >
+                        Expand Order
+                      </Button>
                     }
                     style={{
                       backgroundColor: '#fafafa',
@@ -437,11 +430,58 @@ const UserPage = () => {
                       boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
                     }}
                   >
-                    <Space direction="vertical">
+                    <Space direction="vertical" style={{ width: '100%' }}>
                       <Text strong>Status:</Text>
                       <Text>{order.status}</Text>
                       <Text strong>Total:</Text>
                       <Text>₺{order.totalPrice}</Text>
+                      {expandedOrder === order.id && (
+                        <>
+                          <List
+                            dataSource={order.orderItems}
+                            renderItem={(item) => (
+                              <List.Item>
+                                <Space>
+                                  <Image
+                                    src={item.productModel.image_path}
+                                    alt={item.productModel.name}
+                                    style={{
+                                      width: 50,
+                                      height: 50,
+                                      objectFit: 'cover',
+                                      borderRadius: 4,
+                                    }}
+                                    preview
+                                  />
+                                  
+                                  <Text>{item.productModel.name}</Text>
+                                  <Text>{item.quantity}x ₺{item.unitPrice}</Text>
+                                  
+                                  {order.status === 'DELIVERED' && (
+                                    <Button
+                                      type="primary"
+                                      danger
+                                      onClick={() => handleRefundOrderItem(order.id, item.productModel.id)}
+                                    >
+                                      Request Refund
+                                    </Button>
+                                  )}
+                                </Space>
+                              </List.Item>
+                            )}
+                          />
+                          {order.status === 'PURCHASED' && (
+                            <Button
+                              type="primary"
+                              danger
+                              onClick={() => handleCancelOrder(order.id)}
+                              style={{ marginTop: '16px', alignSelf: 'flex-end' }}
+                            >
+                              Cancel Order
+                            </Button>
+                          )}
+                        </>
+                      )}
                     </Space>
                   </Card>
                 </List.Item>
