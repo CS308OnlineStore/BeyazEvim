@@ -50,6 +50,7 @@ const SearchPage = () => {
   const [error, setError] = useState(null);
 
   const searchString = new URLSearchParams(location.search).get('searchString') || '';
+  const categoryId = new URLSearchParams(location.search).get('categoryId') || null;
 
   useEffect(() => {
     const token = Cookies.get('authToken');
@@ -61,19 +62,22 @@ const SearchPage = () => {
       fetchCart(userId);
     }
 
-    fetchBrands();
-  }, []);
+    if (categoryId) {
+      fetchProductsAndBrands(categoryId);
+    }
+  }, [categoryId]);
 
   useEffect(() => {
     setSearchQuery(searchString);
-    if (searchString.trim()) {
+    if (searchString.trim() && categoryId) {
       setLoading(true);
       setError(null);
 
       axios
-        .get(`/api/product-models/search/${encodeURIComponent(searchString.trim())}`)
+        .get(`/api/categories/${categoryId}/productModels?searchString=${encodeURIComponent(searchString.trim())}`)
         .then((response) => {
-          setProducts(response.data);
+          setProducts(response.data.productModels);
+          setBrands(response.data.brands || []);
         })
         .catch((error) => {
           console.error('Error fetching search results:', error);
@@ -83,7 +87,7 @@ const SearchPage = () => {
     } else {
       setProducts([]);
     }
-  }, [searchString]);
+  }, [searchString, categoryId]);
 
   useEffect(() => {
     applyFilters();
@@ -102,11 +106,14 @@ const SearchPage = () => {
       .catch((error) => console.error('Error fetching cart:', error));
   };
 
-  const fetchBrands = () => {
+  const fetchProductsAndBrands = (categoryId) => {
     axios
-      .get('/api/brands')
-      .then((response) => setBrands(response.data))
-      .catch((error) => console.error('Error fetching brands:', error));
+      .get(`/api/categories/${categoryId}/productModels`)
+      .then((response) => {
+        setProducts(response.data.productModels);
+        setBrands(response.data.brands || []);
+      })
+      .catch((error) => console.error('Error fetching products and brands:', error));
   };
 
   const applyFilters = () => {
@@ -142,7 +149,7 @@ const SearchPage = () => {
       alert('Please enter a search term.');
       return;
     }
-    navigate(`/search?searchString=${encodeURIComponent(searchQuery.trim())}`);
+    navigate(`/search?categoryId=${categoryId}&searchString=${encodeURIComponent(searchQuery.trim())}`);
   };
 
   const handleCartClick = () => {
