@@ -5,8 +5,9 @@ import axios from 'axios';
 import Cookies from 'js-cookie';
 import PaymentForm from './MockPaymentForm';
 import Modal from './Modal';
+import { notification } from 'antd';
 
-const ShoppingCart = ({onClose}) => {
+const ShoppingCart = ({ onClose }) => {
   const [cartItems, setCartItems] = useState([]);
   const [totalPrice, setTotalPrice] = useState(0);
   const [cartUpdated, setCartUpdated] = useState(false);
@@ -14,21 +15,29 @@ const ShoppingCart = ({onClose}) => {
 
   const navigate = useNavigate();
   const userId = Cookies.get('userId');
-   
+
+  const openNotificationWithIcon = (type, message, description) => {
+    notification[type]({
+      message,
+      description,
+      placement: 'topRight',
+    });
+  };
+
   useEffect(() => {
-    if (userId){
-      axios.get(`/api/orders/${userId}/cart`)
-        .then(response => {
+    if (userId) {
+      axios
+        .get(`/api/orders/${userId}/cart`)
+        .then((response) => {
           const { orderItems, totalPrice } = response.data;
           setCartItems(orderItems);
           setTotalPrice(totalPrice);
         })
-        .catch(error => {
+        .catch((error) => {
           console.error('Error fetching cart data:', error);
         });
-    }
-    else {
-      const nonUserEmptyCart = { items: [], totalPrice: 0 };  
+    } else {
+      const nonUserEmptyCart = { items: [], totalPrice: 0 };
       const nonUserCart = JSON.parse(localStorage.getItem('cart')) || nonUserEmptyCart;
       setCartItems(nonUserCart.items);
       setTotalPrice(nonUserCart.totalPrice);
@@ -37,61 +46,75 @@ const ShoppingCart = ({onClose}) => {
 
   const handleRemoveItem = (itemId) => {
     const cartId = Cookies.get('cartId');
-    if (cartId){
-      axios.post(`/api/order-items/remove?orderId=${cartId}&productModelId=${itemId}`)
-        .then(response => {
+    if (cartId) {
+      axios
+        .post(`/api/order-items/remove?orderId=${cartId}&productModelId=${itemId}`)
+        .then((response) => {
           if (response.status === 200) {
-            setCartUpdated(prev => !prev);
+            setCartUpdated((prev) => !prev);
+          } else {
+            openNotificationWithIcon('error', 'Error', 'Failed to remove item from cart!');
           }
-          else { alert("Failed to remove item from cart!"); }
         })
-        .catch(error => {
+        .catch((error) => {
           console.error('Error fetching cart data:', error);
+          openNotificationWithIcon('error', 'Error', 'An error occurred while removing the item.');
         });
-    }
-    else {
-      const nonUserEmptyCart = { items: [], totalPrice: 0 };  
+    } else {
+      const nonUserEmptyCart = { items: [], totalPrice: 0 };
       const nonUserCart = JSON.parse(localStorage.getItem('cart')) || nonUserEmptyCart;
-      for ( let i=0; i<cartItems.length; i++ ) {
-        if ( itemId === cartItems[i].productModel.id ){      
-          if ( cartItems[i].quantity === 1 ) {
-            nonUserCart.totalPrice -= ( cartItems[i].productModel.price );
+      for (let i = 0; i < cartItems.length; i++) {
+        if (itemId === cartItems[i].productModel.id) {
+          if (cartItems[i].quantity === 1) {
+            nonUserCart.totalPrice -= cartItems[i].productModel.price;
             nonUserCart.items.splice(i, 1);
-            setCartUpdated(prev => !prev);
-            break; 
-          }
-          else {
-            nonUserCart.totalPrice -= ( cartItems[i].productModel.price );
-            nonUserCart.items[i].quantity -= 1;
-            setCartUpdated(prev => !prev);
+            setCartUpdated((prev) => !prev);
             break;
-          }    
+          } else {
+            nonUserCart.totalPrice -= cartItems[i].productModel.price;
+            nonUserCart.items[i].quantity -= 1;
+            setCartUpdated((prev) => !prev);
+            break;
+          }
         }
-      };
+      }
       localStorage.setItem('cart', JSON.stringify(nonUserCart));
     }
   };
 
   const handleCompleteOrder = () => {
     if (!userId) {
-      alert("SignUp or Login to complete order!")
+      openNotificationWithIcon('warning', 'Login Required', 'Sign up or log in to complete your order!');
       navigate('/signinsignup');
     } else {
-      axios.get(`/api/users/${userId}/address`)
-        .then(response => {
-          if (response.data.newAddress) {
-            setShowPaymentModal(true);
-          } else {
-            alert("Add address to complete order!");
-            navigate('/userpage');
-          }
-        })
+      axios.get(`/api/users/${userId}/address`).then((response) => {
+        if (response.data.newAddress) {
+          setShowPaymentModal(true);
+        } else {
+          openNotificationWithIcon('info', 'Address Required', 'Please add an address to complete your order!');
+          navigate('/userpage');
+        }
+      });
     }
   };
 
   return (
-    <div style={{ border: '1px solid #ccc', borderRadius: '5px', padding: '15px', backgroundColor: '#f9f9f9' }}>
-      <h2 style={{ borderBottom: '1px solid #ccc', paddingBottom: '10px', marginBottom: '15px', fontSize: '18px' }}>
+    <div
+      style={{
+        border: '1px solid #ccc',
+        borderRadius: '5px',
+        padding: '15px',
+        backgroundColor: '#f9f9f9',
+      }}
+    >
+      <h2
+        style={{
+          borderBottom: '1px solid #ccc',
+          paddingBottom: '10px',
+          marginBottom: '15px',
+          fontSize: '18px',
+        }}
+      >
         My Cart
       </h2>
       {cartItems.length === 0 ? (
@@ -118,13 +141,15 @@ const ShoppingCart = ({onClose}) => {
           <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
             {cartItems.map((item, index) => (
               <li
-                key={ item.productModel.id }
+                key={item.productModel.id}
                 style={{
                   padding: '15px 0',
                   borderBottom: index !== cartItems.length - 1 ? '1px solid #ccc' : 'none',
                 }}
               >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div
+                  style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                >
                   <div style={{ display: 'flex', alignItems: 'center' }}>
                     <img
                       src={item.productModel.image_path}
@@ -138,8 +163,12 @@ const ShoppingCart = ({onClose}) => {
                       }}
                     />
                     <div>
-                      <strong>{ item.productModel.name }</strong>
-                      <p style={{ margin: '5px 0', fontSize: '14px', color: '#666' }}>{item.quantity} x {item.productModel.price}₺</p>
+                      <strong>{item.productModel.name}</strong>
+                      <p
+                        style={{ margin: '5px 0', fontSize: '14px', color: '#666' }}
+                      >
+                        {item.quantity} x {item.productModel.price}₺
+                      </p>
                     </div>
                   </div>
                   <button
@@ -158,7 +187,14 @@ const ShoppingCart = ({onClose}) => {
               </li>
             ))}
           </ul>
-          <div style={{ borderTop: '1px solid #ccc', paddingTop: '15px', marginTop: '15px', textAlign: 'left' }}>
+          <div
+            style={{
+              borderTop: '1px solid #ccc',
+              paddingTop: '15px',
+              marginTop: '15px',
+              textAlign: 'left',
+            }}
+          >
             <p style={{ margin: 0, fontSize: '16px', color: '#666' }}>Total</p>
             <h3 style={{ margin: 0, fontWeight: 'bold', fontSize: '20px' }}>{totalPrice}₺</h3>
           </div>
