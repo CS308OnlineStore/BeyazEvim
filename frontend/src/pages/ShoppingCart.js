@@ -88,7 +88,7 @@ const ShoppingCart = ({ onClose }) => {
       navigate('/signinsignup');
     } else {
       axios.get(`/api/users/${userId}/address`).then((response) => {
-        if (response.data.address) {
+        if (response.data) {
           setShowPaymentModal(true);
         } else {
           openNotificationWithIcon('info', 'Address Required', 'Please add an address to complete your order!');
